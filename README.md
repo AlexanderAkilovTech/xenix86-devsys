@@ -20,8 +20,11 @@ Development and testing happen in 86Box on an emulated XT.
 - [x] Program ABI reverse-engineered and documented, see [ABI.md](ABI.md)
 - [x] Milestone 1: project-built `hello, world` runs on XENIX, both as a directly
       generated x.out executable and as an OMF object linked by SCO's native `ld`
-- [ ] crt0 startup and the first pieces of libc
-- [ ] C compiler (K&R), cross-built first, then self-hosting on XENIX
+- [x] Milestone 2: a K&R C program compiled with BCC and linked against this
+      project's own crt0, system call stubs and libc runs on XENIX (argv, environment,
+      printf, exit status)
+- [ ] C compiler (K&R) running natively on XENIX (cross-compiling with BCC works today)
+- [ ] Rest of libc: stdio (FILE, fopen ...), malloc, long arithmetic, time, signals
 - [ ] Assembler, `ar`, `nm`, `size`, `strip`, `make`, `lex`/`yacc`, debugger
 - [ ] Standard C headers (`stdio.h` and friends)
 - [ ] Packaging as an installable `custom` set (the SOFT package)
@@ -33,7 +36,17 @@ Development and testing happen in 86Box on an emulated XT.
     tools/omf.py    writes Intel OMF object modules that SCO's ld accepts
     tools/xout.py   writes XENIX x.out executables directly
     tools/crt.py    the text reserved block and data header XENIX expects
+    tools/gensys.py generates the system call stubs (lib/sys.s)
+    tools/aout2xout.py  converts ld86 output into a XENIX x.out executable
+    lib/            crt0, system call stubs, runtime helpers and libc
+    build.sh        builds the runtime and a C program: ./build.sh prog.c
     tests/          the test programs from each round of experiments
+
+## Building a C program
+
+Install BCC and the 8086 binutils (on Debian/Ubuntu: `apt install bcc bin86`), then:
+
+    ./build.sh tests/m9.c        # produces build/m9, a XENIX executable
 
 ## Running the tests
 
