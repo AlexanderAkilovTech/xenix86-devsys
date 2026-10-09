@@ -5,7 +5,7 @@ Second result word (for long or paired results) comes back in BX."""
 # name: (V7 call number, argument count)
 CALLS = {
     '_exit': (1, 1), 'read': (3, 3), 'write': (4, 3), 'open': (5, 2), 'close': (6, 1),
-    'creat': (8, 2), 'link': (9, 2), 'unlink': (10, 1), 'chdir': (12, 1), 'chmod': (15, 2),
+    'creat': (8, 2), 'link': (9, 2), 'unlink': (10, 1), 'chdir': (12, 1), 'chmod': (15, 2), 'brk': (17, 1),
     'lseek': (19, 4), 'getpid': (20, 0), 'getuid': (24, 0), 'access': (33, 2),
     'kill': (37, 2), 'dup': (41, 1), 'ioctl': (54, 3),
 }

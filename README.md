@@ -24,11 +24,14 @@ Development and testing happen in 86Box on an emulated XT.
       project's own crt0, system call stubs and libc runs on XENIX (argv, environment,
       printf, exit status)
 - [ ] C compiler (K&R) running natively on XENIX (cross-compiling with BCC works today)
-- [ ] Rest of libc: stdio (FILE, fopen ...), malloc, long arithmetic, time, signals
+- [x] Dynamic memory: sbrk, malloc, free, calloc, realloc (heap up to ~59K)
+- [ ] Rest of libc: stdio (FILE, fopen ...), long arithmetic, time, signals
 - [ ] Assembler, `ar`, `nm`, `size`, `strip`, `make`, `lex`/`yacc`, debugger
 - [ ] Standard C headers (`stdio.h` and friends)
 - [ ] Packaging as an installable `custom` set (the SOFT package)
-- [ ] Stretch goals: FORTRAN and COBOL subsets, Text Processing System
+- [ ] Languages beyond C and assembly: FORTRAN (using the 8087), COBOL and BASIC subsets,
+      possibly Pascal later
+- [ ] Text Processing System (nroff/troff, tbl, eqn)
 
 ## Layout
 

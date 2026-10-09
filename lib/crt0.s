@@ -33,6 +33,7 @@ start:
 	add	si,cx
 	add	si,*2		! envp = argv + (argc + 1) * 2
 	mov	[_environ],si
+	mov	[__argv],cx
 	push	si
 	push	cx
 	push	ax
@@ -59,4 +60,7 @@ _environ:
 	.word	0
 	export	_errno
 _errno:
+	.word	0
+	export	__argv
+__argv:
 	.word	0

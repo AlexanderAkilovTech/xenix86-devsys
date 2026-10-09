@@ -122,6 +122,17 @@ _chmod:
 	call	__syscal
 	br	sysret
 
+	export	_brk
+_brk:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	ax,#17
+	call	__syscal
+	br	sysret
+
 	export	_lseek
 _lseek:
 	push	bp

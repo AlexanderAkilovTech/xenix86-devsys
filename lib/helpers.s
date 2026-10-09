@@ -14,3 +14,10 @@ imodu:
 	div	bx
 	mov	ax,dx
 	ret
+
+! getsp() - current stack pointer as seen by the caller (diagnostics)
+	export	_getsp
+_getsp:
+	mov	ax,sp
+	add	ax,*2
+	ret

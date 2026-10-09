@@ -41,3 +41,12 @@ on the first returning system call (SIGILL, core dumped).
 
 ## Process start
 SP points at argc, followed by the argv pointers, NULL, then the envp pointers, NULL.
+
+## Process memory layout (small model, measured)
+    DS:0 [ data | bss ][ fixed stack (xe_stksize) ][ argv/envp + strings ][ heap ->
+- The stack sits directly above bss; the kernel places argc/argv/envp and the
+  argument strings above the stack.
+- brk() to an address below the end of the argument strings fails with EINVAL (22),
+  so the heap must start above the highest argv/envp string, not at `_end`.
+- brk() (V7 call 17, BX = new break) succeeds up to just under 64K: a test program
+  reached a break of 0xFC1C, about 59K of heap.
