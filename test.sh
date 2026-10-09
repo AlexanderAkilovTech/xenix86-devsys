@@ -13,7 +13,7 @@ bad() { echo "FAIL  $1"; fail=$((fail+1)); }
 
 python3 tests/unit/test_long.py >/tmp/xds_unit.out 2>&1 && ok "long arithmetic helpers ($(tail -1 /tmp/xds_unit.out))" || bad "long arithmetic helpers"
 
-for t in m9 m11 m12 xwc; do ./build.sh tests/$t.c >/dev/null; done
+for t in m9 m11 m12 xwc sigt ids; do ./build.sh tests/$t.c >/dev/null; done
 
 out=$(python3 tools/xsim.py build/m9 one two "three four") || true
 echo "$out" | grep -q 'argv\[3\] = "three four"' && echo "$out" | grep -q 'octal 10, padded \[   42\]' \
@@ -31,6 +31,13 @@ printf 'one two three\nfour five\n\nsix\n' > /tmp/xds_w1
 want=$(wc < /tmp/xds_w1 | awk '{print $1, $2, $3}')
 got=$(python3 tools/xsim.py build/xwc < /tmp/xds_w1 | awk '{print $1, $2, $3}')
 [ "$want" = "$got" ] && ok "xwc matches host wc ($got)" || bad "xwc: got '$got', want '$want'"
+
+python3 tools/xsim.py build/sigt >/tmp/xds_sig.out 2>&1 && grep -q 'caught 14, extra 1235, register var still 777' /tmp/xds_sig.out \
+	&& ok "sigt: signal trampolines (simulated delivery)" || bad "sigt"
+
+out=$(python3 tools/xsim.py build/ids)
+echo "$out" | grep -q 'full 32 bits' && echo "$out" | grep -q 'pid 1234, ppid 1' && echo "$out" | grep -q 'euid 0, gid 0, egid 0' \
+	&& ok "ids: time high word, getppid/geteuid/getegid from BX" || bad "ids"
 
 echo "$pass passed, $fail failed"
 [ $fail -eq 0 ]

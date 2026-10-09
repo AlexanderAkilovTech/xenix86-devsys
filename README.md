@@ -28,9 +28,12 @@ Development and testing happen in 86Box on an emulated XT.
 - [x] Milestone 3: real C library: buffered stdio (FILE, fopen, fgets, fprintf, sprintf ...),
       32-bit long arithmetic, ctype, string routines. A `wc` clone built with it gives the
       same counts as SCO's own `wc` on XENIX
-- [ ] Process control (fork, exec, wait), signals, time, setjmp/longjmp
+- [x] Milestone 4: process control: fork, the exec family (with PATH search), wait, pipe,
+      signals (signal, kill, alarm, pause), sleep, system, time, process and user ids
+- [ ] setjmp/longjmp
 - [ ] Assembler, `ar`, `nm`, `size`, `strip`, `make`, `lex`/`yacc`, debugger
-- [ ] Remaining standard C headers (stdio.h, string.h, ctype.h and errno.h are done)
+- [ ] Remaining standard C headers (stdio.h, string.h, ctype.h, errno.h, signal.h
+      and time.h are done)
 - [ ] Packaging as an installable `custom` set (the SOFT package)
 - [ ] Languages beyond C and assembly: FORTRAN (using the 8087), COBOL and BASIC subsets,
       possibly Pascal later
@@ -56,6 +59,7 @@ Development and testing happen in 86Box on an emulated XT.
 Install BCC and the 8086 binutils (on Debian/Ubuntu: `apt install bcc bin86`), then:
 
     ./build.sh tests/m9.c        # produces build/m9, a XENIX executable
+    ./build.sh tests/regdump.c tests/regdump.s   # C and assembly can be mixed
 
 ## Testing
 

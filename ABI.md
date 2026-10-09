@@ -39,6 +39,20 @@ on the first returning system call (SIGILL, core dumped).
   to the argument list on the stack.
 - Call the gate with a near `call 2`. On error the carry flag is set and AX = errno.
 
+## Return values (measured with tests/regdump.s)
+- AX holds the result. A second word comes back in BX, and the kernel copies it
+  to DX as well. CX is left alone.
+- time (13): AX = low word, BX = high word of the seconds since 1970.
+- getpid (20): AX = pid, BX = parent pid. There is no separate getppid call (V7 style).
+- getuid (24) / getgid (47): AX = real id, BX = effective id.
+- fork (2): AX = the other process's pid; BX = 0 in the child, nonzero in the parent.
+- wait (7): AX = pid of the child, BX = its status. pipe (42): AX = read fd, BX = write fd.
+- signal (48): the kernel is given a handler address in our text. On delivery it
+  pushes FLAGS, CS, IP on the user stack and jumps there; the interrupted call
+  fails with EINTR (4). The handler is reset to SIG_DFL (V7 semantics).
+- In 16-bit C an undeclared function returns int, so `time()` must be declared
+  `long` (include/time.h) or its high word is lost.
+
 ## Process start
 SP points at argc, followed by the argv pointers, NULL, then the envp pointers, NULL.
 

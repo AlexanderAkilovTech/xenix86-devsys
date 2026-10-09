@@ -51,6 +51,8 @@ class Sim:
         self.files = {0: stdin, 1: stdout, 2: sys.stderr.buffer}
         uc.hook_add(UC_HOOK_INTR, self.intr)
         self.code = None
+        self.sig = [0] * 20
+        self.alarm = 0
 
     def mem(self, off, n): return bytes(self.uc.mem_read(DSEG * 16 + off, n))
     def cstr(self, off):
@@ -95,8 +97,19 @@ class Sim:
             elif ax == 17:
                 if bx < self.argend: err = EINVAL
                 else: self.brk = bx
-            elif ax == 20: r1 = 1234
-            elif ax == 24: r1 = 0
+            elif ax == 48:                  # signal: remember the trampoline address
+                if not 1 <= bx < 20: err = EINVAL
+                else: r1, self.sig[bx] = self.sig[bx], cx
+            elif ax == 27: r1, self.alarm = self.alarm, bx
+            elif ax == 29:                  # pause: deliver a pending alarm, else stop
+                if self.alarm and self.sig[14] > 1:
+                    self.alarm = 0
+                    self.deliver(14)
+                    return
+                err = 4
+            elif ax == 13: import time; t = int(time.time()); r1, r2 = t & 0xffff, t >> 16
+            elif ax == 20: r1, r2 = 1234, 1     # getpid: pid, ppid (V7 style)
+            elif ax in (24, 47): r1, r2 = 0, 0  # getuid/getgid: real, effective
             elif ax == 10:
                 try: os.unlink(self.cstr(bx))
                 except FileNotFoundError: err = ENOENT
@@ -109,7 +122,22 @@ class Sim:
             uc.reg_write(UC_X86_REG_AX, err); uc.reg_write(UC_X86_REG_EFLAGS, fl | 1)
         else:
             uc.reg_write(UC_X86_REG_AX, r1 & 0xffff); uc.reg_write(UC_X86_REG_BX, r2 & 0xffff)
+            uc.reg_write(UC_X86_REG_DX, r2 & 0xffff)   # XENIX copies the second word to DX too
             uc.reg_write(UC_X86_REG_EFLAGS, fl & ~1)
+
+    def deliver(self, sig):
+        """Interrupt the program the way XENIX does: the interrupted call fails with
+        EINTR, FLAGS/CS/IP are pushed on the user stack, and control goes to the
+        trampoline registered for the signal (reset to SIG_DFL, V7 style)."""
+        uc = self.uc
+        fl = uc.reg_read(UC_X86_REG_EFLAGS) | 1
+        uc.reg_write(UC_X86_REG_AX, 4)
+        sp = uc.reg_read(UC_X86_REG_SP) - 6
+        uc.mem_write(DSEG * 16 + sp, struct.pack('<HHH', uc.reg_read(UC_X86_REG_IP), TSEG, fl))
+        uc.reg_write(UC_X86_REG_SP, sp)
+        uc.reg_write(UC_X86_REG_EFLAGS, fl)
+        uc.reg_write(UC_X86_REG_IP, self.sig[sig])
+        self.sig[sig] = 0
 
     def run(self, limit=50_000_000):
         try:

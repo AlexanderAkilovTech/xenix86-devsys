@@ -215,6 +215,230 @@ _ioctl:
 	call	__syscal
 	br	sysret
 
+	export	__wait
+__wait:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#7
+	call	__syscal
+	br	sysret
+
+	export	__time
+__time:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#13
+	call	__syscal
+	br	sysret
+
+	export	__pipe
+__pipe:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#42
+	call	__syscal
+	br	sysret
+
+	export	_execve
+_execve:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	cx,6[bp]
+	mov	si,8[bp]
+	mov	ax,#59
+	call	__syscal
+	br	sysret
+
+	export	_alarm
+_alarm:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	ax,#27
+	call	__syscal
+	br	sysret
+
+	export	_pause
+_pause:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#29
+	call	__syscal
+	br	sysret
+
+	export	_umask
+_umask:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	ax,#60
+	call	__syscal
+	br	sysret
+
+	export	_nice
+_nice:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	ax,#34
+	call	__syscal
+	br	sysret
+
+	export	_getgid
+_getgid:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#47
+	call	__syscal
+	br	sysret
+
+	export	_setuid
+_setuid:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	ax,#23
+	call	__syscal
+	br	sysret
+
+	export	_setgid
+_setgid:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	ax,#46
+	call	__syscal
+	br	sysret
+
+	export	_utime
+_utime:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	cx,6[bp]
+	mov	ax,#30
+	call	__syscal
+	br	sysret
+
+	export	_chown
+_chown:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	cx,6[bp]
+	mov	si,8[bp]
+	mov	ax,#16
+	call	__syscal
+	br	sysret
+
+	export	_mknod
+_mknod:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	cx,6[bp]
+	mov	si,8[bp]
+	mov	ax,#14
+	call	__syscal
+	br	sysret
+
+	export	_sync
+_sync:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#36
+	call	__syscal
+	br	sysret
+
+	export	_stat
+_stat:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	cx,6[bp]
+	mov	ax,#18
+	call	__syscal
+	br	sysret
+
+	export	_fstat
+_fstat:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	bx,4[bp]
+	mov	cx,6[bp]
+	mov	ax,#28
+	call	__syscal
+	br	sysret
+
+	export	_getppid
+_getppid:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#20
+	call	__syscal
+	br	sysret2
+
+	export	_geteuid
+_geteuid:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#24
+	call	__syscal
+	br	sysret2
+
+	export	_getegid
+_getegid:
+	push	bp
+	mov	bp,sp
+	push	si
+	push	di
+	mov	ax,#47
+	call	__syscal
+	br	sysret2
+
+! second-word return: on success the result is BX
+sysret2:
+	jc	sysret
+	mov	ax,bx
 ! common return: carry set -> errno = AX, return -1 (long -1 in DX:AX)
 sysret:
 	jnc	sysok
