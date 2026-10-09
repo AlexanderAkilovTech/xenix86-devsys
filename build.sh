@@ -9,20 +9,21 @@ python3 tools/gensys.py
 as86 -0 -o build/crt0.o lib/crt0.s
 as86 -0 -o build/sys.o lib/sys.s
 as86 -0 -o build/helpers.o lib/helpers.s
+as86 -0 -o build/long.o lib/long.s
 LIBOBJS=""
 for f in lib/*.c; do
 	o=build/$(basename "$f" .c).o
-	bcc -0 -c -o "$o" "$f"
+	bcc -0 -Iinclude -c -o "$o" "$f"
 	LIBOBJS="$LIBOBJS $o"
 done
 [ $# -gt 0 ] || { echo "runtime built"; exit 0; }
 OBJS=""
 for f in "$@"; do
 	o=build/$(basename "$f" .c).o
-	bcc -0 -c -o "$o" "$f"
+	bcc -0 -Iinclude -c -o "$o" "$f"
 	OBJS="$OBJS $o"
 done
 prog=build/$(basename "$1" .c)
 # crt0.o must come first: it supplies the text reserved block and the DS:0 header
-ld86 -0 -i -o "$prog.aout" build/crt0.o $OBJS $LIBOBJS build/sys.o build/helpers.o
+ld86 -0 -i -o "$prog.aout" build/crt0.o $OBJS $LIBOBJS build/sys.o build/helpers.o build/long.o
 python3 tools/aout2xout.py "$prog.aout" "$prog"

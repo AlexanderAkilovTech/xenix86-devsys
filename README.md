@@ -25,9 +25,12 @@ Development and testing happen in 86Box on an emulated XT.
       printf, exit status)
 - [ ] C compiler (K&R) running natively on XENIX (cross-compiling with BCC works today)
 - [x] Dynamic memory: sbrk, malloc, free, calloc, realloc (heap up to ~59K)
-- [ ] Rest of libc: stdio (FILE, fopen ...), long arithmetic, time, signals
+- [x] Milestone 3: real C library: buffered stdio (FILE, fopen, fgets, fprintf, sprintf ...),
+      32-bit long arithmetic, ctype, string routines. A `wc` clone built with it gives the
+      same counts as SCO's own `wc` on XENIX
+- [ ] Process control (fork, exec, wait), signals, time, setjmp/longjmp
 - [ ] Assembler, `ar`, `nm`, `size`, `strip`, `make`, `lex`/`yacc`, debugger
-- [ ] Standard C headers (`stdio.h` and friends)
+- [ ] Remaining standard C headers (stdio.h, string.h, ctype.h and errno.h are done)
 - [ ] Packaging as an installable `custom` set (the SOFT package)
 - [ ] Languages beyond C and assembly: FORTRAN (using the 8087), COBOL and BASIC subsets,
       possibly Pascal later
@@ -41,8 +44,11 @@ Development and testing happen in 86Box on an emulated XT.
     tools/crt.py    the text reserved block and data header XENIX expects
     tools/gensys.py generates the system call stubs (lib/sys.s)
     tools/aout2xout.py  converts ld86 output into a XENIX x.out executable
+    tools/xsim.py   runs XENIX x.out programs on an emulated 8086 for testing
+    include/        C headers
     lib/            crt0, system call stubs, runtime helpers and libc
     build.sh        builds the runtime and a C program: ./build.sh prog.c
+    test.sh         runs the unit and program tests on the host
     tests/          the test programs from each round of experiments
 
 ## Building a C program
@@ -51,7 +57,15 @@ Install BCC and the 8086 binutils (on Debian/Ubuntu: `apt install bcc bin86`), t
 
     ./build.sh tests/m9.c        # produces build/m9, a XENIX executable
 
-## Running the tests
+## Testing
+
+`./test.sh` runs the 32-bit arithmetic helpers on an emulated 8086 against Python's exact
+arithmetic, then builds the test programs and runs them under `tools/xsim.py`, a small
+simulator that loads XENIX executables and services their system calls on the host.
+It needs the Python `unicorn` package (`pip install unicorn`). Everything is also
+checked on a real XENIX 2.1.3 installation in 86Box before it counts as done.
+
+## Running programs on XENIX
 
 The tools need Python 3. The build scripts in `tests/` write `.o` files or
 executables. To move them into XENIX, pack them as a v7-format tar on a 360K
@@ -60,6 +74,13 @@ floppy image:
     gtar --format=v7 --owner=0 --group=0 -cf disk.tar <files>
     # pad to 368640 bytes, insert in 86Box, then on XENIX:
     tar xvf /dev/fd0
+
+## How it was made
+
+This project is built with heavy AI assistance (Anthropic's Claude) working alongside its
+author. Every result claimed here was verified on a real XENIX 2.1.3 system, and the
+reverse-engineering findings in ABI.md come from experiments on that system, including the
+ones where the first theory turned out to be wrong.
 
 ## What this repository does not contain
 

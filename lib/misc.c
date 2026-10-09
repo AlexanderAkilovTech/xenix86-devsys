@@ -1,7 +1,7 @@
 /* misc.c - xenix86-devsys libc: environment and process exit (K&R C) */
 
 extern char **environ;
-extern int _flushout();
+extern int _cleanup();
 
 char *
 getenv(name)
@@ -21,6 +21,6 @@ register char *name;
 exit(status)
 int status;
 {
-	_flushout();
+	_cleanup();
 	_exit(status);
 }
