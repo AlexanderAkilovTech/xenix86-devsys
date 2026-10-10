@@ -85,6 +85,8 @@ Development and testing happen in 86Box on an emulated XT.
     tools/mathcoef.py   derives and checks the math library's polynomials
     tools/objclass.py   sets an object module's link class (how printf's
                     floating point conversions are linked only when used)
+    tools/arfix.py  gives library archives fixed dates and owners, for
+                    reproducible builds
     include/        C headers; include/sys holds stand-ins used only for
                     cross-compiling (on XENIX, /usr/include/sys is SCO's)
     lib/            the C library, laid out like Version 7's: csu/ (crt0), crt/
@@ -114,7 +116,9 @@ out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `l
 `ar86` in `/usr/bin`; the compiler passes, the optimiser `copt` and its rules, `crt0.o`,
 `libc.a` and `libm.a` in `/usr/lib/cc`; headers in `/usr/include`. Then it makes that tree into an installable set under
 `build/xenix/set`: the disk images `D01.img` (and `D02.img` and on, once the set
-outgrows one disk) and the permissions list `soft.perms` they carry.
+outgrows one disk) and the permissions list `soft.perms` they carry. The build is
+reproducible: the same source gives the same disk images, byte for byte, whenever
+and wherever it is built (every date in them is 1 January 1986; see `tools/arfix.py`).
 
 To try the tools on XENIX without installing, unpack the tree into a directory and
 set `CCROOT` to it; `cc` then finds everything there.

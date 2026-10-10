@@ -29,6 +29,7 @@ done
 python3 tools/objclass.py build/lib/fltcvt.o 1
 python3 tools/objclass.py build/lib/fltscan.o 1
 ar86 rc build/libc.a build/lib/*.o
+python3 tools/arfix.py build/libc.a	# member dates and owners fixed: same source, same bytes
 # the math library, libm.a (cc ... -lm)
 mkdir -p build/libm
 rm -f build/libm/*.o build/libm.a
@@ -37,6 +38,7 @@ for f in lib/m/*.c; do
 done
 python3 tools/objclass.py build/libm/matherr.o 1	# a program's own matherr wins
 ar86 rc build/libm.a build/libm/*.o
+python3 tools/arfix.py build/libm.a
 [ $# -gt 0 ] || { echo "libc.a built ($(ls build/lib/*.o | wc -l) modules), libm.a ($(ls build/libm/*.o | wc -l))"; exit 0; }
 OBJS=""
 for f in "$@"; do
