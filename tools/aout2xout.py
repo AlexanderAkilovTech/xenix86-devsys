@@ -26,4 +26,5 @@ def convert(src, dst, stack=4096):
     print(f'{dst}: text {len(t)}, data {padded}, bss {bss_out}, stack {stack}')
 
 if __name__ == '__main__':
-    convert(sys.argv[1], sys.argv[2])
+    # usage: aout2xout.py in.aout out [stack-bytes]
+    convert(sys.argv[1], sys.argv[2], int(sys.argv[3], 0) if len(sys.argv) > 3 else 4096)

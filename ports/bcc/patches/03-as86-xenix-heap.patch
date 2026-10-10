@@ -1,0 +1,41 @@
+as86 on XENIX: a fixed heap that grows away from the stack.
+
+Built as a 16-bit program, as86 makes one allocation per symbol, and with a
+4-byte header and padding on each, a large source (BCC's own cpp.c compiles to
+68K of assembly with about 1,100 labels) runs out of a 64K data segment. The
+fixed-heap mode (USE_FIXED_HEAP) avoids that overhead, but its 16-bit version
+assumes the ELKS/Minix layout, with the stack above the heap. XENIX puts the
+stack below the data break, so on XENIX (M_XENIX) take one large block from
+malloc instead.
+
+diff -ruN a/as/alloc.c b/as/alloc.c
+--- a/as/alloc.c
++++ b/as/alloc.c
+@@ -23,6 +23,19 @@
+ #define USERMEM 0xAC00U
+ #endif
+ 
++#if defined(__AS386_16__) && defined(M_XENIX)
++    /* XENIX puts the stack below the data break, not above it, so the heap
++     * runs from the break to the top of the 64K data segment: take the
++     * largest block malloc can give. */
++    unsigned n;
++
++    for (n = 0xF000; n >= 0x1000; n -= 0x400)
++	if ((heapptr = malloc(n)) != 0)
++	    break;
++    if (heapptr == 0)
++	as_abort(NOMEMEORY);
++    heapend = heapptr + n;
++#else
+ #ifdef __AS386_16__
+     int stk;
+     heapptr = sbrk(0);
+@@ -41,6 +54,7 @@
+ #endif
+ #endif
+ #endif
++#endif
+ }
+ 
+ void * temp_buf()

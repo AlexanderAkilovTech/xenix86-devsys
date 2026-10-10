@@ -13,7 +13,7 @@ bad() { echo "FAIL  $1"; fail=$((fail+1)); }
 
 python3 tests/unit/test_long.py >/tmp/xds_unit.out 2>&1 && ok "long arithmetic helpers ($(tail -1 /tmp/xds_unit.out))" || bad "long arithmetic helpers"
 
-for t in m9 m11 m12 xwc sigt ids; do ./build.sh tests/$t.c >/dev/null; done
+for t in m9 m11 m11b m12 xwc sigt ids jmp bigmem timet strt forkt sysprobe; do ./build.sh tests/$t.c >/dev/null; done
 
 out=$(python3 tools/xsim.py build/m9 one two "three four") || true
 echo "$out" | grep -q 'argv\[3\] = "three four"' && echo "$out" | grep -q 'octal 10, padded \[   42\]' \
@@ -38,6 +38,24 @@ python3 tools/xsim.py build/sigt >/tmp/xds_sig.out 2>&1 && grep -q 'caught 14, e
 out=$(python3 tools/xsim.py build/ids)
 echo "$out" | grep -q 'full 32 bits' && echo "$out" | grep -q 'pid 1234, ppid 1' && echo "$out" | grep -q 'euid 0, gid 0, egid 0' \
 	&& ok "ids: time high word, getppid/geteuid/getegid from BX" || bad "ids"
+
+out=$(python3 tools/xsim.py build/jmp)
+echo "$out" | grep -q 'depth 40: setjmp returned 42, pass 2, register var 777' && echo "$out" | grep -q 'return 1$' \
+	&& echo "$out" | grep -q 'handler, setjmp returned 14' && ok "jmp: setjmp/longjmp, including out of a signal handler" || bad "jmp"
+
+python3 tools/xsim.py build/m11b > /tmp/xds_m11b.out && ok "m11b: realloc shrinks in place ($(head -1 /tmp/xds_m11b.out | cut -d'(' -f1| sed 's/ *$//'))" || bad "m11b"
+
+python3 tools/xsim.py build/strt > /tmp/xds_strt.out && ok "strt: assembly string routines vs C ($(cat /tmp/xds_strt.out))" || bad "strt"
+
+python3 tools/xsim.py build/forkt build/tiny > /tmp/xds_fork.out 2>&1 && grep -q 'exit code 7' /tmp/xds_fork.out \
+	&& grep -q "exec'd build/tiny: exit code 3" /tmp/xds_fork.out && ok "forkt: fork, exec, wait, pipe (real host processes)" || bad "forkt"
+
+python3 tools/xsim.py build/sysprobe > /tmp/xds_probe.out 2>&1 && ok "sysprobe: open flags and struct stat" || bad "sysprobe"
+
+python3 tools/xsim.py build/bigmem > /tmp/xds_big.out && grep -q 'lies above it' /tmp/xds_big.out \
+	&& ok "bigmem: malloc of 32K and more ($(cut -d';' -f1 /tmp/xds_big.out))" || bad "bigmem"
+
+python3 tests/unit/test_time.py > /tmp/xds_time.out 2>&1 && ok "time conversions vs Python ($(tail -1 /tmp/xds_time.out))" || bad "time conversions"
 
 echo "$pass passed, $fail failed"
 [ $fail -eq 0 ]

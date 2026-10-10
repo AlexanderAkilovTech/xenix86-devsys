@@ -29,7 +29,7 @@ def load(path):
     return text, data, vdata, stksize
 
 class Sim:
-    def __init__(self, path, argv, env, stdin=sys.stdin.buffer, stdout=sys.stdout.buffer):
+    def __init__(self, path, argv, env, stdin=sys.stdin.buffer, stdout=sys.stdout.buffer, files=None):
         text, data, vdata, stk = load(path)
         self.uc = uc = Uc(UC_ARCH_X86, UC_MODE_16)
         uc.mem_map(0, 0x100000)
@@ -48,7 +48,11 @@ class Sim:
         for r, v in [(UC_X86_REG_CS, TSEG), (UC_X86_REG_DS, DSEG), (UC_X86_REG_ES, DSEG),
                      (UC_X86_REG_SS, DSEG), (UC_X86_REG_SP, top), (UC_X86_REG_IP, 0x80)]:
             uc.reg_write(r, v)
-        self.files = {0: stdin, 1: stdout, 2: sys.stderr.buffer}
+        self.umask = 0o022
+        self.files = files if files is not None else {0: stdin, 1: stdout, 2: sys.stderr.buffer}
+        self.pending_exec = None
+        self.child = False             # True in a process made by fork()
+        self.pids = {}                 # XENIX pid -> host pid of our children
         uc.hook_add(UC_HOOK_INTR, self.intr)
         self.code = None
         self.sig = [0] * 20
@@ -79,17 +83,50 @@ class Sim:
                 f = self.files.get(bx)
                 if f is None: err = EBADF
                 else: f.write(self.mem(cx, si)); f.flush(); r1 = si
-            elif ax in (5, 8):
+            elif ax in (5, 8):              # open(name, flags, mode) / creat(name, mode)
                 name = self.cstr(bx)
-                mode = {0: 'rb', 1: 'r+b', 2: 'r+b'}[cx & 3] if ax == 5 else 'w+b'
+                if ax == 8:
+                    flags, mode = os.O_WRONLY | os.O_CREAT | os.O_TRUNC, cx
+                else:
+                    flags = (os.O_RDONLY, os.O_WRONLY, os.O_RDWR, os.O_RDWR)[cx & 3]
+                    for bit, hf in ((0o400, os.O_CREAT), (0o1000, os.O_TRUNC), (0o2000, os.O_EXCL), (0o10, os.O_APPEND)):
+                        if cx & bit: flags |= hf
+                    mode = si
                 try:
-                    f = open(name, mode)
+                    hfd = os.open(name, flags, mode & 0o7777 & ~self.umask)
+                    acc = flags & 3
+                    f = os.fdopen(hfd, 'rb' if acc == os.O_RDONLY else 'wb' if acc == os.O_WRONLY else 'r+b', buffering=0)
                     fd = min(set(range(20)) - set(self.files)); self.files[fd] = f; r1 = fd
                 except FileNotFoundError: err = ENOENT
+                except FileExistsError: err = 17
+                except IsADirectoryError: err = 21
+                except PermissionError: err = 13
+            elif ax in (18, 28):            # stat(name, buf) / fstat(fd, buf): System V layout, 30 bytes
+                try:
+                    if ax == 18: st = os.stat(self.cstr(bx))
+                    else:
+                        f = self.files.get(bx)
+                        if f is None: raise KeyError
+                        st = os.fstat(f.fileno())
+                    m = st.st_mode & 0o7777 | {0o040000: 0o040000, 0o020000: 0o020000, 0o060000: 0o060000,
+                                               0o010000: 0o010000}.get(st.st_mode & 0o170000, 0o100000)
+                    uc.mem_write(DSEG * 16 + cx, struct.pack('<hHHhHHhllll', st.st_dev & 0x7fff, st.st_ino & 0xffff, m,
+                        min(st.st_nlink, 32767), st.st_uid & 0xffff, st.st_gid & 0xffff, 0, min(st.st_size, 2**31 - 1),
+                        int(st.st_atime), int(st.st_mtime), int(st.st_ctime)))
+                except FileNotFoundError: err = ENOENT
+                except KeyError: err = EBADF
+            elif ax == 15:                  # chmod
+                try: os.chmod(self.cstr(bx), cx & 0o7777)
+                except FileNotFoundError: err = ENOENT
+            elif ax == 60: r1, self.umask = self.umask, bx & 0o777   # umask (kept inside the simulator)
+            elif ax == 33:                  # access
+                name = self.cstr(bx)
+                if not os.path.exists(name): err = ENOENT
+                elif not os.access(name, cx or os.F_OK): err = 13
             elif ax == 6:
                 f = self.files.pop(bx, None)
                 if f is None: err = EBADF
-                elif bx > 2: f.close()
+                elif bx > 2 or self.child: f.close()
             elif ax == 19:
                 f = self.files[bx]; off = cx | (si << 16)
                 if off & 0x80000000: off -= 1 << 32
@@ -108,8 +145,49 @@ class Sim:
                     return
                 err = 4
             elif ax == 13: import time; t = int(time.time()); r1, r2 = t & 0xffff, t >> 16
-            elif ax == 20: r1, r2 = 1234, 1     # getpid: pid, ppid (V7 style)
+            elif ax == 20: r1, r2 = (os.getpid() & 0x7fff, os.getppid() & 0x7fff) if self.child else (1234, 1)  # getpid: pid, ppid
             elif ax in (24, 47): r1, r2 = 0, 0  # getuid/getgid: real, effective
+            elif ax == 2:                   # fork: a real host fork of the whole simulator
+                for f in self.files.values():
+                    try: f.flush()
+                    except Exception: pass
+                pid = os.fork()
+                if pid == 0:
+                    self.child = True
+                    r1, r2 = os.getppid() & 0x7fff, 0      # child: BX = 0
+                else:
+                    self.pids[pid & 0x7fff] = pid
+                    r1, r2 = pid & 0x7fff, 1               # parent: AX = child pid
+            elif ax == 59:                  # execve(name, argv, envp)
+                name = self.cstr(bx)
+                def strv(p):
+                    v = []
+                    while p:
+                        q = struct.unpack('<H', self.mem(p, 2))[0]
+                        if not q: break
+                        v.append(self.cstr(q)); p += 2
+                    return v
+                if not os.path.isfile(name): err = ENOENT
+                elif open(name, 'rb').read(2) != b'\x06\x02': err = 8    # ENOEXEC
+                else:
+                    self.pending_exec = (name, strv(cx), strv(si))
+                    uc.emu_stop(); return
+            elif ax == 7:                   # wait: AX = pid, BX = status (exit << 8 | signal)
+                try:
+                    real, status = os.waitpid(-1, 0)
+                    r1, r2 = real & 0x7fff, status & 0xffff
+                except ChildProcessError: err = 10                # ECHILD
+            elif ax == 42:                  # pipe: AX = read end, BX = write end
+                rfd, wfd = os.pipe()
+                fr = min(set(range(20)) - set(self.files)); self.files[fr] = os.fdopen(rfd, 'rb', buffering=0)
+                fw = min(set(range(20)) - set(self.files)); self.files[fw] = os.fdopen(wfd, 'wb', buffering=0)
+                r1, r2 = fr, fw
+            elif ax == 41:                  # dup
+                f = self.files.get(bx)
+                if f is None: err = EBADF
+                else:
+                    fd = min(set(range(20)) - set(self.files))
+                    self.files[fd] = os.fdopen(os.dup(f.fileno()), f.mode, buffering=0); r1 = fd
             elif ax == 10:
                 try: os.unlink(self.cstr(bx))
                 except FileNotFoundError: err = ENOENT
@@ -144,12 +222,28 @@ class Sim:
             self.uc.emu_start(0x80 + TSEG * 16, 0, count=limit)
         except UcError as e:
             ip = self.uc.reg_read(UC_X86_REG_IP)
-            return f'cpu fault {e} at ip {ip:#x}'
-        return self.code if self.code is not None else 'instruction limit reached'
+            code = f'cpu fault {e} at ip {ip:#x}'
+        else:
+            code = self.code if self.code is not None else 'instruction limit reached'
+        if self.pending_exec:               # execve: replace this program, keep the open files
+            name, argv, env = self.pending_exec
+            new = Sim(name, argv, env, files=self.files)
+            new.child, new.umask = self.child, self.umask
+            return new.run(limit)
+        if self.child:                      # a forked process ends here, never in the caller
+            for f in self.files.values():
+                try: f.flush()
+                except Exception: pass
+            os._exit(code if isinstance(code, int) else 127)
+        return code
 
 if __name__ == '__main__':
     prog = sys.argv[1]
-    code = Sim(prog, [prog] + sys.argv[2:], ['HOME=/', 'TERM=ansi', 'PATH=/bin:/usr/bin']).run()
+    env = ['HOME=/', 'TERM=ansi', 'PATH=/bin:/usr/bin']
+    if os.environ.get('XSIM_TZ'):           # pass a time zone through for tests
+        env.append('TZ=' + os.environ['XSIM_TZ'])
+    env += os.environ.get('XSIM_ENV', '').split()   # more NAME=value pairs for the program
+    code = Sim(prog, [prog] + sys.argv[2:], env).run()
     if isinstance(code, int):
         sys.exit(code)
     print(f'xsim: {code}', file=sys.stderr); sys.exit(127)

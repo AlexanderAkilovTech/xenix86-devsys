@@ -45,7 +45,7 @@ extern FILE _iob[_NFILE];
 #define clearerr(p)	((p)->_flag &= ~(_IOERR | _IOEOF))
 
 extern FILE *fopen(), *fdopen(), *freopen();
-extern char *fgets(), *gets(), *sprintf();
+extern char *fgets(), *gets();
 extern long ftell();
 
 #endif

@@ -1,0 +1,64 @@
+: check - rerun the test programs on XENIX, one line per test
+: usage: cd to where the disk was unpacked, then: sh check
+pass=0
+fail=0
+
+./argtest one two "three four" > o.arg 2>&1
+if grep 'argv.3. = "three four"' o.arg > /dev/null && grep 'padded .   42. .42   . .00042.' o.arg > /dev/null
+then echo "PASS  argtest: argv, environment, printf"; pass=`expr $pass + 1`
+else echo "FAIL  argtest (output in o.arg)"; fail=`expr $fail + 1`
+fi
+
+./mtest > o.mem 2>&1
+if grep 'a damaged 0, b damaged 0' o.mem > /dev/null && grep "reused a's block" o.mem > /dev/null && grep 'b still intact: damaged 0' o.mem > /dev/null
+then echo "PASS  mtest: sbrk, malloc, free"; pass=`expr $pass + 1`
+else echo "FAIL  mtest (output in o.mem)"; fail=`expr $fail + 1`
+fi
+
+./stdtest > o.std 2>&1
+if cmp -s o.std stdtest.ok
+then echo "PASS  stdtest: output identical to the simulator's"; pass=`expr $pass + 1`
+else echo "FAIL  stdtest (diff o.std stdtest.ok)"; fail=`expr $fail + 1`
+fi
+
+./xwc < /etc/passwd > o.wc1
+wc < /etc/passwd > o.wc2
+set `cat o.wc1`; a="$1 $2 $3"
+set `cat o.wc2`; b="$1 $2 $3"
+if test "$a" = "$b"
+then echo "PASS  xwc: same counts as wc ($a)"; pass=`expr $pass + 1`
+else echo "FAIL  xwc: $a, but wc says $b"; fail=`expr $fail + 1`
+fi
+
+./proctest > o.proc 2>&1
+if grep 'time() = [1-9][0-9]* seconds' o.proc > /dev/null && grep 'parent [1-9]' o.proc > /dev/null && grep 'hello from /bin/echo' o.proc > /dev/null && grep 'child exited with 42' o.proc > /dev/null && grep 'parent read 22 bytes' o.proc > /dev/null && grep 'caught signal 14' o.proc > /dev/null && grep 'system() returned 0' o.proc > /dev/null
+then echo "PASS  proctest: fork, exec, wait, pipe, signal, system, time"; pass=`expr $pass + 1`
+else echo "FAIL  proctest (output in o.proc)"; fail=`expr $fail + 1`
+fi
+
+./idtest > o.id 2>&1
+if grep 'full 32 bits' o.id > /dev/null && grep 'ppid [1-9]' o.id > /dev/null
+then echo "PASS  idtest: time, pid and parent pid"; pass=`expr $pass + 1`
+else echo "FAIL  idtest (output in o.id)"; fail=`expr $fail + 1`
+fi
+
+if ./sigtest > o.sig 2>&1
+then echo "PASS  sigtest: signal trampolines"; pass=`expr $pass + 1`
+else echo "FAIL  sigtest (output in o.sig)"; fail=`expr $fail + 1`
+fi
+
+./jmptest > o.jmp 2>&1
+if cmp -s o.jmp jmptest.ok
+then echo "PASS  jmptest: setjmp and longjmp"; pass=`expr $pass + 1`
+else echo "FAIL  jmptest (diff o.jmp jmptest.ok)"; fail=`expr $fail + 1`
+fi
+
+./tiny > o.tiny
+s=$?
+set `wc -c tiny`
+if test $s = 3 && grep 'no stdio linked' o.tiny > /dev/null
+then echo "PASS  tiny: no stdio linked, $1 bytes"; pass=`expr $pass + 1`
+else echo "FAIL  tiny (status $s, output in o.tiny)"; fail=`expr $fail + 1`
+fi
+
+echo "$pass passed, $fail failed"

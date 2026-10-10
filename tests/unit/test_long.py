@@ -1,4 +1,4 @@
-"""Unit tests for lib/long.s: runs the helpers on an emulated 8086 (Unicorn, 16-bit
+"""Unit tests for lib/crt/long.s: runs the helpers on an emulated 8086 (Unicorn, 16-bit
 mode) and compares every result against Python's exact 32-bit arithmetic."""
 import os, random, re, struct, subprocess, sys, tempfile
 from unicorn import Uc, UC_ARCH_X86, UC_MODE_16
@@ -6,11 +6,11 @@ from unicorn.x86_const import *
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 tmp = tempfile.mkdtemp()
-NAMES = re.findall(r'export\s+(\w+)', open(f'{ROOT}/lib/long.s').read())
+NAMES = re.findall(r'export\s+(\w+)', open(f'{ROOT}/lib/crt/long.s').read())
 START = ''.join(f'\t.globl\t{n}\n' for n in NAMES) + '\t.globl\t_main\n\t.text\n\tnop\n\texport\tstart\nstart:\n\tnop\n\texport\t_main\n_main:\n\tret\n'
 open(f'{tmp}/start.s', 'w').write(START)
 subprocess.run(['as86', '-0', '-o', f'{tmp}/start.o', f'{tmp}/start.s'], check=True)
-subprocess.run(['as86', '-0', '-o', f'{tmp}/long.o', f'{ROOT}/lib/long.s'], check=True)
+subprocess.run(['as86', '-0', '-o', f'{tmp}/long.o', f'{ROOT}/lib/crt/long.s'], check=True)
 mp = subprocess.run(['ld86', '-0', '-d', '-M', '-o', f'{tmp}/long.bin', f'{tmp}/start.o', f'{tmp}/long.o'],
                     check=True, capture_output=True, text=True).stdout
 SYM = {m.group(1): int(m.group(2), 16) for m in re.finditer(r'long\s+(\w+)\s+\d\s+([0-9a-f]{8})', mp)}

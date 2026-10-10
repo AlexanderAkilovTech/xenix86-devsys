@@ -1,0 +1,21 @@
+BCC without 386 support: a dangling else drops the register of a long return.
+
+In function.c the #ifdef I80386 block ended in "else", so when the compiler is
+built without 386 support (as it must be to fit in 64K on XENIX) the following
+block runs unconditionally and overwrites the storage just set for a long
+return value. Code like n * fact(n - 1), where fact returns long, then pushes
+only the low word. Moving the else outside the #ifdef restores the chain.
+
+diff -ruN a/bcc/function.c b/bcc/function.c
+--- a/bcc/function.c
++++ b/bcc/function.c
+@@ -94,8 +94,8 @@
+         else
+ 	    source->storage = RETURNREG;
+     }
+-    else
+ #endif
++    else
+     {
+         if (source->type->scalar & DOUBLE)
+ 	    source->storage = doublreturnregs;

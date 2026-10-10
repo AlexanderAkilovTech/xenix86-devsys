@@ -1,0 +1,104 @@
+BCC as a 16-bit program: arguments that a prototype widens from int to long.
+
+BCC's sources declare offset_T and value_t as long, and on the 32- and 64-bit
+hosts BCC is normally built on, int and long are the same size, so passing an
+int where a long is expected costs nothing. Built as a 16-bit XENIX program in
+K&R mode, the callee reads a 32-bit argument from a 16-bit push and picks up
+garbage in the high word: frame offsets came out as $40004 instead of 4.
+These 15 call sites were found with gcc -Wtraditional-conversion; each gets an
+explicit cast. No change in behaviour on hosts where int and long agree.
+
+diff -ruN a/bcc/declare.c b/bcc/declare.c
+--- a/bcc/declare.c
++++ b/bcc/declare.c
+@@ -716,7 +716,7 @@
+ 	    outstr(funcname);
+ 	    outstr(".off = ");
+ #ifndef I80386
+-	    outnhex(4);
++	    outnhex((uoffset_T) 4);
+ #else
+ 	    outnhex(i386_32?12:4);
+ #endif
+diff -ruN a/bcc/floatop.c b/bcc/floatop.c
+--- a/bcc/floatop.c
++++ b/bcc/floatop.c
+@@ -44,15 +44,15 @@
+ 		if (target->type->scalar & FLOAT)
+ 		{
+ 		    float val = *target->offset.offd;
+-		    push(constsym( ((unsigned short*) &val)[1] ));
+-		    push(constsym( ((unsigned short*) &val)[0] ));
++		    push(constsym((value_t) ((unsigned short*) &val)[1]));
++		    push(constsym((value_t) ((unsigned short*) &val)[0]));
+ 		}
+ 		else
+ 		{
+-		    push(constsym(((unsigned short*) target->offset.offd)[3]));
+-		    push(constsym(((unsigned short*) target->offset.offd)[2]));
+-		    push(constsym(((unsigned short*) target->offset.offd)[1]));
+-		    push(constsym(((unsigned short*) target->offset.offd)[0]));
++		    push(constsym((value_t) ((unsigned short*) target->offset.offd)[3]));
++		    push(constsym((value_t) ((unsigned short*) target->offset.offd)[2]));
++		    push(constsym((value_t) ((unsigned short*) target->offset.offd)[1]));
++		    push(constsym((value_t) ((unsigned short*) target->offset.offd)[0]));
+ 		}
+ 	    }
+ 	}
+diff -ruN a/bcc/genloads.c b/bcc/genloads.c
+--- a/bcc/genloads.c
++++ b/bcc/genloads.c
+@@ -358,13 +358,12 @@
+ #endif
+ 	    {
+ 	       int regs, i, off=1;
+-	       loadconst(((unsigned short *) source->offset.offd)[0], DREG);
++	       loadconst((offset_T) ((unsigned short *) source->offset.offd)[0], DREG);
+ 	       regs = (targreg&~DREG);
+ 	       for(i=1; i; i<<=1)
+ 	       {
+ 		  if( regs&i )
+-	              loadconst(
+-		         ((unsigned short *) source->offset.offd)[off++],
++	              loadconst((offset_T) ((unsigned short *) source->offset.offd)[off++],
+ 		         i);
+ 	       }
+ 	    }
+@@ -392,8 +391,8 @@
+ 	else
+ #endif
+ 	{
+-	   loadconst(((unsigned short *) &val)[0], DREG);
+-	   loadconst(((unsigned short *) &val)[1], targreg&~DREG);
++	   loadconst((offset_T) ((unsigned short *) &val)[0], DREG);
++	   loadconst((offset_T) ((unsigned short *) &val)[1], targreg&~DREG);
+ 	}
+     }
+ #ifdef I80386
+@@ -827,9 +826,9 @@
+ 	    {
+ 	        int off;
+ 		if (switchnow != NULL && adr->flags == TEMP)
+-		    outswoffset(off = adr->offset.offi);
++		    outswoffset((offset_T) (off = adr->offset.offi));
+ 		else
+-		    outoffset(off = adr->offset.offi - framep);
++		    outoffset((offset_T) (off = adr->offset.offi - framep));
+ #ifndef NO_DEL_PUSH
+ 		if (optimise && !callersaves && off < 0) 
+ 		{
+diff -ruN a/bcc/preserve.c b/bcc/preserve.c
+--- a/bcc/preserve.c
++++ b/bcc/preserve.c
+@@ -22,9 +22,9 @@
+             int off;
+ 	    outleasp();
+ 	    if (!(bool_t) absflag && switchnow != NULL)
+-		outswoffset(off = newsp);
++		outswoffset((offset_T) (off = newsp));
+ 	    else
+-		outoffset(off = newsp - framep);
++		outoffset((offset_T) (off = newsp - framep));
+ #ifndef NO_DEL_PUSH
+ 	    if (optimise && !callersaves && off < 0)
+ 	    {

@@ -64,3 +64,21 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   so the heap must start above the highest argv/envp string, not at `_end`.
 - brk() (V7 call 17, BX = new break) succeeds up to just under 64K: a test program
   reached a break of 0xFC1C, about 59K of heap.
+- Because the stack is below the heap, code written for ELKS or Minix, where the
+  heap grows up toward a stack at the top of the segment, must not size its heap
+  from the stack pointer (BCC's as86 did; see ports/bcc patch 03).
+- `sbrk` takes an int, so a request of 32K or more is negative to it; our malloc
+  grows the heap in two halves for those.
+- crt0 sets ES = DS rather than relying on the kernel to, because the library's
+  string routines use the 8086 string instructions (movs, stos, scas), which
+  address their destination through ES.
+
+## Files (measured with tests/sysprobe.c)
+- open (5) takes System V flags, with the mode as the third argument:
+  O_RDWR | O_CREAT | O_TRUNC (2 | 0400 | 01000) created a file, and O_WRONLY | O_TRUNC
+  emptied it. The other System V values in include/fcntl.h (O_NDELAY 04,
+  O_APPEND 010, O_EXCL 02000) are not yet tested.
+- stat (18) and fstat (28) fill the System V structure, 30 bytes:
+  dev (short), ino (unsigned short), mode (unsigned short), nlink (short), uid,
+  gid (unsigned short), rdev (short), size, atime, mtime, ctime (long).
+  /etc/passwd read back as size 432, mode 0100644, uid 3 (bin), matching `ls -l`.
