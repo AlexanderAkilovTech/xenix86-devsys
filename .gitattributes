@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# GitHub: the .inc files are 8086 assembly (lib/fp/fpdefs.inc), not Pascal
+*.inc linguist-language=Assembly
