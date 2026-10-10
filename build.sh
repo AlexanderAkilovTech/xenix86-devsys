@@ -14,7 +14,7 @@ mkdir -p build/lib
 rm -f build/lib/*.o build/sys/*.s build/libc.a
 python3 tools/gensys.py build/sys
 as86 -0 -o build/crt0.o lib/csu/crt0.s
-for f in lib/crt/*.s lib/sys/*.s lib/gen/*.s build/sys/*.s; do
+for f in lib/crt/*.s lib/sys/*.s lib/gen/*.s lib/fp/*.s build/sys/*.s; do
 	o=build/lib/$(basename "$f" .s).o
 	[ -f "$o" ] && { echo "build.sh: two library modules named $o" >&2; exit 1; }
 	as86 -0 -o "$o" "$f"
@@ -24,8 +24,20 @@ for f in lib/gen/*.c lib/stdio/*.c; do
 	[ -f "$o" ] && { echo "build.sh: two library modules named $o" >&2; exit 1; }
 	$BCC -0 -I -Iinclude -c -o "$o" "$f"
 done
+# printf's and scanf's floating point conversions win over their stubs when
+# linked (class 1; see tools/objclass.py)
+python3 tools/objclass.py build/lib/fltcvt.o 1
+python3 tools/objclass.py build/lib/fltscan.o 1
 ar86 rc build/libc.a build/lib/*.o
-[ $# -gt 0 ] || { echo "libc.a built ($(ls build/lib/*.o | wc -l) modules)"; exit 0; }
+# the math library, libm.a (cc ... -lm)
+mkdir -p build/libm
+rm -f build/libm/*.o build/libm.a
+for f in lib/m/*.c; do
+	$BCC -0 -I -Iinclude -c -o build/libm/$(basename "$f" .c).o "$f"
+done
+python3 tools/objclass.py build/libm/matherr.o 1	# a program's own matherr wins
+ar86 rc build/libm.a build/libm/*.o
+[ $# -gt 0 ] || { echo "libc.a built ($(ls build/lib/*.o | wc -l) modules), libm.a ($(ls build/libm/*.o | wc -l))"; exit 0; }
 OBJS=""
 for f in "$@"; do
 	case "$f" in
@@ -37,5 +49,5 @@ done
 prog=build/$(basename "$1" .c)
 # crt0.o must come first: it supplies the text reserved block and the DS:0 header.
 # ld86 takes only the library modules the program actually uses.
-ld86 -0 -i -o "$prog.aout" build/crt0.o $OBJS build/libc.a
+ld86 -0 -i -o "$prog.aout" build/crt0.o $OBJS build/libm.a build/libc.a
 python3 tools/aout2xout.py "$prog.aout" "$prog"

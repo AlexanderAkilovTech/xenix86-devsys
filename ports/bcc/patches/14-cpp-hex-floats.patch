@@ -1,0 +1,128 @@
+bcc-cpp: -H writes floating constants in hexadecimal, for the XENIX
+bcc-cc1, which has no atof (patch 13); cc passes it.
+
+Each decimal floating constant becomes the hexadecimal one with the same
+value, 0x1.hhhhhhhhhhhhhp+d (0x0.hhhhhhhhhhhhhp-1022 for zero and the
+denormals; 0x1.0000000000000p1024 for one too large, which is infinity).
+The value comes from strtod, which in this project's C library rounds
+correctly, as the host's does, so the compiler gets the same double either
+way. A suffix (f, L) stays after the new text. Text that strtod does not
+take whole (1e, say) is left for the compiler to report.
+
+The tokeniser now also sees .5, 0.5 and 017e2 as floating constants: it
+took .5 as a dot and a number, and a leading 0 as the start of an octal
+number that ended at the dot or the e. Without -H its output is the same
+as before.
+
+--- a/cpp/cpp.c	2026-10-10 02:18:38.444673810 -0700
++++ b/cpp/cpp.c	2026-10-10 02:18:38.450841200 -0700
+@@ -229,6 +229,14 @@
+                  state = 2;
+               else if(ch >= '1' && ch <= '9')
+                  state = 5;
++              else if(ch == '.') {
++                 /* .5 is a floating constant, as 0.5 is */
++                 int ch1 = chget();
++                 unchget(ch1);
++                 if( ch1 < '0' || ch1 > '9' )
++                    goto break_break;
++                 state = 6;
++              }
+               else
+                  goto break_break;
+               break;
+@@ -239,17 +247,22 @@
+                  break;
+               else
+                  goto break_break;
+-      case 2: if( ch >= '0' && ch <= '7')
+-                 state = 3;
+-              else if( ch == 'x' || ch == 'X' )
++      case 2: if( ch == 'x' || ch == 'X' ) {
+                  state = 4;
+-              else
+-                 goto break_break;
+-              break;
+-      case 3: if( ch >= '0' && ch <= '7')
+                  break;
++              }
++              state = 3;
++              /* FALLTHROUGH */
++      case 3: /* 0 and its digits: octal, or a floating constant (0.5, 017e2) */
++              if( ch >= '0' && ch <= '9')
++                 break;
++              else if( ch == '.' )
++                 state = 6;
++              else if( ch == 'e' || ch == 'E' )
++                 state = 7;
+               else
+                  goto break_break;
++              break;
+       case 4: if( (ch >= '0' && ch <= '9')
+                || (ch >= 'A' && ch <= 'F')
+                || (ch >= 'a' && ch <= 'f') )
+--- a/cpp/main.c	2026-10-10 02:18:38.442506448 -0700
++++ b/cpp/main.c	2026-10-10 02:18:38.450806353 -0700
+@@ -26,12 +26,14 @@
+ char * token_txn P((int));
+ void pr_indent P((int));
+ void hash_line P((void));
++void hexfloat P((char *));
+ 
+ char * include_paths[MAXINCPATH];
+ 
+ char last_name[512] = "";
+ int last_line = -1;
+ int debug_mode = 0;
++int hex_floats = 0;
+ int p_flag = 0;
+ int exit_code = 0;
+ 
+@@ -81,6 +83,9 @@
+ 	     break;
+    case 'P': p_flag++;
+ 	     break;
++   case 'H': /* Floating constants in hexadecimal. */
++	     hex_floats++;
++	     break;
+ 
+    case 'I':
+ 	     if (argv[ar][2]) p=argv[ar]+2;
+@@ -366,6 +371,8 @@
+ 	    if(i =='(') paren++;
+ 	 }
+ 
++	 if (i == TK_FLT && hex_floats)
++	    hexfloat(curword);
+ 	 outpos += fprintf(ofd, "%s", curword);
+ 
+ 	 if ( i == '"' || i == '\'' )
+@@ -383,6 +390,28 @@
+    outpos = 0;
+ }
+ 
++/* -H: write a decimal floating constant as the hexadecimal one with the same
++ * value, 0x1.hhhhhhhhhhhhhp+d (0x0.hhhhhhhhhhhhhp-1022 for zero and the
++ * denormals), for a compiler with no room for atof (bcc-cc1 on an 8086).
++ * strtod rounds correctly, so this is the double the constant stands for.
++ * Text that is not all one constant is left for the compiler to report. */
++void
++hexfloat(s)
++char *s;
++{
++   union { double d; unsigned short w[4]; } u;
++   char *end;
++   int e;
++   extern double strtod();	/* stdlib.h is only for __STDC__ here */
++
++   u.d = strtod(s, &end);
++   if (*end)
++      return;
++   e = (u.w[3] >> 4) & 0x7FF;
++   sprintf(s, "0x%d.%x%04x%04x%04xp%d", e != 0, u.w[3] & 0xF,
++	   u.w[2], u.w[1], u.w[0], e ? e - 1023 : -1022);
++}
++
+ void
+ print_toks_raw()
+ {

@@ -1,0 +1,25 @@
+In fpush(), a char was converted to double by Fpushc or Fpushuc according
+to the UNSIGNED bit of its type. A plain char has no such bit but is
+unsigned in bcc, and a signed char gets the same "c", so the helper could
+not tell them apart. Chars and shorts are now widened to int first, with
+extend(), which knows the difference (it is what assignment to an int uses),
+and pushed with Fpushi or Fpushui.
+
+--- a/bcc/floatop.c
++++ b/bcc/floatop.c
+@@ -167,6 +167,15 @@
+ 	    return;
+ 	pointat(source);
+     }
++    else if (scalar & (CHAR | SHORT))
++    {
++	/* Widen to int as extend() does elsewhere: the type character
++	 * alone cannot tell a plain char (unsigned in bcc) from a signed
++	 * one, so Fpushc could only get one of them right. */
++	extend(source);
++	load(source, DREG);
++	scalar = source->type->scalar;
++    }
+     else if (scalar & DLONG)
+ 	load(source, OPREG);
+     else

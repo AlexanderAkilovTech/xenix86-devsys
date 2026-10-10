@@ -1,0 +1,578 @@
+copt, BCC's peephole optimiser, for XENIX: K&R C, so that BCC compiles it,
+and an input taken a piece at a time, so that it runs in a 16-bit
+program's 64K of data.
+
+Dev86's copt read the whole input, applied the first rules file to it, then
+the next, and so on, and kept every line it read or made in a hash table
+for good. Now it reads the rules files first, then optimises the input one
+piece at a time with each set of rules in turn, writes the piece out and
+frees it. A piece ends before a global label (_name:), which no rule
+matches, so no rule could have matched lines on both sides of it; a piece
+of a very large function also ends after 1000 lines or 12000 bytes, as the
+same build does on the host, so that both give the same code. The output
+is the same as Dev86's copt gives for all of this project's sources and
+all of BCC's (185 files, with both Dev86's rules and patch 11's).
+
+Also: variables matched by a rule are kept in a fixed buffer rather than
+in the hash table (a rule whose variables would not fit there does not
+match); a line and its text are one allocation; optline() reports a match
+rather than having optimize() look at a line it has freed, and a match at
+the very start of a piece continues from there, where Dev86's copt
+stopped optimising the rest of the file; a rule whose first line cannot
+match the line at hand is skipped before its variables are cleared, which
+makes copt nearly twice as fast on an 8086.
+
+--- a/copt/copt.c	2026-10-10 01:59:47.154301621 -0700
++++ b/copt/copt.c	2026-10-10 01:59:47.158926277 -0700
+@@ -49,6 +49,12 @@
+ #endif
+ #define NOCHAR		'\177'
+ #define VARNUM		10
++#define VARBUF		1024		/* room for the variables' values */
++#define MAXSETS		8		/* rules files */
++#ifndef MAXPIECE
++#define MAXPIECE	1000		/* lines in a piece of the input */
++#define MAXBYTES	12000		/* and their text */
++#endif
+ 
+ 
+ 
+@@ -88,14 +94,28 @@
+ static char *vars[VARNUM];		/* variable table */
+ static char *progname;			/* program name */
+ 
++/* The input is optimized a piece at a time, so that only one piece (one
++ * function, or a part of a large one) need be in memory: a 16-bit
++ * program has 64K for all its data. */
++static struct rule_s *sets[MAXSETS];	/* the rules, one list per file */
++static int in_asm[MAXSETS];		/* in #asm, as each set has got to */
++static int nsets = 0;
++static FILE *infp, *outfp;		/* the input and output files */
++static int incomment;			/* the input's comment character */
++static struct line_s *ahead = NULL;	/* a line read ahead: the next piece's first */
++static struct line_s *resume;		/* where optline() says to go on */
++static char varbuf[VARBUF];		/* the variables' values */
++static int varused;
++
+ 
+ 
+ /*
+  * Allocate memory and print error if none available
+  */
+-static void *mymalloc(int size)
++static char *mymalloc(size)
++unsigned size;
+ {
+-  void *p;
++  char *p;
+ 
+   if ((p = malloc(size)) == NULL) {
+ 	fprintf(stderr, "%s: no memory\n", progname);
+@@ -110,7 +130,9 @@
+  * Insert a string into the hash table. If the string is already in there
+  * just return the pointer to that string.
+  */
+-static char *install(char *str, int slen)
++static char *install(str, slen)
++char *str;
++int slen;
+ {
+   struct hash_s *hp;
+   char *chkstr;
+@@ -155,9 +177,49 @@
+ 
+ 
+ /*
++ * Make a line of the input file: the line and its text are one block, and
++ * one free() frees both
++ */
++static struct line_s *newline(str, comment_flg)
++char *str;
++int comment_flg;
++{
++  struct line_s *lp;
++
++  lp = (struct line_s *)mymalloc(sizeof(struct line_s) + strlen(str) + 1);
++  lp->text = (char *)(lp + 1);
++  strcpy(lp->text, str);
++  lp->comment_flg = comment_flg;
++  return(lp);
++}
++
++
++
++/*
++ * Keep a copy of a variable's value; NULL if there is no room left
++ */
++static char *setvar(str, len)
++char *str;
++int len;
++{
++  char *cp;
++
++  if (varused + len + 1 > VARBUF)
++	return(NULL);
++  cp = &varbuf[varused];
++  strncpy(cp, str, len);
++  cp[len] = '\0';
++  varused += len + 1;
++  return(cp);
++}
++
++
++
++/*
+  * Read one line from input file and skip all blanks at the beginning
+  */
+-static char *readline(FILE *fp)
++static char *readline(fp)
++FILE *fp;
+ {
+   static char buf[MAXLINE];
+   char *cp;
+@@ -182,11 +244,13 @@
+ 
+ 
+ /*
+- * Read a list of input lines. Terminate reading when the 'quit' character
++ * Read a list of rule lines. Terminate reading when the 'quit' character
+  * has been found in the first column of the input line. All lines with the
+  * 'comment' character in the first position will be skipped.
+  */
+-static struct line_s *readlist(FILE *fp, int quit, int comment)
++static struct line_s *readlist(fp, quit, comment)
++FILE *fp;
++int quit, comment;
+ {
+   struct line_s *lp;
+   struct line_s *first_line = NULL;
+@@ -201,7 +265,7 @@
+ 			continue;
+ 	if (*cp == '\0')
+ 		continue;
+-	lp = mymalloc(sizeof(struct line_s));
++	lp = (struct line_s *)mymalloc(sizeof(struct line_s));
+ 	lp->text = install(cp, -1);
+ 	lp->prev = last_line;
+ 	lp->next = NULL;
+@@ -220,7 +284,8 @@
+ /*
+  * Read pattern file
+  */
+-static void readpattern(char *rulesdir, char *filename)
++static void readpattern(rulesdir, filename)
++char *rulesdir, *filename;
+ {
+   static char path[MAXLINE];
+   struct rule_s *rp;
+@@ -269,56 +334,78 @@
+ 
+ 
+ /*
+- * Clear pattern list to allow for another run
++ * Open input file
+  */
+-static void clearpattern(void)
++static void openinfile(filename, comment)
++char *filename;
++int comment;
+ {
+-  struct rule_s *rp1, *rp2;
+-  struct line_s *lp1, *lp2;
+-
+-  rp1 = first;
+-  while (rp1 != NULL) {
+-	/* Clear old rule text list */
+-	lp1 = rp1->old;
+-	while (lp1 != NULL) {
+-		lp2 = lp1;
+-		lp1 = lp1->next;
+-		free(lp2);
+-	}
+-	/* Clear new rule text list */
+-	lp1 = rp1->new;
+-	while (lp1 != NULL) {
+-		lp2 = lp1;
+-		lp1 = lp1->next;
+-		free(lp2);
+-	}
+-	/* Clear rule itself */
+-	rp2 = rp1;
+-	rp1 = rp1->next;
+-	free(rp2);
++  infp = stdin;
++  if (filename != NULL && (infp = fopen(filename, "r")) == NULL) {
++	fprintf(stderr, "%s: can't open input file %s\n", progname, filename);
++	exit(1);
+   }
++  incomment = comment;
++}
+ 
+-  first = NULL;
+-  last = NULL;
++
++
++/*
++ * Is this line a global label (_name:)? No rule matches one, so no rule
++ * can match lines on both sides of one
++ */
++static int islabel(cp)
++char *cp;
++{
++  if (*cp++ != '_')
++	return(0);
++  while (isalnum(*cp) || *cp == '_' || *cp == '$' || *cp == '.')
++	cp++;
++  return(cp[0] == ':' && cp[1] == '\0');
+ }
+ 
+ 
+ 
+ /*
+- * Read input file
++ * Read the next piece of the input file: the lines up to the next global
++ * label, but at most MAXPIECE lines or MAXBYTES of text, so that a large
++ * function is taken in parts. Returns 0 at the end of the file
+  */
+-static void readinfile(char *filename, int comment)
++static int readpiece()
+ {
+-  FILE *fp;
++  struct line_s *lp;
++  struct line_s *last_line;
++  char *cp;
++  int nlines = 0;
++  unsigned nbytes = 0;
+ 
+-  fp = stdin;
+-  if (filename != NULL && (fp = fopen(filename, "r")) == NULL) {
+-	fprintf(stderr, "%s: can't open input file %s\n", progname, filename);
+-	exit(1);
++  infile = last_line = ahead;
++  ahead = NULL;
++  if (infile != NULL) {
++	infile->prev = infile->next = NULL;
++	nlines = 1;
++	nbytes = strlen(infile->text);
+   }
+-  infile = readlist(fp, NOCHAR, comment);
+-  if (fp != stdin)
+-	  (void)fclose(fp);
++  while ((cp = readline(infp)) != NULL) {
++	if (*cp == '\0')
++		continue;
++	lp = newline(cp, incomment != NOCHAR && *cp == incomment);
++	if (infile != NULL && (islabel(cp) || nlines >= MAXPIECE ||
++	    nbytes >= MAXBYTES)) {
++		ahead = lp;
++		break;
++	}
++	lp->prev = last_line;
++	lp->next = NULL;
++	if (infile == NULL)
++		infile = lp;
++	else
++		last_line->next = lp;
++	last_line = lp;
++	nlines++;
++	nbytes += strlen(cp);
++  }
++  return(infile != NULL);
+ }
+ 
+ #define NO_OP  0
+@@ -336,7 +423,7 @@
+   int op = NO_OP;
+ 
+ /* Apply operation to current numeric value */
+-static void doretval(void)
++static void doretval()
+ {
+       switch (op) {
+ 	      case NO_OP:	retval = num * sign;
+@@ -364,7 +451,9 @@
+ /*
+  * Eval an expression into an integer number
+  */
+-static long eval(char *str, int len)
++static long eval(str, len)
++char *str;
++int len;
+ {
+   char *cp, c;
+   int state = 0;
+@@ -447,7 +536,8 @@
+  * defined, it will be inserted into the variable list from the pattern
+  * string.
+  */
+-static int match(char *ins, char *pat)
++static int match(ins, pat)
++char *ins, *pat;
+ {
+   char *cp, *oldpat;
+   long val;
+@@ -476,9 +566,10 @@
+ 			continue;
+ 		len = ins - cp;
+ 		varnum = pat[-1] - '0';
+-		if (vars[varnum] == NULL)
+-			vars[varnum] = install(cp, len);
+-		else if (strlen(vars[varnum]) != len ||
++		if (vars[varnum] == NULL) {
++			if ((vars[varnum] = setvar(cp, len)) == NULL)
++				return(0);
++		} else if (strlen(vars[varnum]) != len ||
+ 		           strncmp(vars[varnum], cp, len))
+ 			return(0);
+ 	} else if (pat[1] == '[') {
+@@ -509,9 +600,10 @@
+ 		if (*(cp + 1) == '*')
+ 			continue;
+ 		varnum = *(cp + 1) - '0';
+-		if (vars[varnum] == NULL)
+-			vars[varnum] = install(oldpat, len);
+-		else if (strlen(vars[varnum]) != len ||
++		if (vars[varnum] == NULL) {
++			if ((vars[varnum] = setvar(oldpat, len)) == NULL)
++				return(0);
++		} else if (strlen(vars[varnum]) != len ||
+ 		           strncmp(vars[varnum], oldpat, len))
+ 			return(0);
+ 	} else if (pat[1] == '!') {
+@@ -561,9 +653,10 @@
+ /*
+  * Substitute variables in a string
+  */
+-static char *subst(char *pat)
++static char *subst(pat)
++char *pat;
+ {
+-  char buf[MAXLINE];
++  static char buf[MAXLINE];
+   char *cp, *cp1, *cp2, *varptr;
+   long num;
+   int i = 0;
+@@ -662,25 +755,37 @@
+ 	}
+ 
+   buf[i] = '\0';
+-  return(install(buf, i));
++  return(buf);
+ }
+ 
+ 
+ 
+ /*
+- * Optimize one line of the input file
++ * Optimize one line of the input file. If a rule matches there, replace
++ * the lines it matched, set resume to the line before them (NULL at the
++ * start of the piece) and return 1
+  */
+-static struct line_s *optline(struct line_s *cur)
++static int optline(cur)
++struct line_s *cur;
+ {
+   struct rule_s *rp;
+   struct line_s *ins, *pat;
+   struct line_s *lp1, *lp2;
+-  int i;
++  int i, c;
+ 
+   for (rp = first; rp != NULL; rp = rp->next) {
+-	/* Clear variable array */
+-	for (i = 0; i < VARNUM; i++)
+-		vars[i] = NULL;
++	/* A rule whose first line starts with other text than this line
++	 * does cannot match here: skip it quickly */
++	c = rp->old->text[0];
++	if (c != '%' && c != cur->text[0])
++		continue;
++
++	/* Clear variable array (no variable is set if none has a value) */
++	if (varused) {
++		for (i = 0; i < VARNUM; i++)
++			vars[i] = NULL;
++		varused = 0;
++	}
+ 
+ 	/* Scan through pattern texts and match them against the input file */
+ 	ins = cur;
+@@ -730,11 +835,9 @@
+ 		lp1 = cur;
+ 		lp2 = NULL;
+ 		while (pat != NULL) {
+-			lp2 = mymalloc(sizeof(struct line_s));
+-			lp2->text = subst(pat->text);
++			lp2 = newline(subst(pat->text), 0);
+ 			lp2->next = NULL;
+ 			lp2->prev = lp1;
+-			lp2->comment_flg = 0;
+ 			if (lp1 != NULL)
+ 				lp1->next = lp2;
+ 			else
+@@ -750,39 +853,43 @@
+ 			lp1->next = NULL;
+ 		else
+ 			infile = NULL;
+-		return(cur);
++		resume = cur;
++		return(1);
+ 	}
+   }
+-  return(cur->next);
++  return(0);
+ }
+ 
+ 
+ 
+ /*
+- * Actually optimize all strings in the input file
++ * Actually optimize all strings in the piece of the input file, with the
++ * rules of set k
+  */
+-static void optimize(int backup)
++static void optimize(backup, k)
++int backup, k;
+ {
+   struct line_s *cur, *lp;
+   int i;
+-  int in_asm = 0;
+ 
+   /* Scan through all lines in the input file */
++  first = sets[k];
+   cur = infile;
+   while (cur != NULL) {
+-	if (cur->comment_flg || in_asm)
++	if (cur->comment_flg || in_asm[k])
+ 	{
+ 		lp=cur->next;
+-		if (memcmp(cur->text, "!BCC_", 5) == 0)
+-			in_asm = (memcmp(cur->text+5, "ASM", 3) == 0);
++		if (strncmp(cur->text, "!BCC_", 5) == 0)
++			in_asm[k] = (strncmp(cur->text+5, "ASM", 3) == 0);
+ 	}
+-	else
+-	        if ((lp = optline(cur)) != NULL && lp != cur->next) {
+-			for (i = 0; i < backup && lp != NULL; i++)
+-				lp = lp->prev;
+-			if (lp == NULL)
+-				lp = infile;
+-		}
++	else if (optline(cur)) {
++		lp = resume;
++		for (i = 0; i < backup && lp != NULL; i++)
++			lp = lp->prev;
++		if (lp == NULL)
++			lp = infile;
++	} else
++		lp = cur->next;
+ 	cur = lp;
+   }
+ }
+@@ -790,26 +897,38 @@
+ 
+ 
+ /*
+- * Write out into destination file
++ * Open destination file
+  */
+-static void writeoutf(char *filename, char *headstr)
++static void openoutf(filename, headstr)
++char *filename, *headstr;
+ {
+-  FILE *fp;
+-  struct line_s *lp;
+-
+-  fp = stdout;
+-  if (filename != NULL && (fp = fopen(filename, "w")) == NULL) {
++  outfp = stdout;
++  if (filename != NULL && (outfp = fopen(filename, "w")) == NULL) {
+ 	fprintf(stderr, "%s: can't open output file %s\n", progname, filename);
+ 	exit(1);
+   }
+   if (headstr != NULL) {
+-	fprintf(fp, headstr);
+-	fprintf(fp, "\n");
++	fputs(headstr, outfp);
++	fputs("\n", outfp);
++  }
++}
++
++
++
++/*
++ * Write out the piece into destination file, and free it
++ */
++static void writeoutf()
++{
++  struct line_s *lp, *next;
++
++  for (lp = infile; lp != NULL; lp = next) {
++	fputs(lp->text, outfp);
++	putc('\n', outfp);
++	next = lp->next;
++	free(lp);
+   }
+-  for (lp = infile; lp != NULL; lp = lp->next)
+-	fprintf(fp, "%s\n", lp->text);
+-  if (fp != stdout)
+-	  (void)fclose(fp);
++  infile = NULL;
+ }
+ 
+ 
+@@ -817,11 +936,9 @@
+ /*
+  * Print usage
+  */
+-static void usage(void)
++static void usage()
+ {
+-  fprintf(stderr, "usage: %s [-c<comment-char>] [-f<src-file>] [-o<out-file>]\n"
+-		"\t\t[-b<backup-num>] [-h<head-str>] [-d<ruls-dir>] "
+-		"<rules-file> ...\n", progname);
++  fprintf(stderr, "usage: %s [-c<comment-char>] [-f<src-file>] [-o<out-file>]\n\t\t[-b<backup-num>] [-h<head-str>] [-d<ruls-dir>] <rules-file> ...\n", progname);
+   exit(1);
+ }
+ 
+@@ -831,7 +948,9 @@
+  * Main program
+  */
+ int
+-main(int argc, char **argv)
++main(argc, argv)
++int argc;
++char **argv;
+ {
+   char comment = NOCHAR;
+   char *srcfile = NULL;
+@@ -884,14 +1003,24 @@
+   if ((argc - i) < 1)
+ 	usage();
+ 
+-  /* Read source file and optimze it with every rules file */
+-  readinfile(srcfile, comment);
++  /* Read every rules file, then optimize the source file with them, a
++   * piece at a time */
+   for ( ; i < argc; i++) {
++	if (nsets >= MAXSETS)
++		usage();
+ 	readpattern(rulesdir, argv[i]);
+-	optimize(backup);
+-	clearpattern();
++	sets[nsets++] = first;
++	first = last = NULL;
++  }
++  openinfile(srcfile, comment);
++  openoutf(outfile, headstr);
++  while (readpiece()) {
++	for (i = 0; i < nsets; i++)
++		optimize(backup, i);
++	writeoutf();
+   }
+-  writeoutf(outfile, headstr);
++  if (outfp != stdout)
++	  (void)fclose(outfp);
+ 
+   exit(0);
+ }

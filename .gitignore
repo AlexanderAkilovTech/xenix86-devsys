@@ -7,4 +7,5 @@ __pycache__/
 stage/
 *.img
 *.tar
+*.tar.gz
 build/

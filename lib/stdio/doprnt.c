@@ -1,8 +1,12 @@
 /* doprnt.c - xenix86-devsys libc: printf, fprintf, sprintf (K&R C)
- * Conversions: d i u o x X c s %, with the l (long) modifier, flags - 0 + space #,
- * field width and precision (* for either). As in System V, each returns the
- * number of characters written (EOF after an output error). */
+ * Conversions: d i u o x X c s e E f g G %, with the l (long) modifier, flags
+ * - 0 + space #, field width and precision (* for either). The floating point
+ * conversions print the double's exact value correctly rounded (fltcvt.c),
+ * and inf or nan for those. As in System V, each returns the number of
+ * characters written (EOF after an output error). */
 #include <stdio.h>
+
+char	*_fltfmt();
 
 static int nout;		/* characters written by the current _doprnt */
 #define	PUT(c, f)	(putc(c, f), nout++)
@@ -116,6 +120,27 @@ register FILE *f;
 			if (!left && zero)
 				while (width-- > 0) PUT('0', f);
 			while (n-- > 0) PUT('0', f);
+			while (*s) PUT(*s++, f);
+			while (width-- > 0) PUT(' ', f);
+			break;
+		case 'e':
+		case 'E':
+		case 'f':
+		case 'g':
+		case 'G':
+			s = _fltfmt(ap, *fmt, prec, alt);
+			neg = ap[3] & 0x8000;
+			ap += 4;
+			pfx = neg ? "-" : plus ? "+" : space ? " " : "";
+			if (*s > '9')		/* inf or nan: no zero padding */
+				zero = 0;
+			len = strlen(s);
+			width -= len + strlen(pfx);
+			if (!left && !zero)
+				while (width-- > 0) PUT(' ', f);
+			while (*pfx) PUT(*pfx++, f);
+			if (!left && zero)
+				while (width-- > 0) PUT('0', f);
 			while (*s) PUT(*s++, f);
 			while (width-- > 0) PUT(' ', f);
 			break;

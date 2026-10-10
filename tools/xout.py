@@ -3,7 +3,7 @@ laid out like SCO's own binaries (e.g. /bin/tail): 32-byte header, 44-byte
 extension, segment table at 96, text then data."""
 import struct
 
-def xout(text, data=b'', bss=0, stack=1024):
+def xout(text, data=b'', bss=0, stack=1024, fph=False):
     data = bytes(data) + bytes(-len(data) % 16)   # data padded to a paragraph
     bss = (bss + 15) & ~15                        # bss in whole paragraphs
     text = bytes(text) + bytes(len(text) % 2)     # even-length text
@@ -11,6 +11,8 @@ def xout(text, data=b'', bss=0, stack=1024):
     tpos = hdr_len + segtab
     dpos = tpos + len(text)
     renv = 0xc80f                      # OS-version, segmented, fixed stack, pure, sep I&D, exec
+    if fph:
+        renv |= 0x0080                 # needs floating point hardware (an 8087)
     h = struct.pack('<HHlllllLBBH', 0x0206, 44, len(text), len(data), bss, 0, 0, 0, 0x44, 0x64, renv)
     e = struct.pack('<9lBBBBHH', 0, 0, 0, 0, stack, hdr_len, segtab, 0, 0, 0, 0, 1, 2, 63, 0)
     out = bytearray(h + e)

@@ -1,0 +1,40 @@
+A double in an initializer was written as ((uoffset_T *) d)[0] and [1],
+halves of 32 bits where uoffset_T, an unsigned long, is 32 bits (as on
+XENIX), but on a 64-bit host [0] was the whole double and [1] lay past it:
+the cross-compiler wrote the low half and then garbage. The halves are now
+assembled from the bytes, whatever the size of a long.
+
+--- a/bcc/loadexp.c
++++ b/bcc/loadexp.c
+@@ -71,17 +71,28 @@
+ 	}
+ 	if (type->scalar & RSCALAR)
+ 	{
++	    /* The value as 32-bit halves, lowest first, taken a byte at a
++	     * time: uoffset_T is a long, which is 64 bits on some hosts, and
++	     * then [1] lay past the double. (Little-endian hosts only, like
++	     * the target.) */
++	    unsigned char *b;
++
+ 	    if (type->scalar & FLOAT)
+ 	    {
+ 		float val;
+ 
+ 		val = *symptr->offset.offd;
+-		deflong(((uoffset_T *) &val)[0]);
++		b = (unsigned char *) &val;
++		deflong((uoffset_T) b[0] | (uoffset_T) b[1] << 8 |
++			(uoffset_T) b[2] << 16 | (uoffset_T) b[3] << 24);
+ 	    }
+ 	    else
+ 	    {
+-		deflong(((uoffset_T *) symptr->offset.offd)[0]);
+-		deflong(((uoffset_T *) symptr->offset.offd)[1]);
++		b = (unsigned char *) symptr->offset.offd;
++		deflong((uoffset_T) b[0] | (uoffset_T) b[1] << 8 |
++			(uoffset_T) b[2] << 16 | (uoffset_T) b[3] << 24);
++		deflong((uoffset_T) b[4] | (uoffset_T) b[5] << 8 |
++			(uoffset_T) b[6] << 16 | (uoffset_T) b[7] << 24);
+ 	    }
+ 	    etptr = etmark;	/* XXX - stuff from end of function */
+ 	    exprptr = exprmark;

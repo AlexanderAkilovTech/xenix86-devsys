@@ -1,0 +1,45 @@
+In a conditional expression c ? a : b, the false arm was compiled as if
+the stack still held whatever temporaries the true arm had left on it
+(the true arm of a double expression can leave some), though at run time
+it starts from the stack the true arm started from; and the two arms could
+reach the exit with different stack depths, so the code after it cleaned
+up the wrong amount and the function returned through garbage. The false
+arm now starts from the true arm's starting depth and ends at its final one.
+
+--- a/bcc/glogcode.c
++++ b/bcc/glogcode.c
+@@ -285,10 +285,13 @@
+     label_no truelab;
+     struct nodestruct *truenode;
+     struct symstruct *truesym;
++    offset_T spmark;
++    offset_T sptrue;
+ 
+     jumpcond(exp->left.nodeptr, truelab = getlabel(),
+ 	     falselab = getlabel(), ~0);
+     deflabel(truelab);
++    spmark = sp;
+     makeleaf(truenode = exp->right->left.nodeptr);
+     loadany(truesym = truenode->left.symptr);
+     if (truesym->storage & reguse)
+@@ -304,13 +307,20 @@
+ 	truesym->type != falsenode->left.symptr->type)
+ 	cast(truenode->nodetype == falsenode->nodetype ?
+ 	     truenode->nodetype : exp->nodetype, truesym);
++    sptrue = sp;
+     jump(exitlab = getlabel());
+     deflabel(falselab);
++    /* The false arm runs with the stack as the true arm found it, not as
++     * the true arm left it (temporaries of a double or long expression
++     * there), and must leave it as the true arm does, since the code
++     * after the exit label is compiled for that. */
++    sp = spmark;
+     makeleaf(falsenode);
+     falsesym = falsenode->left.symptr;
+     if (falsesym->type != truesym->type)
+ 	cast(truesym->type, falsesym);
+     load(falsesym, truesym->storage);
++    modstk(sptrue);
+     deflabel(exitlab);
+     exp->tag = LEAF;
+     exp->left.symptr = truesym;

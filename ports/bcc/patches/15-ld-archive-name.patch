@@ -1,0 +1,28 @@
+ld86: keep an archive's name once, not once for each member it reads.
+
+ld86 reads every member of every archive and keeps their symbols in a
+table that has all of the 16-bit program's free memory. A copy of the
+archive's path for each member came to over 2K for the C library, now
+that it has the floating point routines; without it, and with a 4K stack
+rather than 8K (ports/bcc/build.sh; ld86 uses under 300 bytes of stack
+linking bcc-cc1), the XENIX ld86 can link bcc-cc1 again.
+
+--- a/ld/readobj.c	2026-10-10 02:18:38.452721999 -0700
++++ b/ld/readobj.c	2026-10-10 02:18:38.454367740 -0700
+@@ -75,6 +75,7 @@
+ 	if (strncmp(filemagic, ARMAG, sizeof filemagic) != 0)
+ 	    input1error(" has bad magic number");
+ 	filepos = SARMAG;
++	filename = stralloc(filename);	/* once, not once for each member */
+ 	while ((filelength = readarheader(&archentry)) > 0)
+ 	{
+ 	    unsigned int magic;
+@@ -87,7 +88,7 @@
+ 	        seekin(filepos);
+ 	        for (modcount = readfileheader(); modcount-- != 0;)
+ 	        {
+-		    readmodule(stralloc(filename), archentry);
++		    readmodule(filename, archentry);
+ 		    modlast->textoffset += filepos;
+ 	        }
+ 	    }

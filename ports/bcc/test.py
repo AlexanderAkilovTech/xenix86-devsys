@@ -8,7 +8,9 @@ library and test programs, and BCC's own sources.
   cpp   bcc-cpp output must be identical
   cc1   bcc-cc1 output must be identical apart from blank lines (inside #asm
         blocks the separately built preprocessor leaves a few extra ones; the
-        assembler ignores them)
+        assembler ignores them). The XENIX bcc-cc1 has no atof: it reads the
+        native bcc-cpp's output with floating constants in hexadecimal (-H),
+        as cc runs it, while the host's reads the decimal ones
   as    as86 object files must be identical
   ld    ld86 executables must be identical
   cc    the native cc (all passes on the emulated 8086, with CCROOT pointing at
@@ -23,7 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SRC = f'{ROOT}/build/ports/dev86-0.16.17'
 BIN = f'{ROOT}/build/xenix/bin'
 SIM = ['python3', f'{ROOT}/tools/xsim.py']
-DEFS = ['-D__ELKS__', '-D__unix__', f'-I{ROOT}/include', '-D__HAS_NO_FLOATS__', '-D__BCC_VERSION__=0x001011L', '-0']
+DEFS = ['-D__ELKS__', '-D__unix__', f'-I{ROOT}/include', '-D__BCC_VERSION__=0x001011L', '-0']
 
 def run(cmd, **kw):
     return subprocess.run(cmd, capture_output=True, **kw)
@@ -40,8 +42,9 @@ for f in sorted(glob.glob(f'{ROOT}/lib/*/*.c') + glob.glob(f'{ROOT}/tests/*.c'))
     corpus.append((os.path.relpath(f, ROOT), f, []))
 XFLAGS = ['-Dconst=', '-DM_XENIX']      # as ports/bcc/build.sh compiles them
 for d, extra, files in (
-        ('bcc', [], 'bcc-cc1 codefrag declare express exptree function gencode genloads glogcode hardop '
-                    'input label loadexp longop output preserve scan softop state table type assign'),
+        ('bcc', ['-DNO_ATOF'], 'bcc-cc1 codefrag declare express exptree floatop function gencode genloads '
+                    'glogcode hardop input label loadexp longop output preproc preserve scan softop state '
+                    'table type assign hashcmd'),
         ('cpp', [], 'main cpp hash token1 token2'),
         ('as', ['-DBIGBUFFER=0', '-DUSE_FIXED_HEAP'], 'as assemble errors express genbin gensym macro mops pops readsrc scan table alloc'),
         ('ld', ['-DREL_OUTPUT'], 'io ld readobj table linksyms writebin writex86'),
@@ -58,11 +61,12 @@ for i, (name, src, extra) in enumerate(corpus):
     cwd = os.path.dirname(src)          # quoted includes resolve next to the source
     run(['/usr/lib/bcc/bcc-cpp', src, '-o', f'{b}.h.i'] + extra + DEFS, cwd=cwd)
     run(SIM + [f'{BIN}/bcc-cpp', src, '-o', f'{b}.x.i'] + extra + DEFS, cwd=cwd)
+    run(SIM + [f'{BIN}/bcc-cpp', src, '-o', f'{b}.xh.i', '-H'] + extra + DEFS, cwd=cwd)
     count['cpp'] += 1
     if not same(f'{b}.h.i', f'{b}.x.i'):
         fails['cpp'].append(name)
     run([f'{ROOT}/build/ports/host/bcc-cc1', f'{b}.h.i', '-o', f'{b}.h.s', '-0'])
-    run(SIM + [f'{BIN}/bcc-cc1', f'{b}.h.i', '-o', f'{b}.x.s', '-0'])
+    run(SIM + [f'{BIN}/bcc-cc1', f'{b}.xh.i', '-o', f'{b}.x.s', '-0'])
     count['cc1'] += 1
     if not os.path.exists(f'{b}.x.s') or not same(f'{b}.h.s', f'{b}.x.s', blank_ok=True):
         fails['cc1'].append(name)
@@ -76,10 +80,13 @@ for i, (name, src, extra) in enumerate(corpus):
     print(f'\r{i + 1}/{len(corpus)} files', end='', file=sys.stderr, flush=True)
 print(file=sys.stderr)
 
-# link every test program (crt0.o + program + libc.a) with both linkers
-for name in [n for n in objs if n.startswith('tests/') and n not in ('tests/regdump.c',)]:
+# link every test program (crt0.o + program + libm.a + libc.a) with both linkers,
+# but those with an assembly half
+for name in [n for n in objs if n.startswith('tests/') and n not in ('tests/regdump.c', 'tests/fptest.c',
+                                                                    'tests/fpu87.c')]:
     b = f'{tmp}/link_{os.path.basename(name)[:-2]}'
-    args = ['-0', '-i', '-o', None, f'{ROOT}/build/crt0.o', objs[name], f'{ROOT}/build/libc.a']
+    args = ['-0', '-i', '-o', None, f'{ROOT}/build/crt0.o', objs[name], f'{ROOT}/build/libm.a',
+            f'{ROOT}/build/libc.a']
     h = run(['ld86'] + [a if a else f'{b}.h' for a in args])
     x = run(SIM + [f'{BIN}/ld86'] + [a if a else f'{b}.x' for a in args])
     count['ld'] += 1
@@ -90,12 +97,15 @@ for name in [n for n in objs if n.startswith('tests/') and n not in ('tests/regd
 R = f'{ROOT}/build/xenix/testroot'   # the install tree, plus the sys/ stand-ins
 cenv = dict(os.environ, XSIM_ENV=f'CCROOT={R}')
 count['cc'], fails['cc'] = 0, []
+HALVES = {'fptest': 'fptests.s', 'fpu87': 'fpu87s.s'}   # assembly halves
 for src in sorted(glob.glob(f'{ROOT}/tests/*.c')):
     t = os.path.basename(src)[:-2]
-    if t == 'regdump':                  # needs its assembly half
+    if t == 'regdump':                  # its two halves would both be regdump.o
         continue
-    run([f'{ROOT}/build.sh', src])
-    run(SIM + [f'{R}/usr/bin/cc', '-o', f'{tmp}/{t}.native', src], env=cenv, cwd=tmp)
+    more = [f'{ROOT}/tests/{HALVES[t]}'] if t in HALVES else []
+    run([f'{ROOT}/build.sh', src] + more)
+    # build.sh links every program with libm.a: so does -lm
+    run(SIM + [f'{R}/usr/bin/cc', '-o', f'{tmp}/{t}.native', src] + more + ['-lm'], env=cenv, cwd=tmp)
     count['cc'] += 1
     if not os.path.exists(f'{tmp}/{t}.native') or not same(f'{tmp}/{t}.native', f'{ROOT}/build/{t}'):
         fails['cc'].append(f'tests/{t}.c')
@@ -133,7 +143,9 @@ run(['cp', '-r', f'{SRC}/bcc', sd])
 cc1src = ('bcc-cc1 codefrag dbnode declare express exptree floatop function gencode genloads glogcode hardop '
           'input label loadexp longop output preproc preserve scan softop state table type assign hashcmd').split()
 for name, args, ref in (
-        ('bcc-cc1', ['-Dconst=', '-F', '2000'] + [f + '.c' for f in cc1src], f'{BIN}/bcc-cc1'),
+        # as ports/bcc/build.sh builds it: callersaves, copt (with rules.mc), as86 -O, no atof
+        ('bcc-cc1', ['-O', '-Mc', '-DNO_ATOF', '-Dconst=', '-F', '2000'] + [f + '.c' for f in cc1src],
+         f'{BIN}/bcc-cc1'),
         ('cc', [f'{ROOT}/cmd/cc.c'], f'{ROOT}/build/cc'),
         ('aout2x', [f'{ROOT}/cmd/aout2x.c'], f'{ROOT}/build/aout2x')):
     run(SIM + [f'{R}/usr/bin/cc', '-o', f'{sd}/{name}.native'] + args, env=cenv, cwd=sd)

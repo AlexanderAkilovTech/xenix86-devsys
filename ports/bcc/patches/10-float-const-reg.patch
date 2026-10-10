@@ -1,0 +1,21 @@
+In an operation on a double held in registers (as a function returns one)
+and a constant, such as 0.5 * exp(x), the constant was pushed first, a
+word at a time through AX, which held the low word of the other operand:
+the result came out with that word lost. The register operand is now
+pushed first.
+
+--- a/bcc/floatop.c
++++ b/bcc/floatop.c
+@@ -104,6 +104,12 @@
+ 
+     regmark = reguse;
+     saveopreg();
++    /* A double still in registers (a function's result) goes on the stack
++     * before a constant is pushed: each word of a constant is pushed
++     * through AX, one of the registers it is in. */
++    if (target->indcount == 0 && target->storage != CONSTANT &&
++	source->indcount == 0 && source->storage == CONSTANT)
++	(void) f_indirect(target);
+     (void) f_indirect(source);
+     if (!(reguse & OPREG) && (source->storage == OPREG))
+     {

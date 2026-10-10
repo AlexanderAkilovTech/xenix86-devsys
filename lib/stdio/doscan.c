@@ -1,9 +1,10 @@
 /* doscan.c - xenix86-devsys libc: scanf, fscanf, sscanf (K&R C)
- * Conversions: d i u o x X c s [ ] n %, with * (no assignment), a field width,
- * and the l (long) and h (short) sizes. No floating point yet. Each returns the
- * number of fields assigned, or EOF if the input ended before the first. */
+ * Conversions: d i u o x X e E f g G c s [ ] n %, with * (no assignment), a
+ * field width, and the l (long, or double) and h (short) sizes. Each returns
+ * the number of fields assigned, or EOF if the input ended before the first. */
 #include <stdio.h>
 #include <ctype.h>
+
 
 static int nread;		/* characters taken so far, for %n */
 #define	GET(f)		(nread++, getc(f))
@@ -185,7 +186,22 @@ char **ap;
 				nassign++;
 			}
 			continue;
-		default:			/* e, f, g and the rest: not supported */
+		case 'e':
+		case 'E':
+		case 'f':
+		case 'g':
+		case 'G':			/* fltscan.c */
+			if (skipws(f) == EOF)
+				return nassign ? nassign : EOF;
+			i = _fltscan(f, width, suppress ? (char *)0 : *ap, size, &nread);
+			if (!suppress)
+				ap++;
+			if (i == 0)
+				return nassign;
+			if (!suppress)
+				nassign++;
+			continue;
+		default:
 			return nassign;
 		}
 	}

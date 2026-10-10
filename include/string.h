@@ -8,4 +8,6 @@ typedef	unsigned	size_t;
 extern char *strcpy(), *strncpy(), *strcat(), *strncat(), *strchr(), *strrchr();
 extern char *index(), *rindex(), *memcpy(), *memset();
 extern int strlen(), strcmp(), strncmp(), memcmp();
+extern int strspn(), strcspn();
+extern char *strpbrk(), *strtok(), *strdup(), *memchr(), *memccpy(), *memmove();
 #endif

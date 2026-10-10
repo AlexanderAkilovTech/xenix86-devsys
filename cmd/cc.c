@@ -14,10 +14,18 @@
  *	-lname		link with LIBDIR/libname.a
  *	-F size		stack size in bytes, in hexadecimal as with SCO's cc
  *	-v		show each command as it runs
- *	-O, -M0		accepted and ignored (8086 small model only, no optimiser)
+ *	-O		optimise: copt rewrites the compiler's output with the
+ *			rules in LIBDIR, and as86 makes each jump as short as it
+ *			can be
+ *	-Mc		callersaves: a function keeps no registers for its
+ *			caller, which makes smaller code; compile all of a
+ *			program's C files this way, or none of them
+ *	-M0, -Ms	accepted and ignored (the 8086 small model is the only one)
  *
- * The passes are BCC's: bcc-cpp and bcc-cc1 (in LIBDIR), as86 and ld86 (in
- * BINDIR); then aout2x (LIBDIR) turns ld86's a.out into a XENIX x.out.
+ * The passes are BCC's: bcc-cpp and bcc-cc1 (in LIBDIR), copt for -O (LIBDIR,
+ * with its rules files), as86 and ld86 (in BINDIR); then aout2x (LIBDIR)
+ * turns ld86's a.out into a XENIX x.out. bcc-cpp writes floating constants
+ * in hexadecimal (-H), because bcc-cc1 has no room to convert decimal ones.
  * LIBDIR also holds crt0.o and libc.a; headers are in INCDIR. If CCROOT is
  * set in the environment, all of these are looked for under that directory.
  * Like the cc of Version 7, cc removes the .o when one C file is compiled and
@@ -30,19 +38,19 @@
 #define	INCDIR	"/usr/include"
 #define	MAXARGS	200
 
-/* the names SCO's cc defined, and BCC's sign that there is no floating point yet */
-char	*predef[] = { "-DM_XENIX", "-DM_I86", "-DM_I8086", "-DM_I86SM", "-Dunix", "-D__HAS_NO_FLOATS__",
+/* the names SCO's cc defined, and BCC's version */
+char	*predef[] = { "-DM_XENIX", "-DM_I86", "-DM_I8086", "-DM_I86SM", "-Dunix",
 	"-D__BCC_VERSION__=0x001011L", 0 };
 
-char	*cpp, *cc1, *as, *ld, *cvt, *crt0, *libc, *libdir, *incdir;
+char	*cpp, *cc1, *copt, *as, *ld, *cvt, *crt0, *libc, *libdir, *incdir;
 char	*outfile = "a.out";
 char	*stack = "1000";		/* hex, as SCO's cc -F */
 char	*cppflags[MAXARGS];
 char	*files[MAXARGS], *ldargs[MAXARGS];
 int	ncpp, nfiles, nld;
-int	cflag, sflag, eflag, vflag;
+int	cflag, sflag, eflag, vflag, oflag, mcflag;
 int	errors;
-char	tmp_i[32], tmp_s[32], tmp_out[32];
+char	tmp_i[32], tmp_s[32], tmp_out[32], tmp_o[32];
 
 extern char *malloc(), *getenv(), *strcpy(), *strcat(), *strrchr();
 extern long strtol();
@@ -90,6 +98,7 @@ cleanup()
 	unlink(tmp_i);
 	unlink(tmp_s);
 	unlink(tmp_out);
+	unlink(tmp_o);
 }
 
 onintr()
@@ -146,6 +155,7 @@ char *src, *obj;
 	if (!eflag) {
 		av[n++] = "-o";
 		av[n++] = tmp_i;
+		av[n++] = "-H";		/* floating constants in hexadecimal */
 	}
 	av[n++] = "-0";
 	for (i = 0; predef[i]; i++)
@@ -164,11 +174,32 @@ char *src, *obj;
 	av[n++] = "bcc-cc1";
 	av[n++] = tmp_i;
 	av[n++] = "-o";
-	av[n++] = sfile;
+	av[n++] = oflag ? tmp_o : sfile;
 	av[n++] = "-0";
+	if (oflag)
+		av[n++] = "-O";
+	if (mcflag)
+		av[n++] = "-c";
 	av[n] = 0;
 	if (callsys(cc1, av))
 		return 1;
+	if (oflag) {
+		n = 0;
+		av[n++] = "copt";
+		av[n++] = tmp_o;
+		av[n++] = "-o";
+		av[n++] = sfile;
+		av[n++] = "-c!";
+		av[n++] = cat3("-d", libdir, "");
+		av[n++] = "rules.start";
+		av[n++] = "rules.86";
+		if (mcflag)
+			av[n++] = "rules.mc";
+		av[n++] = "rules.end";
+		av[n] = 0;
+		if (callsys(copt, av))
+			return 1;
+	}
 	if (sflag)
 		return 0;
 	return assemble(sfile, obj, setsuf(src, 's'));
@@ -188,7 +219,8 @@ char *sfile, *obj, *modname;
 	av[6] = "-0";
 	av[7] = "-n";
 	av[8] = modname;
-	av[9] = 0;
+	av[9] = oflag ? "-O" : 0;
+	av[10] = 0;
 	return callsys(as, av);
 }
 
@@ -208,6 +240,7 @@ char **argv;
 	incdir = cat3(root, INCDIR, "");
 	cpp = cat3(libdir, "/bcc-cpp", "");
 	cc1 = cat3(libdir, "/bcc-cc1", "");
+	copt = cat3(libdir, "/copt", "");
 	cvt = cat3(libdir, "/aout2x", "");
 	crt0 = cat3(libdir, "/crt0.o", "");
 	libc = cat3(libdir, "/libc.a", "");
@@ -222,8 +255,11 @@ char **argv;
 			case 'S': sflag++; cflag++; continue;
 			case 'E': eflag++; cflag++; continue;
 			case 'v': vflag++; continue;
-			case 'O': continue;
-			case 'M': continue;
+			case 'O': oflag++; continue;
+			case 'M':
+				if (a[2] == 'c')
+					mcflag++;
+				continue;
 			case 'D': case 'U': case 'I':
 				if (ncpp < MAXARGS)
 					cppflags[ncpp++] = a;
@@ -257,7 +293,7 @@ char **argv;
 	}
 	if (nfiles == 0) {
 usage:
-		fprintf(stderr, "usage: cc [-c] [-S] [-E] [-o name] [-Dname] [-Idir] [-lname] [-F stack] files...\n");
+		fprintf(stderr, "usage: cc [-c] [-S] [-E] [-O] [-Mc] [-o name] [-Dname] [-Idir] [-lname] [-F stack] files...\n");
 		exit(8);
 	}
 
@@ -265,6 +301,7 @@ usage:
 	sprintf(tmp_i, "/tmp/ctm%da", n);
 	sprintf(tmp_s, "/tmp/ctm%db", n);
 	sprintf(tmp_out, "/tmp/ctm%dc", n);
+	sprintf(tmp_o, "/tmp/ctm%dd", n);
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, onintr);
 	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)

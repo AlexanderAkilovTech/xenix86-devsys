@@ -14,6 +14,9 @@ char	*calloc();
 char	*realloc();
 char	*getenv();
 long	atol();
+long	labs();
+double	atof();
+double	strtod();
 long	strtol();
 unsigned long strtoul();
 

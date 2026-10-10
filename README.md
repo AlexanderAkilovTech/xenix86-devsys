@@ -48,10 +48,25 @@ Development and testing happen in 86Box on an emulated XT.
       disk N5, which carries SCO's `adb` and `/usr/include/sys`; this set supplies
       the rest. After the install, `make` built a three-file project with the
       installed `cc` and `ar86`
-- [ ] Floating point (`float`, `double`), together with the 8087 work
+- [x] Milestone 8: **floating point.** `float` and `double` work, in software, so no
+      8087 is needed: IEEE double precision arithmetic, correctly rounded (checked
+      against Python on random operands, infinities, NaNs and denormals included);
+      `printf`'s `%e %f %g`, `scanf` and `strtod`, exact to the last digit; and a math
+      library, `libm.a` (`cc ... -lm`): `sqrt`, `exp`, `log`, `log10`, `pow`, the
+      trigonometric, inverse trigonometric and hyperbolic functions, `atan2`, `hypot`,
+      `fmod`, `floor`, `ceil` and the rest, each within 1.5 units in the last place of the
+      exact result (`sqrt` correctly rounded), with System V's `matherr` error handling.
+      The compiler on XENIX handles floating point too; to fit it in 64K, `cc` gained
+      `-O` (Dev86's peephole optimiser, made to run on XENIX) and `-Mc`. Float programs
+      compiled on XENIX by its own `cc` give results identical to the bit to the
+      cross-compiled ones
+- [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
+      registers when it switches processes (measured: two programs using it at once
+      corrupt each other's results), so it can only ever be an option
 - [ ] `nm`, `size`, `strip`, `lex`/`yacc`, debugger, running on XENIX
 - [ ] Remaining standard C headers (stdio.h, stdlib.h, string.h, ctype.h, errno.h,
-      signal.h, setjmp.h, time.h, fcntl.h and unistd.h are done; `sys/` is SCO's, from N5)
+      signal.h, setjmp.h, time.h, fcntl.h, unistd.h, math.h, float.h and values.h are
+      done; `sys/` is SCO's, from N5)
 - [ ] Languages beyond C and assembly: FORTRAN (using the 8087), COBOL and BASIC subsets,
       possibly Pascal later
 - [ ] Text Processing System (nroff/troff, tbl, eqn)
@@ -67,10 +82,14 @@ Development and testing happen in 86Box on an emulated XT.
     tools/xsim.py   runs XENIX x.out programs on an emulated 8086 for testing
     tools/mkdisk.sh packs files into a 360K floppy image for XENIX
     tools/mkset.py  makes the installable set: soft.perms and the D disk images
+    tools/mathcoef.py   derives and checks the math library's polynomials
+    tools/objclass.py   sets an object module's link class (how printf's
+                    floating point conversions are linked only when used)
     include/        C headers; include/sys holds stand-ins used only for
                     cross-compiling (on XENIX, /usr/include/sys is SCO's)
     lib/            the C library, laid out like Version 7's: csu/ (crt0), crt/
-                    (compiler support), sys/ (system calls), gen/, stdio/
+                    (compiler support), sys/ (system calls), gen/, stdio/, fp/
+                    (software floating point); and m/, the math library
     cmd/            XENIX commands of our own: cc, make and aout2x
     ports/bcc/      the BCC compiler, assembler and linker, built for XENIX
     build.sh        builds crt0.o, libc.a and a C program: ./build.sh prog.c
@@ -92,8 +111,8 @@ Install BCC and the 8086 binutils (on Debian/Ubuntu: `apt install bcc bin86`), t
 This builds the C library, fetches BCC's source (checked by SHA-256; see
 [ports/bcc](ports/bcc/README.md)), builds the toolchain as XENIX programs, and lays
 out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `ld86` and
-`ar86` in `/usr/bin`, the compiler passes, `crt0.o` and `libc.a` in `/usr/lib/cc`, headers in
-`/usr/include`. Then it makes that tree into an installable set under
+`ar86` in `/usr/bin`; the compiler passes, the optimiser `copt` and its rules, `crt0.o`,
+`libc.a` and `libm.a` in `/usr/lib/cc`; headers in `/usr/include`. Then it makes that tree into an installable set under
 `build/xenix/set`: the disk images `D01.img` (and `D02.img` and on, once the set
 outgrows one disk) and the permissions list `soft.perms` they carry.
 
@@ -111,14 +130,41 @@ volume D1: insert `D01.img`. It then asks for the Operating System's volume N5,
 your own SCO disk, which holds `adb` and the system headers in `/usr/include/sys`
 that the Development System uses. When it has checked the file permissions, `cc`,
 `make`, `as86`, `ld86` and `ar86` are in `/usr/bin`. `custom` can also list,
-reinstall or remove the set, the same as SCO's own.
+reinstall or remove the set, the same as SCO's own. On a 640K machine, `cron` may
+print "cannot fork" while `custom` reads N5; the extraction carries on underneath,
+so let it finish.
+
+**Upgrading.** `custom` remembers which disk each file is on from the list it
+installed the first time, `/etc/soft.perms`, and uses that list again rather than
+the one on the new D1. A newer set whose files fall on different disks then fails
+("tar: 13 file(s) not extracted") or never asks for its later disks. Before
+installing a newer set over an older one, remove the old list:
+
+    rm /etc/perms/soft
+    mv /etc/soft.perms /tmp/soft.perms.old
+    custom -d
+
+## Using cc
+
+`cc` takes the options of the Unix cc of its day: `-c`, `-S`, `-E`, `-o name`,
+`-Dname`, `-Uname`, `-Idir`, `-lname` (`-lm` for the math library) and `-F size` (the
+stack size in hexadecimal, as with SCO's cc). Two more come from BCC:
+
+- `-O` runs the peephole optimiser and has the assembler make each jump as short
+  as it can be: programs are smaller and faster.
+- `-Mc` compiles "callersaves" code, where a function keeps no registers for its
+  caller, which is smaller again. Compile all of a program's C files with it, or
+  none of them: a function compiled without it expects its registers back from
+  one compiled with it. The C library is compiled without it, and works with both.
 
 ## Testing
 
 `./test.sh` runs the 32-bit arithmetic helpers on an emulated 8086 against Python's exact
 arithmetic, then builds the test programs and runs them under `tools/xsim.py`, a small
 simulator that loads XENIX executables and services their system calls on the host.
-It needs the Python `unicorn` package (`pip install unicorn`). `python3 ports/bcc/test.py`
+It needs the Python packages `unicorn`, `mpmath` and `numpy` (`pip install unicorn
+mpmath numpy`); the floating point tests compare every result with exact or
+200-bit arithmetic. `python3 ports/bcc/test.py`
 (after `./dist.sh`) checks the native toolchain against the host's BCC and checks that it
 rebuilds itself. Everything is also checked on a real XENIX 2.1.3 installation in 86Box
 before it counts as done.

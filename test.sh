@@ -1,10 +1,11 @@
 #!/bin/sh
 # test.sh - run the xenix86-devsys test suite on the host.
-#  1. unit tests: 32-bit arithmetic helpers on an emulated 8086, checked against Python
+#  1. unit tests: 32-bit arithmetic and floating point helpers on an emulated 8086,
+#     checked against Python
 #  2. program tests: build test programs and run them under tools/xsim.py,
 #     comparing output with expected results
 # Real XENIX remains the final check; this catches regressions before a disk is made.
-# Needs: bcc, as86, ld86, python3 with the "unicorn" package.
+# Needs: bcc, as86, ld86, python3 with the "unicorn", "mpmath" and "numpy" packages.
 set -e
 cd "$(dirname "$0")"
 pass=0; fail=0
@@ -58,6 +59,18 @@ python3 tools/xsim.py build/structt > /tmp/xds_struct.out 2>&1 && ok "structt: s
 
 python3 tools/xsim.py build/bigmem > /tmp/xds_big.out && grep -q 'lies above it' /tmp/xds_big.out \
 	&& ok "bigmem: malloc of 32K and more ($(cut -d';' -f1 /tmp/xds_big.out))" || bad "bigmem"
+
+./build.sh tests/fptest.c tests/fptests.s > /dev/null
+python3 tests/unit/test_fp.py 1000 > /tmp/xds_fp.out 2>&1 && ok "floating point vs Python ($(tail -1 /tmp/xds_fp.out))" \
+	|| { bad "floating point"; head -20 /tmp/xds_fp.out; }
+
+./build.sh tests/fmtest.c > /dev/null
+python3 tests/unit/test_fmt.py 400 > /tmp/xds_fmt.out 2>&1 && ok "printf, strtod, scanf, ecvt with floats vs Python ($(tail -1 /tmp/xds_fmt.out))" \
+	|| { bad "float conversions"; head -20 /tmp/xds_fmt.out; }
+
+./build.sh tests/mtest.c > /dev/null
+python3 tests/unit/test_m.py 300 > /tmp/xds_m.out 2>&1 && ok "math library vs mpmath ($(tail -1 /tmp/xds_m.out))" \
+	|| { bad "math library"; head -20 /tmp/xds_m.out; }
 
 python3 tests/unit/test_time.py > /tmp/xds_time.out 2>&1 && ok "time conversions vs Python ($(tail -1 /tmp/xds_time.out))" || bad "time conversions"
 

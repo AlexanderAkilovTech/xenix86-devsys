@@ -105,3 +105,22 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   `x711`), owner/group, link count, path, volume. `#!PKG size description` lines
   declare the packages; sizes are 512-byte blocks, indirect blocks included.
   tools/mkset.py writes all of this; the files are owned by bin (3/3) like SCO's.
+- Once installed, `custom` keeps using the installed `/etc/soft.perms` (and its
+  link `/etc/perms/soft`) when the set is installed again, not the list on the new
+  D01: with a newer set laid out differently, it looked for files on D01 that had
+  moved to D02 ("tar: 13 file(s) not extracted"), and with the old one-disk list it
+  never asked for D02. Removing both names of the old list first makes it read the
+  new one (verified: D01, D02 and N05 were then asked for and installed).
+
+## The 8087 (measured with tests/fpu87.c on 86Box, 8087 fitted and not)
+- `fninit` leaves the control word 0x03FF and status word 0x0000 on an 8087; with
+  no 8087, `fnstcw`/`fnstsw` write nothing (memory set to 0x5A5A beforehand stays),
+  which is how a program can tell.
+- The kernel does not save or restore the 8087's state when it switches
+  processes. Two processes, one with its own control word (rounding toward zero),
+  each repeatedly loading values and checking them: one of them saw wrong values,
+  and a wrong control word, in 13,040 of 16,100 checks. With the header flag
+  `XE_FPH` (x_renv 0x0080, "floating point hardware required" in SCO's
+  `sys/a.out.h`) set, both processes were corrupted; the kernel also ran that
+  program on a machine without an 8087. So XE_FPH does not make the kernel save the
+  8087, and an 8087 can be used safely by only one process at a time.

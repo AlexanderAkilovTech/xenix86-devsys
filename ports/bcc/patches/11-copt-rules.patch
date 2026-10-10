@@ -1,0 +1,523 @@
+copt, BCC's peephole optimiser, as this port uses it to make bcc-cc1 small
+enough for the 8086's 64K of code, and as cc -O uses it.
+
+rules.86: Dev86's rules for 8086 code miscompile bcc-cc1 (it reported
+"compiler bug? - bad address" when built with them). Every rule was checked
+against the code BCC generates, and those that can change what a program
+does were removed or narrowed. The hazards found: a rule that drops a load
+into a register that later code still uses (BX, SI and DI carry pointers
+and switch values past the lines a rule sees), so such rules now apply
+only to AX, CX and DX, or to a global operand [_name]; an operand that may
+be the register being loaded (mov bx,[bx]); a stack adjustment moved
+across an instruction that may be a pop or a ret; std ... cld sequences;
+a label renamed or moved (the jmp .1 / jmp .2 rule drops a label's dot,
+and the strcpy rule moves a label and takes SI and DI for itself).
+Copying a byte between two register pointers (*d++ = *s++) becomes
+lodsb/stosb, as one of Dev86's rules did for one order of the increments.
+
+rules.mc, new: for code compiled with callersaves (bcc-cc1 -c).
+
+--- a/copt/rules.86	2026-10-10 01:59:47.154003812 -0700
++++ b/copt/rules.86	2026-10-10 01:59:47.154767622 -0700
+@@ -8,8 +8,8 @@
+ mov	%2,%1
+ 
+ # Assign a constant
+-mov	%[ax|bx|cx|dx]3,%[#|*]0%1
+-mov	%2[%4],%[ax|bx|cx|dx]3
++mov	%[ax|cx|dx]3,%[#|*]0%1
++mov	%2[%4],%[ax|cx|dx]3
+ !BCC_EOS
+ =
+ mov	word ptr %2[%4],%0%1
+@@ -26,89 +26,56 @@
+ # Assign a constant long from a small int
+ xor	ax,ax
+ mov	bx,%[#|*]0%1
+-mov	[%2],ax
+-mov	[%2+2],bx
++mov	[_%2],ax
++mov	[_%2+2],bx
+ !BCC_EOS
+ =
+-mov	word ptr [%2],#0
+-mov	word ptr [%2+2],%0%1
++mov	word ptr [_%2],#0
++mov	word ptr [_%2+2],%0%1
+ !BCC_EOS
+ 
+ # Assign a constant long from a 2^16 mod int.
+ mov	ax,%[#|*]0%1
+ xor	bx,bx
+-mov	[%2],ax
+-mov	[%2+2],bx
++mov	[_%2],ax
++mov	[_%2+2],bx
+ !BCC_EOS
+ =
+-mov	word ptr [%2],%0%1
+-mov	word ptr [%2+2],#0
++mov	word ptr [_%2],%0%1
++mov	word ptr [_%2+2],#0
+ !BCC_EOS
+ 
+ # Assign a constant long from a big int
+ mov	ax,%[#|*]4%1
+ mov	bx,%[#|*]5%3
+-mov	[%2],ax
+-mov	[%2+2],bx
++mov	[_%2],ax
++mov	[_%2+2],bx
+ !BCC_EOS
+ =
+-mov	word ptr [%2],%4%1
+-mov	word ptr [%2+2],%5%3
++mov	word ptr [_%2],%4%1
++mov	word ptr [_%2+2],%5%3
+ !BCC_EOS
+ 
+ # rule for (char*)  *x++
+-mov	bx,%1
+-%[inc|dec]2	bx
+-mov	%1,bx
+-mov	al,-1[bx]
+-xor	ah,ah
+-=
+-mov	bx,%1
+-%2	word ptr %1
+-mov	al,[bx]
+-xor	ah,ah
+ 
+ # Rules for incrementing short variables
+-mov	%[ax|bx|si|di]2,%1
+-%[inc|dec]3	%[ax|bx|si|di]2
+-mov	%1,%[ax|bx|si|di]2
++mov	%[ax]2,%1
++%[inc|dec]3	%[ax]2
++mov	%1,%[ax]2
+ !BCC_EOS
+ =
+ %3	word ptr %1
+ !BCC_EOS
+ 
+-mov	%[ax|bx|si|di]2,%1
+-%[inc|dec]3	%[ax|bx|si|di]2
+-mov	%1,%[ax|bx|si|di]2
++mov	%[ax]2,%1
++%[inc|dec]3	%[ax]2
++mov	%1,%[ax]2
+ =
+ %3	word ptr %1
+ mov	%2,%1
+ 
+-
+ # Rules for manipulating characters with register char*s
+ 
+-inc	%[si|di]*
+-inc	%[si|di]*
+-mov	al,-1[si]
+-mov	-1[di],al
+-!BCC_EOS
+-=
+-lodsb
+-stosb
+-!BCC_EOS
+-
+-inc	%[si|di]*
+-inc	%[si|di]*
+-mov	al,-1[di]
+-mov	-1[si],al
+-!BCC_EOS
+-=
+-xchg	si,di
+-lodsb
+-stosb
+-xchg	si,di
+-!BCC_EOS
+-
+ inc	si
+ mov	al,-1[si]
+ =
+@@ -119,58 +86,21 @@
+ =
+ stosb
+ 
+-dec	%[si|di]*
+-dec	%[si|di]*
+-mov	al,1[si]
+-mov	1[di],al
+-=
+-std
+-lodsb
+-stosb
+-cld
+-
+-dec	%[si|di]*
+-dec	%[si|di]*
+-mov	al,1[di]
+-mov	1[si],al
+-=
+-std
+-xchg	si,di
+-lodsb
+-stosb
+-xchg	si,di
+-cld
+-
+-dec	si
+-mov	al,1[si]
+-=
+-std
+-lodsb
+-cld
+-
+-dec	di
+-mov	1[di],al
+-=
+-std
+-stosb
+-cld
+-
+-
+ # Rules for manipulating short values
+ 
+ # These rules only apply at end of statment.
+-mov	%[ax|bx]2,%1
+-%[add|and|xor|sub|or]4	%[ax|bx]2,%3
+-mov	%1,%[ax|bx]2
++mov	%[ax]2,%1
++%[add|and|xor|sub|or]4	%[ax]2,%3
++mov	%1,%[ax]2
+ !BCC_EOS
+ =
+ mov	%2,%3
+ %4	%1,%2
+ !BCC_EOS
+ 
+-mov	%[ax|bx]2,%1
+-%[add|and|xor|or]4	%[ax|bx]2,%3
+-mov	%3,%[ax|bx]2
++mov	%[ax]2,%1
++%[add|and|xor|or]4	%[ax]2,%3
++mov	%3,%[ax]2
+ !BCC_EOS
+ =
+ mov	%2,%1
+@@ -187,47 +117,13 @@
+ !BCC_EOS
+ 
+ # This is safe with an embedded assign.
+-mov	%[ax|bx]4,%1
+-%[add|and|xor|sub|or]2	%[si|di]3,%[ax|bx]4
+-=
+-%2	%3,%1
+ 
+ # Rules for comparing short values
+ 
+ # Compare doesn't need to leave any register in a specific state.
+ 
+-mov	%[ax|bx]3,%1[%4]
+-cmp	%[ax|bx]3,%[#|*]0%2
+-=
+-cmp	word ptr %1[%4],%0%2
+-
+-mov	al,%1[%4]
+-cmp	al,%[#|*]0%2
+-=
+-cmp	byte ptr %1[%4],%0%2
+-
+-mov	%[ax|bx]3,%[ax|bx|cx|dx|si|di]2
+-cmp	%[ax|bx]3,%1
+-=
+-cmp	%2,%1
+-
+-
+ # General comparison rules
+ 
+-xor	%1,%1
+-mov	%2,%3
+-cmp	%2,%1
+-=
+-mov	%2,%3
+-cmp	%2,#0
+-
+-mov	%1,%[#|*]0%2
+-mov	%3,%4
+-cmp	%3,%1
+-=
+-mov	%3,%4
+-cmp	%3,%0%2
+-
+ mov	%1,%2
+ cmp	%1,%[#|*]00
+ %[jne |je  ]4	%3
+@@ -241,61 +137,10 @@
+ =
+ %1	%2,%3
+ 
+-
+ # General incrementation and decrementation rules
+ 
+-inc	%3 ptr %1
+-mov	%2,%1
+-dec	%2
+-=
+-mov	%2,%1
+-inc	%3 ptr %1
+-
+-dec	%3 ptr %1
+-mov	%2,%1
+-inc	%2
+-=
+-mov	%2,%1
+-dec	%3 ptr %1
+-
+-mov	%1,%2
+-inc	%3 ptr %2
+-push	%1
+-=
+-push	%3 ptr %2
+-inc	%3 ptr %2
+-
+-mov	%1,%2
+-dec	%3 ptr %2
+-push	%1
+-=
+-push	%3 ptr %2
+-dec	%3 ptr %2
+-
+-
+ # Misc. rules
+ 
+-push	word %[#|*]0%1
+-inc	%[si|di]2
+-inc	%[si|di]2
+-mov	%[ax|bx|cx|dx]3,%*[bp]
+-mov	%4[%[si|di]2],%[ax|bx|cx|dx]3
+-inc	sp
+-inc	sp
+-=
+-mov	word ptr %(%4+2)[%2],%0%1
+-inc	%2
+-inc	%2
+-
+-push	%1
+-mov	%[ax|bx|cx|dx]3,%2
+-%[add|and|xor|or]4	%[ax|bx|cx|dx]3,%*[bp]
+-inc	sp
+-inc	sp
+-=
+-mov	%3,%1
+-%4	%3,%2
+-
+ # If %1 is ax this fails badly.
+ # push	%1
+ # mov	%[ax|bx|cx|dx]3,%2
+@@ -308,15 +153,6 @@
+ # %5	%3,%6
+ # %4	%3,%1
+ 
+-push	%1
+-mov	%[ax|bx|cx|dx]3,%*[bp]
+-%[add|sub|and|xor|or]4	%2,%[ax|bx|cx|dx]3
+-inc	sp
+-inc	sp
+-=
+-mov	%3,%1
+-%4	%2,%3
+-
+ mov	%1,%[ax|bx|cx|dx]2
+ push	%1
+ =
+@@ -325,19 +161,19 @@
+ 
+ # Rules to remove superflous mov instructions
+ 
+-mov	%1,%2
++mov	%[ax|cx|dx]1,%2
+ mov	%1,%2
+ =
+ mov	%1,%2
+ 
+-mov	%1,%2
++mov	%[ax|cx|dx]1,%2
+ .%3:
+ mov	%1,%2
+ =
+ .%3:
+ mov	%1,%2
+ 
+-mov	%1,%2
++mov	%[ax|cx|dx]1,%2
+ mov	%2,%1
+ =
+ mov	%1,%2
+@@ -357,11 +193,6 @@
+ # Also it puts a jump to the next instruction in extensive if-else
+ # constructions. That jump can also be removed.
+ 
+-jmp	.%1
+-jmp	.%2
+-=
+-jmp	%1
+-
+ ret
+ jmp	%2
+ =
+@@ -390,7 +221,6 @@
+ .%2:
+ .%1:
+ 
+-
+ # When using register variables the compiler initializes them when
+ # they are found in the source code, and sets up the stack frame for
+ # other local variables lateron. Move initialization of register variables
+@@ -431,38 +261,6 @@
+ =
+ add	sp,*%1-2
+ 
+-inc	sp
+-inc	sp
+-%1	%2
+-inc	sp
+-inc	sp
+-=
+-%1	%2
+-add	sp,*4
+-
+-inc	sp
+-inc	sp
+-%1	%2
+-add	sp,*%3
+-=
+-%1	%2
+-add	sp,*%3+2
+-
+-add	sp,*%3
+-%1	%2
+-inc	sp
+-inc	sp
+-=
+-%1	%2
+-add	sp,*%3+2
+-
+-add	sp,*%3
+-%1	%2
+-add	sp,*%4
+-=
+-%1	%2
+-add	sp,*%3+%4
+-
+ # And a great bug floating push/pop
+ push	dx
+ push	cx
+@@ -476,30 +274,10 @@
+ ! push/pop float
+ 
+ # Long right shift by 16 unsigned
+-mov	ax,%1
+-mov	bx,%2
+-xchg	bx,ax
+-xor	bx,bx
+-=
+-mov	ax,%2
+-xor	bx,bx
+ 
+ # Long right shift by 16 signed
+-mov	ax,%1
+-mov	bx,%2
+-xchg	bx,ax
+-cwd
+-=
+-mov	ax,%2
+-cwd
+ 
+ # Load long and exchange
+-mov	ax,%1
+-mov	bx,%2
+-xchg	bx,ax
+-=
+-mov	bx,%1
+-mov	ax,%2
+ 
+ # Repeated clear.
+ xor	bx,bx
+@@ -527,31 +305,6 @@
+ xor	ax,ax
+ 
+ # Souped up strcpy;  "while(*d++ = *s++);" in a function with no reg vars.
+-.%3:
+-!BCC_EOS
+-.%4:
+-mov	bx,%1
+-inc	bx
+-mov	%1,bx
+-mov	si,%2
+-inc	si
+-mov	%2,si
+-mov	al,-1[bx]
+-mov	-1[si],al
+-test	al,al
+-jne	.%3
+-=
+-.%4:
+-mov	si,%1
+-mov	di,%2
+-.%3:
+-lodsb
+-stosb
+-test	al,al
+-jne	.%3
+-mov	%1,si
+-mov	%2,di
+-!BCC_EOS
+ 
+ ###
+ mov	ax,%1
+@@ -560,3 +313,24 @@
+ =
+ mov	%2,%1
+ mov	ax,%3
++
++# Copy a byte with both pointers register variables: *d++ = *s++
++inc	si
++inc	di
++mov	al,-1[si]
++mov	-1[di],al
++!BCC_EOS
++=
++lodsb
++stosb
++!BCC_EOS
++
++inc	di
++inc	si
++mov	al,-1[si]
++mov	-1[di],al
++!BCC_EOS
++=
++lodsb
++stosb
++!BCC_EOS
+--- /dev/null
++++ b/copt/rules.mc
+@@ -0,0 +1,19 @@
++# rules.mc - for code compiled with callersaves (bcc-cc1 -c, as bcc -Mc and
++# cc -Mc ask for): the caller keeps nothing in SI across a call to a C
++# function, so popping the arguments into SI does what adjusting SP does,
++# in fewer bytes. Calls to C functions (_name) only: code relies on the
++# compiler's own helpers (laddl and the others) keeping SI.
++
++call	_%1
++inc	sp
++inc	sp
++=
++call	_%1
++pop	si
++
++call	_%1
++add	sp,*4
++=
++call	_%1
++pop	si
++pop	si

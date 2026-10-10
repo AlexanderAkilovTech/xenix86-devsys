@@ -6,7 +6,7 @@ import struct, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from xout import xout
 
-def convert(src, dst, stack=4096):
+def convert(src, dst, stack=4096, fph=False):
     d = open(src, 'rb').read()
     if d[0:2] != b'\x01\x03':
         raise SystemExit(f'{src}: not an ld86 a.out')
@@ -21,10 +21,14 @@ def convert(src, dst, stack=4096):
     total = data + bss
     padded = (data + 15) & ~15
     bss_out = max(0, ((total + 15) & ~15) - padded)
-    open(dst, 'wb').write(xout(t, dd + bytes(padded - data), bss_out, stack))
+    open(dst, 'wb').write(xout(t, dd + bytes(padded - data), bss_out, stack, fph))
     os.chmod(dst, 0o755)
     print(f'{dst}: text {len(t)}, data {padded}, bss {bss_out}, stack {stack}')
 
 if __name__ == '__main__':
-    # usage: aout2xout.py in.aout out [stack-bytes]
-    convert(sys.argv[1], sys.argv[2], int(sys.argv[3], 0) if len(sys.argv) > 3 else 4096)
+    # usage: aout2xout.py [--fph] in.aout out [stack-bytes]
+    # --fph marks the program as needing floating point hardware (an 8087)
+    a = sys.argv[1:]
+    fph = '--fph' in a
+    a = [x for x in a if x != '--fph']
+    convert(a[0], a[1], int(a[2], 0) if len(a) > 2 else 4096, fph)

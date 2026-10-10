@@ -44,7 +44,7 @@ class Sim:
         vec = [len(argv)] + ptrs[:len(argv)] + [0] + ptrs[len(argv):] + [0]
         uc.mem_write(DSEG * 16 + top, struct.pack(f'<{len(vec)}H', *vec) + bytes(strs))
         self.argend = base + len(strs)
-        self.brk = (self.argend + 15) & ~15
+        self.brk = self.maxbrk = (self.argend + 15) & ~15
         for r, v in [(UC_X86_REG_CS, TSEG), (UC_X86_REG_DS, DSEG), (UC_X86_REG_ES, DSEG),
                      (UC_X86_REG_SS, DSEG), (UC_X86_REG_SP, top), (UC_X86_REG_IP, 0x80)]:
             uc.reg_write(r, v)
@@ -148,7 +148,7 @@ class Sim:
                 except FileNotFoundError: err = ENOENT
             elif ax == 17:
                 if bx < self.argend: err = EINVAL
-                else: self.brk = bx
+                else: self.brk = bx; self.maxbrk = max(self.maxbrk, bx)
             elif ax == 48:                  # signal: remember the trampoline address
                 if not 1 <= bx < 20: err = EINVAL
                 else: r1, self.sig[bx] = self.sig[bx], cx
@@ -232,7 +232,7 @@ class Sim:
         uc.reg_write(UC_X86_REG_IP, self.sig[sig])
         self.sig[sig] = 0
 
-    def run(self, limit=50_000_000):
+    def run(self, limit=int(os.environ.get('XSIM_LIMIT', 50_000_000))):
         try:
             self.uc.emu_start(0x80 + TSEG * 16, 0, count=limit)
         except UcError as e:
@@ -259,7 +259,10 @@ if __name__ == '__main__':
         env.append('TZ=' + os.environ['XSIM_TZ'])
     for kv in os.environ.get('XSIM_ENV', '').split():   # NAME=value pairs for the program
         env = [e for e in env if e.split('=', 1)[0] != kv.split('=', 1)[0]] + [kv]
-    code = Sim(prog, [prog] + sys.argv[2:], env).run()
+    sim = Sim(prog, [prog] + sys.argv[2:], env)
+    code = sim.run()
+    if os.environ.get('XSIM_BRK'):          # how far the data segment grew
+        print(f'xsim: highest break {sim.maxbrk:#x}', file=sys.stderr)
     if isinstance(code, int):
         sys.exit(code)
     print(f'xsim: {code}', file=sys.stderr); sys.exit(127)

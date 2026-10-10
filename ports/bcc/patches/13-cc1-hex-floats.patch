@@ -1,0 +1,121 @@
+bcc-cc1: hexadecimal floating constants, and a build without atof.
+
+The XENIX bcc-cc1 has no room for atof (a correctly rounding one needs big
+integer arithmetic and about 4K of code), so cc has bcc-cpp write every
+decimal floating constant in hexadecimal (patch 14), in one fixed form:
+0x1.hhhhhhhhhhhhhp+d, or 0x0.hhhhhhhhhhhhhp-1022 for zero and the
+denormals. bcc-cc1 now reads that form, building the double's bits
+directly; any other hexadecimal floating constant is reported as bad.
+Built with -DNO_ATOF (as ports/bcc/build.sh builds the XENIX bcc-cc1), a
+decimal floating constant is an error; otherwise it still goes to atof, as
+in the host's build. A pp-number now takes a sign after p or P, as after e
+or E, for the exponent.
+
+--- a/bcc/scan.c	2026-10-10 02:18:38.436070387 -0700
++++ b/bcc/scan.c	2026-10-10 02:18:38.438506790 -0700
+@@ -96,6 +96,9 @@
+ FORWARD void getident P((void));
+ FORWARD void intconst P((void));
+ FORWARD void ppnumber P((void));
++#ifndef NOFLOAT
++FORWARD void hexfloat P((char *p));
++#endif
+ PRIVATE void newstringorcharconst P((void));
+ 
+ /* skip white space up to end of line (skip EOL's if in comments) */
+@@ -393,7 +396,11 @@
+ 	constant.type = dtype;
+ 	digit = *digptr;
+ 	*digptr = 0;
++#ifdef NO_ATOF
++	error("decimal floating point constant: cc's cpp writes them in hex");
++#else
+ 	constant.value.d = atof(constant.value.s);
++#endif
+ 	*digptr = digit;
+ 	if (digit == 'F' || digit == 'f')
+ 	{
+@@ -426,6 +433,13 @@
+ 	constant.value.v = base * constant.value.v + (digit - '0');
+ 	++digptr;
+     }
++#ifndef NOFLOAT
++    if (*digptr == '.' || *digptr == 'P' || *digptr == 'p')
++    {
++	hexfloat(charptr + 2);	/* the text: constant.value.s is gone */
++	return;
++    }
++#endif
+     ucount = lcount = 0;
+     while (TRUE)
+     {
+@@ -451,6 +465,60 @@
+ 	error("junk at end of integer constant");
+ }
+ 
++#ifndef NOFLOAT
++/* A hexadecimal floating constant, in the form cpp -H writes decimal ones
++ * in: 0x1.hhhhhhhhhhhhhp+d, or 0x0.hhhhhhhhhhhhhp-1022 for zero and the
++ * denormals; it gives the double's bits directly, and the 8086 compiler
++ * has no room for atof */
++PRIVATE void hexfloat(p)
++register char *p;
++{
++    union { double d; unsigned short w[4]; } u;
++    register int d;
++    int n;
++    int e;
++    int lead;
++
++    constant.type = dtype;
++    sym = FLOATCONST;
++    u.w[3] = u.w[2] = u.w[1] = u.w[0] = 0;
++    lead = *p++ - '0';
++    if ((unsigned) lead > 1 || *p++ != '.')
++	goto bad;
++    for (n = 12; n >= 0; --n)	/* the fraction's nibbles, top one first */
++    {
++	if ((d = *p++) > '9')
++	    d = (d | 0x20) - ('a' - 10);
++	else
++	    d -= '0';
++	if ((unsigned) d > 15)
++	    goto bad;
++	u.w[n >> 2] |= d << ((n & 3) << 2);
++    }
++    if ((*p++ | 0x20) != 'p')
++	goto bad;
++    e = atoi(p) + 1022 + lead;	/* the biased exponent: 0 for 0x0. */
++    if (*p == '+' || *p == '-')
++	++p;
++    while (*p >= '0' && *p <= '9')
++	++p;
++    if ((unsigned) e > 0x7FF || (e != 0) != lead)
++	goto bad;
++    u.w[3] |= e << 4;
++    constant.value.d = u.d;
++    if (*p == 'F' || *p == 'f')
++    {
++	++p;
++	constant.type = fltype;
++	constant.value.d = (float) constant.value.d;
++    }
++    if (*p == 0)
++	return;
++bad:
++    error("bad hexadecimal floating point constant");
++}
++#endif
++
+ PUBLIC void nextsym()
+ {
+     static char lastch;
+@@ -748,7 +816,7 @@
+ 	if (charptr >= char1top)
+ 	    constant.value.s = growobject(constant.value.s, 2);
+ 	*charptr++ = ch;
+-	if (ch == 'E' || ch == 'e')
++	if (ch == 'E' || ch == 'e' || ch == 'P' || ch == 'p')
+ 	{
+ 	    gch1();
+ 	    if (ch == '+' || ch == '-')

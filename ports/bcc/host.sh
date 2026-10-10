@@ -1,5 +1,5 @@
 #!/bin/sh
-# host.sh - build BCC's compiler pass (bcc-cc1) for the host, from the same
+# host.sh - build BCC's compiler pass (bcc-cc1) and copt for the host, from the same
 # patched Dev86 sources as the XENIX one, into build/ports/host. The project's
 # cross-compiling uses it (bcc -B build/ports/host/) instead of the host's
 # packaged bcc-cc1, which lacks the patches; ports/bcc/test.py uses it as the
@@ -16,4 +16,6 @@ CC1="bcc-cc1 codefrag dbnode declare express exptree floatop function gencode ge
 files=""
 for f in $CC1; do files="$files $SRC/bcc/$f.c"; done
 ${HOSTCC:-cc} -std=gnu89 -O -w -o $OUT/bcc-cc1 $files
-echo "host bcc-cc1 in $OUT"
+# copt with patches 11 and 12: build.sh optimises the XENIX bcc-cc1 with it
+${HOSTCC:-cc} -std=gnu89 -O -w -o $OUT/copt $SRC/copt/copt.c
+echo "host bcc-cc1 and copt in $OUT"
