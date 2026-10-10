@@ -42,11 +42,16 @@ Development and testing happen in 86Box on an emulated XT.
       Dev86. A three-file project with its own library builds, rebuilds only what changed,
       and runs, all on XENIX. The C library gained the scanf family, perror and strerror,
       rename, memmove and the BSD byte routines
+- [x] Milestone 7: **installs with XENIX's own `custom`.** The Development System is a
+      set of 360K disks (D1, ...) that `custom -d` installs into the slot XENIX 2.1.3
+      left for it. As SCO laid it out, `custom` also asks for the Operating System's
+      disk N5, which carries SCO's `adb` and `/usr/include/sys`; this set supplies
+      the rest. After the install, `make` built a three-file project with the
+      installed `cc` and `ar86`
 - [ ] Floating point (`float`, `double`), together with the 8087 work
 - [ ] `nm`, `size`, `strip`, `lex`/`yacc`, debugger, running on XENIX
 - [ ] Remaining standard C headers (stdio.h, stdlib.h, string.h, ctype.h, errno.h,
-      signal.h, setjmp.h, time.h, fcntl.h, unistd.h, sys/types.h and sys/stat.h are done)
-- [ ] Packaging as an installable `custom` set (the SOFT package)
+      signal.h, setjmp.h, time.h, fcntl.h and unistd.h are done; `sys/` is SCO's, from N5)
 - [ ] Languages beyond C and assembly: FORTRAN (using the 8087), COBOL and BASIC subsets,
       possibly Pascal later
 - [ ] Text Processing System (nroff/troff, tbl, eqn)
@@ -61,7 +66,9 @@ Development and testing happen in 86Box on an emulated XT.
     tools/aout2xout.py  converts ld86 output into a XENIX x.out executable
     tools/xsim.py   runs XENIX x.out programs on an emulated 8086 for testing
     tools/mkdisk.sh packs files into a 360K floppy image for XENIX
-    include/        C headers
+    tools/mkset.py  makes the installable set: soft.perms and the D disk images
+    include/        C headers; include/sys holds stand-ins used only for
+                    cross-compiling (on XENIX, /usr/include/sys is SCO's)
     lib/            the C library, laid out like Version 7's: csu/ (crt0), crt/
                     (compiler support), sys/ (system calls), gen/, stdio/
     cmd/            XENIX commands of our own: cc, make and aout2x
@@ -86,8 +93,25 @@ This builds the C library, fetches BCC's source (checked by SHA-256; see
 [ports/bcc](ports/bcc/README.md)), builds the toolchain as XENIX programs, and lays
 out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `ld86` and
 `ar86` in `/usr/bin`, the compiler passes, `crt0.o` and `libc.a` in `/usr/lib/cc`, headers in
-`/usr/include`. To try it on XENIX without installing, unpack that tree into a
-directory and set `CCROOT` to it; `cc` then finds everything there.
+`/usr/include`. Then it makes that tree into an installable set under
+`build/xenix/set`: the disk images `D01.img` (and `D02.img` and on, once the set
+outgrows one disk) and the permissions list `soft.perms` they carry.
+
+To try the tools on XENIX without installing, unpack the tree into a directory and
+set `CCROOT` to it; `cc` then finds everything there.
+
+## Installing on XENIX
+
+Log in as root and run
+
+    custom -d
+
+which installs the Development System (pick the whole set, ALL). `custom` asks for
+volume D1: insert `D01.img`. It then asks for the Operating System's volume N5,
+your own SCO disk, which holds `adb` and the system headers in `/usr/include/sys`
+that the Development System uses. When it has checked the file permissions, `cc`,
+`make`, `as86`, `ld86` and `ar86` are in `/usr/bin`. `custom` can also list,
+reinstall or remove the set, the same as SCO's own.
 
 ## Testing
 

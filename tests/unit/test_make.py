@@ -3,7 +3,7 @@ timestamps and options, with the native cc building real programs.
 Needs ./dist.sh (for the native cc) and ./build.sh for cmd/make.c and tests/bin."""
 import os, subprocess, sys, tempfile, time, shutil
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-R = f'{ROOT}/build/xenix/root'
+R = f'{ROOT}/build/xenix/testroot'   # the install tree, plus the sys/ stand-ins
 tmp = tempfile.mkdtemp(prefix='maketest')
 bindir = f'{tmp}/bin'
 os.makedirs(bindir)

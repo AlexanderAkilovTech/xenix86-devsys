@@ -1,0 +1,30 @@
+XENIX's headers are System V's of 1986, from before ANSI C and POSIX:
+time.h does not define time_t (it is in <sys/types.h>), and there is no
+mode_t. bcc-cpp gets time_t from <sys/types.h>; ld86 defines mode_t for
+XENIX (M_XENIX), as its syshead.h already does for MS-DOS.
+
+diff -ruN a/cpp/main.c b/cpp/main.c
+--- a/cpp/main.c
++++ b/cpp/main.c
+@@ -8,6 +8,7 @@
+ #endif
+ #include <ctype.h>
+ #include <string.h>
++#include <sys/types.h>	/* time_t: System V keeps it here, not in time.h */
+ #include <time.h>
+ 
+ #include "cc.h"
+diff -ruN a/ld/syshead.h b/ld/syshead.h
+--- a/ld/syshead.h
++++ b/ld/syshead.h
+@@ -12,6 +12,10 @@
+ #include <errno.h>
+ #endif
+ 
++#ifdef M_XENIX
++#define mode_t		unsigned short	/* XENIX 2's sys/types.h predates POSIX */
++#endif
++
+ #ifdef MSDOS
+ #undef POSIX_HEADERS_MISSING
+ #include <sys/types.h>

@@ -53,6 +53,11 @@ host's BCC, file by file, or by a test program failing:
    length into the same one, so `memcpy` copied the struct to address 6 or so.
    This one is in the host's BCC too; it was found because GNU ar passes a
    struct to its per-member functions and could not extract anything.
+6. `06-xenix-headers.patch`: XENIX's headers are System V's of 1986, from before
+   ANSI C and POSIX. `time.h` does not define `time_t` (it is in `sys/types.h`)
+   and there is no `mode_t`. bcc-cpp now includes `sys/types.h`, and ld86
+   defines `mode_t` on XENIX, as it already did for MS-DOS. Found when the tools
+   were built against SCO's own `sys/types.h`, the one they meet once installed.
 
 ## Building and testing
 

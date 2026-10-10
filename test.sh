@@ -63,7 +63,7 @@ python3 tests/unit/test_time.py > /tmp/xds_time.out 2>&1 && ok "time conversions
 
 for t in echo true false; do ./build.sh tests/bin/$t.c > /dev/null; done
 ./build.sh cmd/make.c > /dev/null
-if [ -x build/xenix/root/usr/bin/cc ]; then
+if [ -x build/xenix/testroot/usr/bin/cc ]; then
 	python3 tests/unit/test_make.py > /tmp/xds_make.out 2>&1 && ok "make ($(tail -1 /tmp/xds_make.out))" || { bad "make"; cat /tmp/xds_make.out; }
 else
 	echo "SKIP  make: needs the native cc (run ./dist.sh)"

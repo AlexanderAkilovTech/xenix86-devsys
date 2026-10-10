@@ -38,14 +38,16 @@ def same(a, b, blank_ok=False):
 corpus = []   # (name, source, extra cpp flags)
 for f in sorted(glob.glob(f'{ROOT}/lib/*/*.c') + glob.glob(f'{ROOT}/tests/*.c')):
     corpus.append((os.path.relpath(f, ROOT), f, []))
+XFLAGS = ['-Dconst=', '-DM_XENIX']      # as ports/bcc/build.sh compiles them
 for d, extra, files in (
         ('bcc', [], 'bcc-cc1 codefrag declare express exptree function gencode genloads glogcode hardop '
                     'input label loadexp longop output preserve scan softop state table type assign'),
-        ('cpp', ['-Dconst='], 'main cpp hash token1 token2'),
-        ('as', [], 'as assemble errors express genbin gensym macro mops pops readsrc scan table'),
-        ('ld', ['-DREL_OUTPUT'], 'io ld readobj table linksyms writebin writex86')):
+        ('cpp', [], 'main cpp hash token1 token2'),
+        ('as', ['-DBIGBUFFER=0', '-DUSE_FIXED_HEAP'], 'as assemble errors express genbin gensym macro mops pops readsrc scan table alloc'),
+        ('ld', ['-DREL_OUTPUT'], 'io ld readobj table linksyms writebin writex86'),
+        ('ar', [], 'ar')):
     for f in files.split():
-        corpus.append((f'dev86/{d}/{f}.c', f'{SRC}/{d}/{f}.c', extra))
+        corpus.append((f'dev86/{d}/{f}.c', f'{SRC}/{d}/{f}.c', XFLAGS + extra))
 
 tmp = tempfile.mkdtemp(prefix='bcctest')
 fails = {'cpp': [], 'cc1': [], 'as': [], 'ld': [], 'cc': [], 'ar': [], 'self': []}
@@ -85,7 +87,7 @@ for name in [n for n in objs if n.startswith('tests/') and n not in ('tests/regd
         fails['ld'].append(name)
 
 # the native cc against the cross build
-R = f'{ROOT}/build/xenix/root'
+R = f'{ROOT}/build/xenix/testroot'   # the install tree, plus the sys/ stand-ins
 cenv = dict(os.environ, XSIM_ENV=f'CCROOT={R}')
 count['cc'], fails['cc'] = 0, []
 for src in sorted(glob.glob(f'{ROOT}/tests/*.c')):

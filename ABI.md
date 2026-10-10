@@ -91,3 +91,17 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   modern machine then look decades newer than anything built on XENIX, and make
   rebuilds everything every time; tools/mkdisk.sh dates the files on its floppy
   images 1 January 1986.
+
+## Installation sets (custom), verified with `custom -d`
+- `custom`'s Development System entry installs two permissions lists: the
+  Operating System's own `/etc/dsmd.perms`, whose package (adb and
+  `/usr/include/sys`) is on SCO's disk N05, and `/etc/soft.perms`, which the
+  Development System's disks (volumes D01, D02 ...) must supply.
+- Each disk is a version 7 tar with `./` names. The first member is the label
+  file `./tmp/_lbl/prd=xnxsv/ver=ALL86/rel=2.1.3/vol=D01`, by which custom
+  recognizes the disk; disk D01 also carries the permissions list, stored with
+  its second name `./etc/perms/soft` as a hard link.
+- The permissions list gives, per file: package, type and mode (`d755`, `f644`,
+  `x711`), owner/group, link count, path, volume. `#!PKG size description` lines
+  declare the packages; sizes are 512-byte blocks, indirect blocks included.
+  tools/mkset.py writes all of this; the files are owned by bin (3/3) like SCO's.
