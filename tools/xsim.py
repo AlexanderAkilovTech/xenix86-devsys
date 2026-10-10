@@ -82,7 +82,9 @@ class Sim:
             elif ax == 4:
                 f = self.files.get(bx)
                 if f is None: err = EBADF
-                else: f.write(self.mem(cx, si)); f.flush(); r1 = si
+                else:
+                    try: f.write(self.mem(cx, si)); f.flush(); r1 = si
+                    except OSError as e: err = e.errno or 5      # EPIPE when the reader has gone
             elif ax in (5, 8):              # open(name, flags, mode) / creat(name, mode)
                 name = self.cstr(bx)
                 if ax == 8:
@@ -128,9 +130,22 @@ class Sim:
                 if f is None: err = EBADF
                 elif bx > 2 or self.child: f.close()
             elif ax == 19:
-                f = self.files[bx]; off = cx | (si << 16)
+                f = self.files.get(bx); off = cx | (si << 16)
                 if off & 0x80000000: off -= 1 << 32
-                p = f.seek(off, di); r1, r2 = p & 0xffff, p >> 16
+                if f is None: err = EBADF
+                else:
+                    try: p = f.seek(off, di); r1, r2 = p & 0xffff, p >> 16
+                    except OSError as e: err = e.errno or EINVAL
+            elif ax == 9:                   # link(old, new)
+                try: os.link(self.cstr(bx), self.cstr(cx))
+                except FileNotFoundError: err = ENOENT
+                except FileExistsError: err = 17
+            elif ax == 30:                  # utime(name, times): times[0] access, times[1] modification
+                name = self.cstr(bx)
+                try:
+                    if cx: at, mt = struct.unpack('<ll', self.mem(cx, 8)); os.utime(name, (at, mt))
+                    else: os.utime(name)
+                except FileNotFoundError: err = ENOENT
             elif ax == 17:
                 if bx < self.argend: err = EINVAL
                 else: self.brk = bx
@@ -242,7 +257,8 @@ if __name__ == '__main__':
     env = ['HOME=/', 'TERM=ansi', 'PATH=/bin:/usr/bin']
     if os.environ.get('XSIM_TZ'):           # pass a time zone through for tests
         env.append('TZ=' + os.environ['XSIM_TZ'])
-    env += os.environ.get('XSIM_ENV', '').split()   # more NAME=value pairs for the program
+    for kv in os.environ.get('XSIM_ENV', '').split():   # NAME=value pairs for the program
+        env = [e for e in env if e.split('=', 1)[0] != kv.split('=', 1)[0]] + [kv]
     code = Sim(prog, [prog] + sys.argv[2:], env).run()
     if isinstance(code, int):
         sys.exit(code)

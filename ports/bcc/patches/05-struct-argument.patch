@@ -1,0 +1,41 @@
+bcc-cc1: passing a struct by value copied it to the wrong place.
+
+To push a struct argument, blockpush() reserves stack space and calls
+memcpy(dest, src, length). It moved the stack pointer (the destination) into
+DREG, then pushed the length, a constant; but constants are always loaded into
+DREG, so the destination was overwritten and memcpy got the length (6, say) as
+its destination address. The callee received garbage and low memory was
+overwritten. Now the length and source are pushed first and the destination
+is computed last, as the stack pointer plus what has just been pushed.
+GNU ar, which passes a struct to its per-member functions, could not extract
+a member until this was fixed. The bug is in the host BCC too.
+
+--- a/bcc/genloads.c
++++ b/bcc/genloads.c
+@@ -81,17 +81,25 @@
+     address(source);
+     modstk(spmark = sp - (offset_T) typesize);
+ #ifdef STACKREG
++    /* memcpy(dest, src, length): the destination is the space just reserved.
++     * Push the length and the source first, since loading the length (a
++     * constant) takes DREG; then the destination, which now lies just
++     * beyond those two arguments. */
++    push(length);
++    push(source);
+     regtransfer(STACKREG, DREG);
++    addconst(spmark - sp, DREG);
++    pushreg(DREG);
+ #else
+ #ifdef MC6809 /* XXX ? */
+     regtransfer(LOCAL, DREG);
+ #else
+ #include "need STACKREG and stackregstr"
+ #endif
+-#endif
+     push(length);
+     push(source);
+     pushreg(DREG);
++#endif
+     call("_memcpy");
+     outnl();
+     modstk(spmark);

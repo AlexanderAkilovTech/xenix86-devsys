@@ -13,7 +13,7 @@ bad() { echo "FAIL  $1"; fail=$((fail+1)); }
 
 python3 tests/unit/test_long.py >/tmp/xds_unit.out 2>&1 && ok "long arithmetic helpers ($(tail -1 /tmp/xds_unit.out))" || bad "long arithmetic helpers"
 
-for t in m9 m11 m11b m12 xwc sigt ids jmp bigmem timet strt forkt sysprobe; do ./build.sh tests/$t.c >/dev/null; done
+for t in m9 m11 m11b m12 xwc sigt ids jmp bigmem timet strt forkt sysprobe scant structt; do ./build.sh tests/$t.c >/dev/null; done
 
 out=$(python3 tools/xsim.py build/m9 one two "three four") || true
 echo "$out" | grep -q 'argv\[3\] = "three four"' && echo "$out" | grep -q 'octal 10, padded \[   42\]' \
@@ -52,10 +52,22 @@ python3 tools/xsim.py build/forkt build/tiny > /tmp/xds_fork.out 2>&1 && grep -q
 
 python3 tools/xsim.py build/sysprobe > /tmp/xds_probe.out 2>&1 && ok "sysprobe: open flags and struct stat" || bad "sysprobe"
 
+python3 tools/xsim.py build/scant > /tmp/xds_scan.out 2>&1 && ok "scant: scanf family, strerror, perror" || bad "scant"
+
+python3 tools/xsim.py build/structt > /tmp/xds_struct.out 2>&1 && ok "structt: structs by value, assigned, returned (patch 05)" || bad "structt"
+
 python3 tools/xsim.py build/bigmem > /tmp/xds_big.out && grep -q 'lies above it' /tmp/xds_big.out \
 	&& ok "bigmem: malloc of 32K and more ($(cut -d';' -f1 /tmp/xds_big.out))" || bad "bigmem"
 
 python3 tests/unit/test_time.py > /tmp/xds_time.out 2>&1 && ok "time conversions vs Python ($(tail -1 /tmp/xds_time.out))" || bad "time conversions"
+
+for t in echo true false; do ./build.sh tests/bin/$t.c > /dev/null; done
+./build.sh cmd/make.c > /dev/null
+if [ -x build/xenix/root/usr/bin/cc ]; then
+	python3 tests/unit/test_make.py > /tmp/xds_make.out 2>&1 && ok "make ($(tail -1 /tmp/xds_make.out))" || { bad "make"; cat /tmp/xds_make.out; }
+else
+	echo "SKIP  make: needs the native cc (run ./dist.sh)"
+fi
 
 echo "$pass passed, $fail failed"
 [ $fail -eq 0 ]

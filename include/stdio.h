@@ -4,6 +4,10 @@
 
 #define BUFSIZ	512
 #define _NFILE	20
+#ifndef _SIZE_T
+#define _SIZE_T
+typedef	unsigned	size_t;
+#endif
 #define EOF	(-1)
 #ifndef NULL
 #define NULL	0

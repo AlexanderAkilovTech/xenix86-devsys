@@ -3,6 +3,7 @@
 The compiler, assembler and linker of this Development System are **BCC**, from
 Dev86 0.16.17: Bruce Evans's C compiler, assembler (as86) and linker (ld86),
 with Robert de Bath's preprocessor and the work of the Dev86 contributors.
+The archiver, ar86, is the GNU ar (1988, 1990) that Dev86 ships.
 BCC is a K&R C compiler for the 8086 that was written to run on small 16-bit
 systems, and the linker's source still carries a work-around for "a bug in
 Xenix 2.5 cc".
@@ -10,8 +11,11 @@ Xenix 2.5 cc".
 This directory holds no BCC source. `fetch.sh` downloads the Dev86 0.16.17
 tarball (the one Debian and Ubuntu ship as `linux86_0.16.17.orig.tar.gz`),
 checks its SHA-256, unpacks it under `build/ports` and applies the patches here.
-`build.sh` then compiles the four programs as XENIX executables, against this
-project's own `libc.a` and headers.
+`host.sh` builds BCC's compiler pass for the host from the same patched source:
+the project cross-compiles with it (`bcc -B build/ports/host/`), never with the
+host's packaged one, so cross-compiled and native programs come from identical
+compiler code. `build.sh` then compiles the programs as XENIX executables,
+against this project's own `libc.a` and headers.
 
 | Program  | Role                     | Code size (64K limit) |
 |----------|--------------------------|-----------------------|
@@ -19,6 +23,7 @@ project's own `libc.a` and headers.
 | bcc-cc1  | compiler                 | about 64K             |
 | as86     | assembler                | about 33K             |
 | ld86     | linker                   | about 29K             |
+| ar86     | archiver                 | about 24K             |
 
 The `cc` command that runs them, and `aout2x`, which turns ld86's output into
 a XENIX x.out, are this project's own (`cmd/`).
@@ -26,8 +31,8 @@ a XENIX x.out, are this project's own (`cmd/`).
 ## The patches
 
 BCC is normally built on 32- and 64-bit hosts. Built as a 16-bit program for
-XENIX it showed three problems, each found by comparing its output with the
-host's BCC, file by file:
+XENIX it showed these problems, each found by comparing its output with the
+host's BCC, file by file, or by a test program failing:
 
 1. `01-int-to-long-args.patch`: 15 places pass an `int` where the function
    takes a `long` offset. That is harmless where `int` and `long` are the same
@@ -39,6 +44,15 @@ host's BCC, file by file:
 3. `03-as86-xenix-heap.patch`: as86's 16-bit memory setup assumed the ELKS and
    Minix layout, with the stack above the heap. XENIX puts the stack below the
    data break; on XENIX (`M_XENIX`) as86 now takes one large block from malloc.
+4. `04-ar-16bit.patch`: GNU ar kept archive offsets in `int` and passed them to
+   `fseek` and `lseek`, which take a `long`. Offsets are now `long`, so archives
+   can pass 64K, member dates are read with `atol`, and member sizes up to 64K
+   are handled as unsigned.
+5. `05-struct-argument.patch`: passing a struct by value copied it to the wrong
+   address. The compiler put the destination in a register, then loaded the
+   length into the same one, so `memcpy` copied the struct to address 6 or so.
+   This one is in the host's BCC too; it was found because GNU ar passes a
+   struct to its per-member functions and could not extract anything.
 
 ## Building and testing
 
@@ -46,12 +60,14 @@ host's BCC, file by file:
     python3 ports/bcc/test.py     # about a minute
 
 `test.py` runs each XENIX program on an emulated 8086 (`tools/xsim.py`) next to
-the host's BCC: preprocessor, compiler and assembler output, and linked
+the host build of the patched compiler and the host's preprocessor, assembler,
+linker and archiver: preprocessor, compiler and assembler output, and linked
 programs, must be byte-identical across this project's library, tests and
 BCC's own sources. Then the native `cc` must build every test program exactly
-as the cross-compiler does, and the native toolchain must rebuild `bcc-cc1`,
-`cc` and `aout2x` byte for byte. One difference is expected and checked:
-the host's 64-bit build of bcc-cc1 folds `(unsigned long)-1 >> 1` wrongly;
+as the cross-compiler does, the native ar86 must make the same archives as the
+host's (including one over 64K), and the native toolchain must rebuild
+`bcc-cc1`, `cc` and `aout2x` byte for byte. One difference is expected and checked:
+a 64-bit host build of bcc-cc1 folds `(unsigned long)-1 >> 1` wrongly;
 the 16-bit build gets it right.
 
 ## Not yet

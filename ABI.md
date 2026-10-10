@@ -82,3 +82,12 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   dev (short), ino (unsigned short), mode (unsigned short), nlink (short), uid,
   gid (unsigned short), rdev (short), size, atime, mtime, ctime (long).
   /etc/passwd read back as size 432, mode 0100644, uid 3 (bin), matching `ls -l`.
+- There is no rename system call; the library's rename() links the new name and
+  unlinks the old one, as Version 7 did.
+
+## Dates
+- XENIX 2.1.3's date command will not take a year past 1999, so a clock set for
+  2026 is set to 1998, which has the same calendar. Files carried in from a
+  modern machine then look decades newer than anything built on XENIX, and make
+  rebuilds everything every time; tools/mkdisk.sh dates the files on its floppy
+  images 1 January 1986.

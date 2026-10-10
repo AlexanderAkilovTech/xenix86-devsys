@@ -1,0 +1,145 @@
+ar on a 16-bit machine: archive offsets as long, and member sizes up to 64K.
+
+GNU ar (1990) kept archive offsets in int and passed them to fseek and lseek,
+which take a long; in 16-bit K&R C the callee then reads a garbage high word,
+and extraction failed with "Invalid argument". Offsets are now long, so an
+archive can pass 64K. Member dates are parsed with atol (seconds since 1970
+do not fit in 16 bits), and the copy loops, the size field and the verbose
+listing treat a member's size as unsigned, so a member can be up to 64K.
+
+diff -ruN a/ar/ar.c b/ar/ar.c
+--- a/ar/ar.c
++++ b/ar/ar.c
+@@ -77,13 +77,13 @@
+     long int date;	/* Last modify date as stored in member header.  */
+     unsigned int size;	/* Bytes of member's data, from member header.  */
+     int uid, gid;	/* UID and GID fields copied from member header.  */
+-    unsigned int offset;/* Offset in archive of the header of this member.  */
+-    unsigned int data_offset;/* Offset of first data byte of the member.  */
++    long offset;	/* Offset in archive of the header of this member.  */
++    long data_offset;	/* Offset of first data byte of the member.  */
+ 
+     /* The next field does not describe where the member was in the
+        old archive, but rather where it will be in the modified archive.
+        It is set up by write_archive.  */
+-    unsigned int new_offset;	/* Offset of this member in new archive */
++    long new_offset;	/* Offset of this member in new archive */
+ 
+     /* Symdef data for member.  Used only for files being inserted.  */
+     struct symdef *symdefs;
+@@ -541,7 +541,7 @@
+ 
+   /* Now find the members one by one.  */
+   {
+-    int member_offset = SARMAG;
++    long member_offset = SARMAG;
+     while (1)
+       {
+ 	int nread;
+@@ -573,8 +573,8 @@
+         }
+ 	member_desc.name = name;
+ 	sscanf (member_header.ar_mode, "%o", &member_desc.mode);
+-	member_desc.date = atoi (member_header.ar_date);
+-	member_desc.size = atoi (member_header.ar_size);
++	member_desc.date = atol (member_header.ar_date);
++	member_desc.size = atol (member_header.ar_size);
+ 	member_desc.uid = atoi (member_header.ar_uid);
+ 	member_desc.gid = atoi (member_header.ar_gid);
+ 	member_desc.offset = member_offset;
+@@ -613,7 +613,7 @@
+     }
+   print_modes (member.mode);
+   timestring = ctime (&member.date);
+-  printf (" %2d/%2d %6d %12.12s %4.4s %s\n",
++  printf (" %2d/%2d %6u %12.12s %4.4s %s\n",
+ 	  member.uid, member.gid,
+ 	  member.size, timestring + 4, timestring + 20,
+ 	  member.name);
+@@ -641,7 +641,7 @@
+      struct member_desc member;
+      FILE *istream;
+ {
+-  int ncopied = 0;
++  unsigned ncopied = 0;
+   FILE *ostream;
+ 
+   fseek (istream, member.data_offset, 0);
+@@ -658,7 +658,7 @@
+   while (ncopied < member.size)
+     {
+       char buf [BUFSIZE];
+-      int tocopy = member.size - ncopied;
++      unsigned tocopy = member.size - ncopied;
+       int nread;
+       if (tocopy > BUFSIZE) tocopy = BUFSIZE;
+       nread = fread (buf, 1, tocopy, istream);
+@@ -699,7 +699,7 @@
+      struct member_desc member;
+      FILE *istream;
+ {
+-  int ncopied = 0;
++  unsigned ncopied = 0;
+ 
+   fseek (istream, member.data_offset, 0);
+ 
+@@ -709,7 +709,7 @@
+   while (ncopied < member.size)
+     {
+       char buf [BUFSIZE];
+-      int tocopy = member.size - ncopied;
++      unsigned tocopy = member.size - ncopied;
+       int nread;
+       if (tocopy > BUFSIZE) tocopy = BUFSIZE;
+       nread = fread (buf, 1, tocopy, istream);
+@@ -1097,7 +1097,7 @@
+ #endif
+ 
+   sprintf (header->ar_date, "%ld", mapelt->info.date);
+-  sprintf (header->ar_size, "%d", mapelt->info.size);
++  sprintf (header->ar_size, "%u", mapelt->info.size);
+   sprintf (header->ar_uid, "%d", mapelt->info.uid);
+   sprintf (header->ar_gid, "%d", mapelt->info.gid);
+   sprintf (header->ar_mode, "%o", mapelt->info.mode);
+@@ -1169,10 +1169,10 @@
+ 
+   {
+     char buf[BUFSIZE];
+-    int tocopy = mapelt->info.size;
++    unsigned tocopy = mapelt->info.size;
+     while (tocopy > 0)
+       {
+-	int thistime = tocopy;
++	unsigned thistime = tocopy;
+ 	if (thistime > BUFSIZE) thistime = BUFSIZE;
+         read (indesc, buf, thistime);
+ 	mywrite (outdesc, buf, thistime, outname);
+@@ -1823,6 +1823,7 @@
+ {
+   struct mapelt *tail;
+   int pos;
++  long apos;		/* archive offsets need more than 16 bits */
+   register unsigned int i;
+   unsigned int len;
+   struct symdef *s;
+@@ -1906,16 +1907,16 @@
+ 		     + sizeof (new_strings_size) + new_strings_size);
+   symdef_mapelt = tail;
+ 
+-  pos = SARMAG;
++  apos = SARMAG;
+   for (tail = map; tail != 0; tail = tail->next)
+     {
+       if (tail->info.name == 0)
+ 	/* Ignore deleted members.  */
+ 	continue;
+-      tail->info.new_offset = pos;
+-      pos += sizeof (struct ar_hdr) + tail->info.size;
++      tail->info.new_offset = apos;
++      apos += sizeof (struct ar_hdr) + tail->info.size;
+       if (tail->info.size & 1)
+-	++pos;
++	++apos;
+     }
+ 
+   /* Now update the offsets in the symdef data

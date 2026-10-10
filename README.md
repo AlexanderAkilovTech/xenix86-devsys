@@ -36,8 +36,14 @@ Development and testing happen in 86Box on an emulated XT.
       program, and in the simulator the native toolchain rebuilds its own compiler
       byte for byte. The C library is now an archive, `libc.a`, so programs carry only
       what they use
+- [x] Milestone 6: `make` and `ar` on XENIX. `make` is this project's own, written in K&R C
+      after the make of Version 7 and System V (macros, suffix rules, the automatic
+      macros, `::` rules, `include`, `-n -s -i -k -t -q -p -e -r`); `ar86` is GNU ar from
+      Dev86. A three-file project with its own library builds, rebuilds only what changed,
+      and runs, all on XENIX. The C library gained the scanf family, perror and strerror,
+      rename, memmove and the BSD byte routines
 - [ ] Floating point (`float`, `double`), together with the 8087 work
-- [ ] `ar`, `nm`, `size`, `strip`, `make`, `lex`/`yacc`, debugger, running on XENIX
+- [ ] `nm`, `size`, `strip`, `lex`/`yacc`, debugger, running on XENIX
 - [ ] Remaining standard C headers (stdio.h, stdlib.h, string.h, ctype.h, errno.h,
       signal.h, setjmp.h, time.h, fcntl.h, unistd.h, sys/types.h and sys/stat.h are done)
 - [ ] Packaging as an installable `custom` set (the SOFT package)
@@ -58,7 +64,7 @@ Development and testing happen in 86Box on an emulated XT.
     include/        C headers
     lib/            the C library, laid out like Version 7's: csu/ (crt0), crt/
                     (compiler support), sys/ (system calls), gen/, stdio/
-    cmd/            XENIX commands of our own: cc and aout2x
+    cmd/            XENIX commands of our own: cc, make and aout2x
     ports/bcc/      the BCC compiler, assembler and linker, built for XENIX
     build.sh        builds crt0.o, libc.a and a C program: ./build.sh prog.c
     dist.sh         builds everything, laid out as it installs on XENIX
@@ -78,8 +84,8 @@ Install BCC and the 8086 binutils (on Debian/Ubuntu: `apt install bcc bin86`), t
 
 This builds the C library, fetches BCC's source (checked by SHA-256; see
 [ports/bcc](ports/bcc/README.md)), builds the toolchain as XENIX programs, and lays
-out the result under `build/xenix/root` as it installs: `cc`, `as86` and `ld86` in
-`/usr/bin`, the compiler passes, `crt0.o` and `libc.a` in `/usr/lib/cc`, headers in
+out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `ld86` and
+`ar86` in `/usr/bin`, the compiler passes, `crt0.o` and `libc.a` in `/usr/lib/cc`, headers in
 `/usr/include`. To try it on XENIX without installing, unpack that tree into a
 directory and set `CCROOT` to it; `cc` then finds everything there.
 
@@ -112,8 +118,8 @@ ones where the first theory turned out to be wrong.
 ## What this repository does not contain
 
 No SCO, Microsoft, AT&T or IBM code, binaries or disk images. Everything here was
-written for this project, apart from the BCC compiler, assembler and linker
-(Dev86, GPL version 2), whose source is not stored here: `ports/bcc/fetch.sh`
+written for this project, apart from the BCC compiler, assembler and linker and
+GNU ar (Dev86, GPL version 2), whose source is not stored here: `ports/bcc/fetch.sh`
 downloads it, checks it, and applies this project's patches. To use the
 Development System, you need your own XENIX 2.1.3 installation.
 

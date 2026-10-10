@@ -1,6 +1,7 @@
 #!/bin/sh
 # build.sh - build BCC (Dev86 0.16.17) to run on XENIX 2.1.3 (8086):
 #   bcc-cpp  preprocessor     bcc-cc1  compiler     as86  assembler     ld86  linker
+#   ar86     archiver (GNU ar, as Dev86 ships it)
 # Results go to build/xenix/bin. Each must fit the 8086's 64K code segment;
 # bcc-cc1 is the tight one. Needs the host BCC tools and the fetched sources.
 set -e
@@ -10,11 +11,12 @@ SRC=build/ports/dev86-0.16.17
 OBJ=build/ports/obj
 OUT=build/xenix/bin
 [ -d $SRC ] || sh ports/bcc/fetch.sh
+sh ports/bcc/host.sh > /dev/null	# the patched compiler pass, for the host
 ./build.sh > /dev/null			# our crt0.o and libc.a
 mkdir -p $OUT
 # Only our headers (-I alone drops BCC's own); K&R mode has no const;
 # M_XENIX is the name SCO's compiler predefined, and patch 03 keys on it.
-CC="bcc -0 -I -I$ROOT/include -Dconst= -DM_XENIX"
+CC="bcc -B$ROOT/build/ports/host/ -0 -I -I$ROOT/include -Dconst= -DM_XENIX"
 
 compile() {	# compile <dir> <extra flags> <files...>
 	d=$1; flags=$2; shift 2
@@ -34,6 +36,7 @@ link() {	# link <program> <stack> <dir> <files...>
 
 for d in bcc as ld; do echo '#define VERSION "0.16.17"' > $SRC/$d/version.h; done
 cp $SRC/libc/include/ar.h $SRC/ld/ar.h
+cp $SRC/libc/include/ar.h $SRC/ld/rel_aout.h $SRC/ar/
 
 CPP="main cpp hash token1 token2"
 compile cpp "" $CPP
@@ -55,5 +58,11 @@ link as86 8192 as $AS
 LD="dumps io ld readobj table typeconv linksyms mkar writex86 writebin writeemu"
 compile ld "-DREL_OUTPUT" $LD
 link ld86 8192 ld $LD
+
+# GNU ar wants alloca; its own malloc-based one is the portable choice
+compile ar "" ar
+mkdir -p $OBJ/ar
+$CC -D__TINYC__ -c -o $OBJ/ar/alloca.o $SRC/ar/alloca.c
+link ar86 4096 ar ar alloca
 
 echo "XENIX binaries in $OUT"
