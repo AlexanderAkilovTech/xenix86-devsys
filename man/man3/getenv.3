@@ -1,0 +1,40 @@
+.TH GETENV 3
+.SH NAME
+getenv \- value for environment name
+.SH SYNOPSIS
+.nf
+char *
+getenv(name)
+char *name;
+.fi
+.SH DESCRIPTION
+.B getenv
+searches the environment, a list of strings of the form
+.IR name = value
+that a program receives from the one that ran it (see
+.BR exec (2)),
+for one with the given
+.IR name .
+It returns a pointer to the
+.I value
+part of that string, or NULL if there is none.
+.PP
+The whole environment is the array of strings
+.BR "extern char **environ" ,
+ended by a NULL pointer.
+.SH EXAMPLES
+.nf
+	char *term;
+
+	if ((term = getenv("TERM")) == NULL)
+		term = "dumb";
+.fi
+.SH SEE ALSO
+sh(1), exec(2), environ(5)
+.SH HISTORY
+The
+.B getenv
+function first appeared in Version 7 AT&T UNIX and 3BSD.
+.SH BUGS
+The value must not be changed through the pointer: it is the
+environment itself, which a program run later inherits.

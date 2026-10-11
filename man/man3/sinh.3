@@ -1,0 +1,44 @@
+.TH SINH 3
+.SH NAME
+sinh, cosh, tanh \- hyperbolic functions
+.SH SYNOPSIS
+.nf
+#include <math.h>
+
+double
+sinh(x)
+double x;
+
+double
+cosh(x)
+double x;
+
+double
+tanh(x)
+double x;
+.fi
+.PP
+cc ... \-lm
+.SH DESCRIPTION
+These functions return the hyperbolic sine, cosine and tangent of
+.IR x ,
+within two units in the last place of the exact value.
+.SH "RETURN VALUES"
+When the result is too large,
+.B sinh
+returns HUGE, or \-HUGE for a negative
+.IR x ,
+and
+.B cosh
+returns HUGE.
+.SH ERRORS
+errno is set to ERANGE when the result is too large.
+.SH SEE ALSO
+exp(3), matherr(3), intro(3)
+.SH HISTORY
+The
+.BR sinh ,
+.B cosh
+and
+.B tanh
+functions first appeared in Version 7 AT&T UNIX.

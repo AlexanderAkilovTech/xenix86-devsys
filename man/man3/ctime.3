@@ -1,0 +1,103 @@
+.TH CTIME 3
+.SH NAME
+ctime, localtime, gmtime, asctime, tzset \- convert date and time to ASCII
+.SH SYNOPSIS
+.nf
+#include <time.h>
+
+char *
+ctime(clock)
+long *clock;
+
+struct tm *
+localtime(clock)
+long *clock;
+
+struct tm *
+gmtime(clock)
+long *clock;
+
+char *
+asctime(tm)
+struct tm *tm;
+
+tzset()
+
+extern long timezone;
+extern int daylight;
+extern char *tzname[2];
+.fi
+.SH DESCRIPTION
+A time, as
+.BR time (2)
+returns it, is a long: the number of seconds since 00:00:00 Greenwich
+Mean Time, January 1, 1970.
+.PP
+.B localtime
+and
+.B gmtime
+take a pointer to such a time and return a pointer to a structure with
+its parts, in local time and in Greenwich Mean Time:
+.PP
+.nf
+	struct tm {
+		int tm_sec;	/* seconds (0 \- 59) */
+		int tm_min;	/* minutes (0 \- 59) */
+		int tm_hour;	/* hours (0 \- 23) */
+		int tm_mday;	/* day of month (1 \- 31) */
+		int tm_mon;	/* month of year (0 \- 11) */
+		int tm_year;	/* year \- 1900 */
+		int tm_wday;	/* day of week (Sunday = 0) */
+		int tm_yday;	/* day of year (0 \- 365) */
+		int tm_isdst;	/* nonzero in daylight saving time */
+	};
+.fi
+.PP
+.B asctime
+converts such a structure to a string of 26 characters, in this form,
+newline and NUL included:
+.PP
+.nf
+	Sun Sep 16 01:03:52 1973\en\e0
+.fi
+.PP
+.B ctime(clock)
+is
+.BR asctime(localtime(clock)) .
+.PP
+The local time zone is given by the environment variable TZ, as three
+letters naming the standard time zone, the number of hours it is west
+of Greenwich (negative to the east), and three letters naming the
+daylight saving time zone if there is one: TZ=EST5EDT, or TZ=PST8PDT,
+or TZ=GMT0. When TZ is not set, local time is Greenwich Mean Time.
+.B tzset
+reads TZ and sets the external variables:
+.I timezone
+to the difference between GMT and local standard time in seconds,
+.I daylight
+to nonzero if a daylight saving zone is named, and
+.I tzname
+to the two zones' names.
+localtime calls tzset the first time it is called.
+.PP
+Daylight saving time is applied in the United States manner: from 2
+a.m. on the last Sunday in April to 2 a.m. on the last Sunday in
+October. From 1987 on, as the law of 1986 provides, it begins on the
+first Sunday in April instead.
+.SH SEE ALSO
+time(2), getenv(3), environ(5)
+.SH HISTORY
+A
+.B ctime
+function first appeared in Version 1 AT&T UNIX, and
+.BR asctime ,
+.B gmtime
+and
+.B localtime
+in Version 5.
+.B tzset
+and the TZ variable are those of System V.
+.SH BUGS
+The results are in static areas, which the next call overwrites.
+.PP
+Only the United States rules for daylight saving time are known.

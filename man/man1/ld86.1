@@ -1,0 +1,145 @@
+.TH LD86 1
+.SH NAME
+ld86 \- link editor for as86 object files
+.SH SYNOPSIS
+.B ld86
+[\ \-03Mimrsty\ ] [\ \-o\ outfile\ ] [\ \-Llibdir\ ] [\ \-lx\ ] [\ \-Ccrtfile\ ]
+[\ \-Olibfile\ ] [\ \-Ttextaddr\ ] [\ \-Ddataaddr\ ] [\ \-Hheaptop\ ] file ...
+.SH DESCRIPTION
+.B ld86
+combines object files made by
+.BR as86 (1)
+into one program, joining their text and data and resolving the
+references each makes to symbols the others define. A
+.I file
+that is a library made by
+.BR ar86 (1)
+contributes those of its members that define a symbol some file
+before it on the command line needs and nothing has yet defined.
+.PP
+ld86 writes the a.out format of the as86 tools, not a XENIX executable;
+.BR cc (1)
+links programs with
+.B "ld86 \-0 \-i \-y"
+and then converts its output with /usr/lib/cc/aout2x. Use cc to make
+programs, and ld86 alone only to look at a link (with
+.B \-M
+or
+.BR \-m ).
+.PP
+The options are:
+.TP 14
+.BI \-o " outfile"
+Write the program to
+.I outfile
+instead of a.out.
+.TP
+.B \-0
+Make a 16-bit program for the 8086 (the default).
+.TP
+.B \-3
+Make a 32-bit program for the 80386.
+.TP
+.B \-i
+Give the program separate instruction and data spaces: text and data
+each start at address 0, each up to 64K. cc uses it.
+.TP
+.B \-s
+Leave out the symbol table.
+.TP
+.B \-y
+Keep symbol names longer than 8 characters whole in the symbol table,
+in extra records that follow each name. cc uses it, and aout2x joins
+them again.
+.TP
+.B \-r
+Make a relocatable object file, from a single object file, for further
+linking.
+.TP
+.B \-M
+Print the symbols linked, with their values, on the standard output.
+.TP
+.B \-m
+Print the modules linked on the standard output.
+.TP
+.B \-t
+Trace the modules as they are looked at.
+.TP
+.BI \-L libdir
+Add
+.I libdir
+to the front of the directories searched for
+.BR \-l ,
+.B \-C
+and
+.BR \-O .
+.TP
+.BI \-l x
+Link with the library
+.BI lib x .a
+from those directories.
+.TP
+.BI \-C x
+Link with the object file
+.BI crt x .o
+from those directories, first.
+.TP
+.BI \-O x
+Link with the file
+.I x
+from those directories.
+.TP
+.BI \-T textaddr
+.PD 0
+.TP
+.BI \-D dataaddr
+.PD
+The addresses at which the text and the data start, in the C forms of
+.BR strtoul (3):
+decimal, 0x for hexadecimal, 0 for octal.
+.TP
+.BI \-H heaptop
+The top of the heap, where the stack starts.
+.PP
+An option without an argument is turned off by a \- after its letter.
+.PP
+The options
+.B \-d
+(a file with no header),
+.B \-N
+and
+.B \-z
+(the formats of other systems) are not useful for XENIX.
+.SS Defined symbols
+ld86 defines __etext, __edata and __end, the addresses of the end of
+the text, of the initialized data and of the uninitialized data; a C
+program declares them as
+.PP
+.nf
+	extern char _etext, _edata, _end;
+.fi
+.SH FILES
+.TP 10
+a.out
+the output
+.SH DIAGNOSTICS
+"undefined symbol:
+.IR name \(rq
+for each symbol that is used but not defined; "warning:
+.I name
+redefined" for one defined in two files, when the first definition is
+used. The exit status is 0 if the link succeeded.
+.SH SEE ALSO
+cc(1), as86(1), ar86(1), nm(1), size(1)
+.SH HISTORY
+An
+.B ld
+command first appeared in Version 1 AT&T UNIX.
+.SH AUTHORS
+ld86 was written by Bruce Evans.
+.SH BUGS
+ld86 reads every member of a library, so a library needs no index of
+its symbols; but a member is taken only for a symbol needed before the
+library on the command line, so a library must come after the files
+that use it, and two libraries that use each other may need to be named
+twice.

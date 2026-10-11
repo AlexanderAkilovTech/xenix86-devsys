@@ -9,6 +9,7 @@ typedef	unsigned	size_t;
 char	*memcpy();
 char	*memset();
 char	*memccpy();
+char	*memmove();
 char	*memchr();
 int	memcmp();
 

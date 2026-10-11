@@ -1,0 +1,66 @@
+.TH PERROR 3
+.SH NAME
+perror, strerror, errno, sys_errlist, sys_nerr \- system error messages
+.SH SYNOPSIS
+.nf
+perror(s)
+char *s;
+
+char *
+strerror(errnum)
+int errnum;
+
+extern int errno;
+extern char *sys_errlist[];
+extern int sys_nerr;
+.fi
+.SH DESCRIPTION
+When a system call fails, it returns \-1 and sets the external variable
+.B errno
+to a number that tells why. <errno.h> gives the numbers names, such as
+ENOENT, "No such file or directory", or EACCES, "Permission denied".
+errno is not cleared when a call succeeds, so it means something only
+just after a call has failed.
+.PP
+.B perror
+writes a message on the standard error: the string
+.IR s ,
+a colon and a space, the message for the present value of errno, and a
+newline. If
+.I s
+is NULL or empty, only the message and the newline are written. The
+argument is usually the name of the program, or of the file the call
+was about.
+.PP
+.B strerror
+returns the message for the error number
+.IR errnum .
+.PP
+The messages are in the array
+.BR sys_errlist ,
+indexed by the error number;
+.B sys_nerr
+is the number of messages in it. A number outside it has the message
+"Unknown error".
+.SH EXAMPLES
+.nf
+	if ((fd = open(name, 0)) < 0) {
+		perror(name);
+		exit(1);
+	}
+.fi
+.PP
+prints, for instance,
+.PP
+.nf
+	notes: No such file or directory
+.fi
+.SH SEE ALSO
+intro(2)
+.SH HISTORY
+The
+.B perror
+function first appeared in Version 4 AT&T UNIX.
+.PP
+.B strerror
+is not in the C libraries of Version 7 AT&T UNIX, System V or 4.3BSD.

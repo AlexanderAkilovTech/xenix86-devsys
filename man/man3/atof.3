@@ -1,0 +1,98 @@
+.TH ATOF 3
+.SH NAME
+atof, atoi, atol, strtod, strtol, strtoul \- convert ASCII to numbers
+.SH SYNOPSIS
+.nf
+#include <stdlib.h>
+
+double
+atof(nptr)
+char *nptr;
+
+int
+atoi(nptr)
+char *nptr;
+
+long
+atol(nptr)
+char *nptr;
+
+double
+strtod(nptr, endptr)
+char *nptr, **endptr;
+
+long
+strtol(nptr, endptr, base)
+char *nptr, **endptr;
+int base;
+
+unsigned long
+strtoul(nptr, endptr, base)
+char *nptr, **endptr;
+int base;
+.fi
+.SH DESCRIPTION
+These functions convert the number written at the beginning of the
+string
+.I nptr
+into a value of the type each returns. Each skips white space at the
+start of the string, then reads an optional sign and the digits of the
+number, and stops at the first character that cannot be part of it.
+.PP
+.B strtod
+reads a floating point number: digits, with an optional decimal point,
+then optionally e or E and an exponent, a signed integer. Its result is
+the double nearest the number's value, correctly rounded however many
+digits are written.
+.B atof(nptr)
+is
+.BR "strtod(nptr, (char **)0)" .
+.PP
+.B strtol
+and
+.B strtoul
+read an integer in the base
+.IR base ,
+from 2 to 36, in which the letters a to z, or A to Z, are the digits
+from 10 to 35. If
+.I base
+is 0, the number is read as C writes it: hexadecimal after a 0x or 0X,
+octal after a 0, and decimal otherwise. With base 16, a 0x or 0X may
+come before the digits.
+.PP
+When
+.I endptr
+is not NULL, strtod, strtol and strtoul store in *\fIendptr\fP a pointer
+to the character after the number, or
+.I nptr
+itself if no number was found.
+.PP
+.B atoi
+and
+.B atol
+read a decimal integer.
+.SH "RETURN VALUES"
+The value, or 0 if there was no number. When the value is too large for
+a double, strtod returns HUGE_VAL, an infinity, with the number's sign;
+when it is too small to be told from 0, it returns 0.
+.SH ERRORS
+strtod sets errno to ERANGE when the value is too large or too small.
+.SH SEE ALSO
+scanf(3), ecvt(3), printf(3), ctype(3)
+.SH HISTORY
+The
+.B atof
+and
+.B atoi
+functions first appeared in Version 1 AT&T UNIX. Version 7 has
+.BR atol .
+.B strtod
+and
+.B strtol
+are those of System V.
+.PP
+.B strtoul
+is not in the C libraries of Version 7 AT&T UNIX, System V or 4.3BSD.
+.SH BUGS
+strtol, strtoul, atoi and atol do not detect overflow: a number too
+large for the type wraps around.

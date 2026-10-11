@@ -14,6 +14,8 @@
  *	-lname		link with LIBDIR/libname.a
  *	-F size		stack size in bytes, in hexadecimal as with SCO's cc
  *	-v		show each command as it runs
+ *	-s		strip: leave the symbol table out of the program
+ *			(by default it is kept, for nm and adb)
  *	-O		optimise: copt rewrites the compiler's output with the
  *			rules in LIBDIR, and as86 makes each jump as short as it
  *			can be
@@ -48,7 +50,7 @@ char	*stack = "1000";		/* hex, as SCO's cc -F */
 char	*cppflags[MAXARGS];
 char	*files[MAXARGS], *ldargs[MAXARGS];
 int	ncpp, nfiles, nld;
-int	cflag, sflag, eflag, vflag, oflag, mcflag;
+int	cflag, sflag, eflag, vflag, oflag, mcflag, stripflag;
 int	errors;
 char	tmp_i[32], tmp_s[32], tmp_out[32], tmp_o[32];
 
@@ -255,6 +257,7 @@ char **argv;
 			case 'S': sflag++; cflag++; continue;
 			case 'E': eflag++; cflag++; continue;
 			case 'v': vflag++; continue;
+			case 's': stripflag++; continue;
 			case 'O': oflag++; continue;
 			case 'M':
 				if (a[2] == 'c')
@@ -293,7 +296,7 @@ char **argv;
 	}
 	if (nfiles == 0) {
 usage:
-		fprintf(stderr, "usage: cc [-c] [-S] [-E] [-O] [-Mc] [-o name] [-Dname] [-Idir] [-lname] [-F stack] files...\n");
+		fprintf(stderr, "usage: cc [-c] [-S] [-E] [-O] [-Mc] [-s] [-v] [-o name] [-Dname] [-Idir] [-lname] [-F stack] files...\n");
 		exit(8);
 	}
 
@@ -331,6 +334,7 @@ usage:
 		lv[m++] = "ld86";
 		lv[m++] = "-0";
 		lv[m++] = "-i";
+		lv[m++] = stripflag ? "-s" : "-y";	/* -y: whole symbol names */
 		lv[m++] = "-o";
 		lv[m++] = tmp_out;
 		lv[m++] = crt0;

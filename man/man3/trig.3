@@ -1,0 +1,93 @@
+.TH TRIG 3
+.SH NAME
+sin, cos, tan, asin, acos, atan, atan2 \- trigonometric functions
+.SH SYNOPSIS
+.nf
+#include <math.h>
+
+double
+sin(x)
+double x;
+
+double
+cos(x)
+double x;
+
+double
+tan(x)
+double x;
+
+double
+asin(x)
+double x;
+
+double
+acos(x)
+double x;
+
+double
+atan(x)
+double x;
+
+double
+atan2(y, x)
+double y, x;
+.fi
+.PP
+cc ... \-lm
+.SH DESCRIPTION
+.BR sin ,
+.B cos
+and
+.B tan
+return the sine, cosine and tangent of
+.IR x ,
+an angle in radians. The argument is reduced by multiples of pi/2
+exactly, so that the results are right for large angles too.
+.PP
+.B asin
+returns the arc sine of
+.IR x ,
+in the range \-pi/2 to pi/2;
+.B acos
+the arc cosine, in the range 0 to pi; and
+.B atan
+the arc tangent, in the range \-pi/2 to pi/2.
+.PP
+.B atan2
+returns the arc tangent of
+.IR y / x ,
+in the range \-pi to pi, using the signs of both arguments to find the
+quadrant: the angle of the point
+.RI ( x ", " y ).
+.PP
+The results are within one unit in the last place of the exact value;
+tan and atan2 within two. <math.h> defines M_PI as pi.
+.SH "RETURN VALUES"
+.TP 14
+.BR sin ", " cos ", " tan
+of an argument larger than 1.4e16 in magnitude, where not one digit of
+the result could be right, return 0, with a TLOSS error.
+.TP
+.BR asin ", " acos
+of an argument larger than 1 in magnitude return 0, with a DOMAIN
+error.
+.TP
+.B atan2
+of two zero arguments returns 0, with a DOMAIN error.
+.PP
+For these errors, a message is written on the standard error. A
+program can handle the errors itself with
+.BR matherr (3).
+.SH ERRORS
+errno is set to EDOM after a DOMAIN error, and to ERANGE after a TLOSS
+error.
+.SH SEE ALSO
+sinh(3), hypot(3), matherr(3), intro(3)
+.SH HISTORY
+The
+.B sin
+and
+.B cos
+functions first appeared in Version 1 AT&T UNIX. Version 7 has all of
+these functions.

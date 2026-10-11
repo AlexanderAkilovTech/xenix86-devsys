@@ -1,0 +1,43 @@
+.TH UNGETC 3
+.SH NAME
+ungetc \- push a character back into an input stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+ungetc(c, stream)
+int c;
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B ungetc
+pushes the character
+.I c
+back onto an input
+.IR stream ,
+so that the next
+.BR getc (3)
+returns it. On a buffered stream, one character can always be pushed
+back once a character has been read from it. The end of file flag is
+cleared.
+.PP
+.BR fseek (3)
+forgets a character that was pushed back.
+.PP
+A program reading a number, say, stops at the first character that is
+not a digit, and pushes it back for the next part of the program to
+read.
+.SH "RETURN VALUES"
+.IR c ,
+or EOF if
+.I c
+is EOF or the character cannot be pushed back: before anything has
+been read from the stream, on a stream with no buffer, or when as many
+characters have already been pushed back as were read from the buffer.
+.SH SEE ALSO
+getc(3), fseek(3), setbuf(3), stdio(3)
+.SH HISTORY
+The
+.B ungetc
+function first appeared in Version 7 AT&T UNIX.

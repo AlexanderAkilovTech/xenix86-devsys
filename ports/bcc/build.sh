@@ -31,7 +31,7 @@ link() {	# link <program> <stack> <dir> <files...>
 	prog=$1; stack=$2; d=$3; shift 3
 	objs=""
 	for f in "$@"; do objs="$objs $OBJ/$d/$f.o"; done
-	ld86 -0 -i -o $OBJ/$prog.aout build/crt0.o $objs build/libc.a
+	ld86 -0 -i -s -o $OBJ/$prog.aout build/crt0.o $objs build/libc.a	# installed stripped
 	python3 tools/aout2xout.py $OBJ/$prog.aout $OUT/$prog $stack
 }
 

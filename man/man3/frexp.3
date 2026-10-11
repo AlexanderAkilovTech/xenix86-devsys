@@ -1,0 +1,65 @@
+.TH FREXP 3
+.SH NAME
+frexp, ldexp, modf \- split into mantissa and exponent
+.SH SYNOPSIS
+.nf
+double
+frexp(value, eptr)
+double value;
+int *eptr;
+
+double
+ldexp(value, exp)
+double value;
+int exp;
+
+double
+modf(value, iptr)
+double value, *iptr;
+.fi
+.SH DESCRIPTION
+.B frexp
+returns the mantissa of
+.IR value :
+a number
+.I x
+whose magnitude is at least 0.5 and less than 1, with the sign of
+.IR value ;
+and stores in *\fIeptr\fP the integer
+.I n
+such that
+.I value
+=
+.I x
+* 2^\fIn\fP. A zero value gives 0 for both.
+.PP
+.B ldexp
+returns
+.I value
+* 2^\fIexp\fP.
+.PP
+.B modf
+returns the fractional part of
+.I value
+and stores its integer part, toward zero, in *\fIiptr\fP; both have the
+sign of
+.IR value .
+.PP
+These are exact. They are in the C library, and need no
+.BR \-lm .
+.SH "RETURN VALUES"
+When the result of ldexp is too large, it returns HUGE_VAL, an
+infinity, with the sign of
+.IR value ;
+when it is too small, 0.
+.SH ERRORS
+ldexp sets errno to ERANGE when the result is too large or too small.
+.SH SEE ALSO
+floor(3), exp(3), intro(3)
+.SH HISTORY
+The
+.BR frexp ,
+.B ldexp
+and
+.B modf
+functions are in Version 7 AT&T UNIX.

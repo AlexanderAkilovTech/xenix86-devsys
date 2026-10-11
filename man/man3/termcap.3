@@ -1,0 +1,144 @@
+.TH TERMCAP 3
+.SH NAME
+tgetent, tgetnum, tgetflag, tgetstr, tgoto, tputs \- terminal independent operation routines
+.SH SYNOPSIS
+.nf
+char PC;
+char *BC;
+char *UP;
+short ospeed;
+
+int
+tgetent(bp, name)
+char *bp, *name;
+
+int
+tgetnum(id)
+char *id;
+
+int
+tgetflag(id)
+char *id;
+
+char *
+tgetstr(id, area)
+char *id, **area;
+
+char *
+tgoto(cm, destcol, destline)
+char *cm;
+int destcol, destline;
+
+tputs(cp, affcnt, outc)
+char *cp;
+int affcnt;
+int (*outc)();
+.fi
+.PP
+cc ... \-ltermcap
+.SH DESCRIPTION
+These read what a terminal can do, and the codes that make it do it,
+from the terminal capability data base, /etc/termcap, so that one
+program works on every terminal described there.
+.PP
+.B tgetent
+finds the entry for the terminal
+.I name
+(usually from getenv("TERM")) and keeps it in the buffer
+.IR bp ,
+a char array of 1024 bytes that must stay there while the other
+functions are used. It returns 1 if it found the entry, 0 if there is
+none, and \-1 if it could not open the termcap file. A tc= capability
+brings in the entry it names, as many as 16 deep.
+.PP
+If the environment has TERMCAP, and it begins with a /, it is the path
+of the file to use instead of /etc/termcap. If it does not begin with a
+/ and it is an entry with
+.I name
+among its names, that entry is used, and no file is read.
+.PP
+Each capability has a name of two characters,
+.IR id .
+.B tgetnum
+returns the value of a number, as tgetnum("co") for the columns, or
+\-1 if the terminal does not have it.
+.B tgetflag
+returns 1 if the terminal has a flag, such as "am", and 0 if not.
+.B tgetstr
+returns a string, as tgetstr("cl", &p) for the code that clears the
+screen, or NULL if there is none. The escapes in it (\eE, ^X, \en,
+\e072 and the rest) are turned into the characters they stand for,
+which are put at *\fIarea\fR, and *\fIarea\fR is moved past them,
+ready for the next.
+.PP
+.B tgoto
+fills in the cursor motion string
+.IR cm ,
+the "cm" capability, to go to column
+.I destcol
+and line
+.I destline
+(counting from 0), and returns the result, in a static area. Where
+.I cm
+sends a position as a single character (%. or %+), tgoto avoids sending
+a NUL, ^D or newline, which could be lost on the way to the terminal: it
+goes one further and then comes back, with UP or BC (a backspace if BC
+is not set). It returns "OOPS" if
+.I cm
+is NULL or uses a % it does not know.
+.PP
+.B tputs
+puts out the string
+.IR cp ,
+one character at a time through the function
+.IR outc ,
+which takes the character as its argument, as putchar does. A
+number at the start of the string, as in "50\e33[H" or "3.5*", is a delay
+in milliseconds that the terminal needs after it: tputs makes the delay
+by sending pad characters (PC), as many as take that long at the
+output speed
+.IR ospeed .
+With a *, the delay is for each line affected, and
+.I affcnt
+is the number of lines. Set
+.I ospeed
+from the terminal's speed (the CBAUD bits of termio's c_cflag), or
+leave it 0 for no padding.
+.PP
+The program sets the variables from the terminal's entry: UP from the
+"up" capability, BC from "bc", and PC from the first character of
+"pc" (it is NUL until then).
+.SH EXAMPLES
+To clear the screen:
+.PP
+.nf
+	char bp[1024], area[100], *p = area, *cl;
+	int putch();
+
+	if (tgetent(bp, getenv("TERM")) == 1 && (cl = tgetstr("cl", &p)))
+		tputs(cl, tgetnum("li"), putch);
+
+	putch(c) { putchar(c); }
+.fi
+.SH "RETURN VALUES"
+tgetent returns 1, 0 or \-1, tgetnum the number or \-1, tgetflag 1 or 0,
+tgetstr the string or NULL, and tgoto the string or "OOPS", as described
+above.
+.SH FILES
+.TP 20
+/etc/termcap
+the data base of terminals
+.TP
+/usr/lib/cc/libtermcap.a
+the library
+.SH SEE ALSO
+clear(1), tset(1), termcap(5)
+.SH HISTORY
+The termcap functions first appeared in 4.0BSD. The terminal capability
+data base was first written by Bill Joy at Berkeley, for the screen
+editor vi.
+.SH BUGS
+The entry of a terminal, with the entries tc= brings in, must fit in
+1024 bytes.
+.PP
+tgoto's static result is overwritten by the next call.

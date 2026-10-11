@@ -1,0 +1,29 @@
+.TH ABORT 3
+.SH NAME
+abort \- generate a fault
+.SH SYNOPSIS
+.nf
+abort()
+.fi
+.SH DESCRIPTION
+.B abort
+sends the program the signal SIGIOT, after setting its action back to
+the default, so that the program ends and leaves an image of itself in
+the file
+.B core
+in the current directory, for the debugger
+.BR adb (1).
+The streams of
+.BR stdio (3)
+are not flushed.
+.PP
+A program calls abort when it finds that something that cannot happen
+has happened.
+.SH "RETURN VALUES"
+abort does not return.
+.SH SEE ALSO
+adb(1), exit(2), signal(2)
+.SH HISTORY
+The
+.B abort
+function first appeared in Version 5 AT&T UNIX.

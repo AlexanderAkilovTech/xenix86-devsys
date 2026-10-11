@@ -1,0 +1,40 @@
+.TH STRIP 1
+.SH NAME
+strip \- remove symbols from an executable program
+.SH SYNOPSIS
+.B strip
+file ...
+.SH DESCRIPTION
+.B strip
+removes the symbol table from each executable
+.I file
+named. The program runs the same without it, and takes less space on
+the disk, but
+.BR nm (1)
+and
+.BR adb (1)
+can no longer show its names. A program stripped is the same, byte for
+byte, as one linked with
+.BR "cc \-s" .
+A program with no symbol table is left as it is.
+.PP
+strip writes the program without its symbols to a temporary file, and
+then copies that back over the original, which keeps its owner, group
+and mode.
+.SH FILES
+.TP 14
+/tmp/stp*
+the temporary file
+.SH DIAGNOSTICS
+"not an executable" for an object file or a library, which keeps its
+symbols: the link editor needs them. "write error: the file may be
+damaged" if the copy back failed part way. The exit status is 1 if a
+file could not be stripped, and 0 otherwise.
+.SH SEE ALSO
+cc(1), ld86(1), nm(1), size(1), adb(1)
+.SH HISTORY
+A
+.B strip
+command appeared in Version 1 AT&T UNIX.
+.SH AUTHORS
+This strip was written for the xenix86-devsys Development System.

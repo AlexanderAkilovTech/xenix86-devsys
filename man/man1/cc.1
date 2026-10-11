@@ -1,0 +1,372 @@
+.TH CC 1
+.SH NAME
+cc \- C compiler
+.SH SYNOPSIS
+.B cc
+[\ \-cESOsv\ ] [\ \-Mc\ ] [\ \-o\ name\ ] [\ \-Dname[=value]\ ] [\ \-Uname\ ]
+[\ \-Idir\ ] [\ \-F\ size\ ] file ... [\ \-lname\ ] ...
+.SH DESCRIPTION
+.B cc
+is the C compiler. It compiles C programs, and assembles assembly
+language programs, into executable programs for XENIX on the 8086 and
+8088, running each of the compiler's passes in turn: the preprocessor,
+the compiler proper, the optimizer if asked for, the assembler
+.BR as86 (1)
+and the link editor
+.BR ld86 (1).
+.PP
+Each
+.I file
+is taken according to its suffix:
+.TP 10
+.B .c
+a C source program: preprocessed, compiled, and assembled into an
+object file whose name is that of the source with
+.B .o
+in place of
+.BR .c .
+.TP
+.B .s
+an assembly language source program: assembled by
+.BR as86 (1)
+into a
+.B .o
+file. It is not preprocessed.
+.TP
+.B .o
+an object file, from an earlier compilation: passed to the link.
+.TP
+.B .a
+a library of object files, made with
+.BR ar86 (1):
+passed to the link, which takes from it the object files the program
+needs.
+.PP
+Unless
+.BR \-c ,
+.B \-S
+or
+.B \-E
+is given, the object files are then linked, with the start-up routine
+.B /usr/lib/cc/crt0.o
+first and the C library
+.B /usr/lib/cc/libc.a
+last, into an executable program named
+.BR a.out .
+When a single C program is compiled and linked by one command, its
+.B .o
+file is removed once the program is made. When more than one file is
+named, cc prints the name of each source file as it compiles it.
+.PP
+The options are:
+.TP 12
+.B \-c
+Compile and assemble only, leaving a
+.B .o
+file for each source file; do not link.
+.TP
+.B \-S
+Compile only, leaving the assembly language for each C file in a file
+with the suffix
+.BR .s ;
+do not assemble or link.
+.TP
+.B \-E
+Run only the preprocessor on the C files, and send its output to the
+standard output.
+.TP
+.BI \-o " name"
+Name the executable program
+.I name
+instead of
+.BR a.out .
+cc refuses a
+.I name
+ending in .c or .s, which would overwrite a source file.
+.TP
+.B \-O
+Optimize. The peephole optimizer rewrites the compiler's output by its
+rules in /usr/lib/cc/rules.*, and the assembler makes each jump as short
+as its distance allows. The program comes out smaller and faster.
+.TP
+.B \-Mc
+Compile code in which a function keeps no registers for the function
+that called it (the "caller saves" convention): smaller code again.
+Compile all of a program's C files with
+.BR \-Mc ,
+or none of them: a function compiled without it expects the functions
+it calls to keep its register variables, which code compiled with it
+does not do. The libraries are compiled without it, and work with
+either.
+.B \-M0
+and
+.BR \-Ms ,
+which name the small model, are accepted and change nothing; the small
+model is the only one.
+.TP
+.B \-s
+Leave the symbol table out of the executable program, as
+.BR strip (1)
+would. By default the symbol table is kept, for
+.BR nm (1)
+and the debugger
+.BR adb (1).
+.TP
+.B \-v
+Print each pass's command line before running it.
+.TP
+.BI \-D name
+.PD 0
+.TP
+.BI \-D name = value
+.PD
+Define
+.I name
+to the preprocessor, as if by
+.BR #define ,
+with the value 1 if none is given.
+.TP
+.BI \-U name
+Remove any initial definition of
+.IR name .
+.TP
+.BI \-I dir
+Look for
+.B #include
+files in the directory
+.I dir
+before looking in
+.BR /usr/include .
+A file named in quotes, as in #include "defs.h", is looked for first in
+the directory of the file that includes it. Several
+.B \-I
+options are searched in the order given.
+.TP
+.BI \-F " size"
+Give the program a stack of
+.I size
+bytes, written in hexadecimal, as with the cc of XENIX. The default is
+1000 (4096 bytes). XENIX gives an 8086 program a stack of fixed size,
+which it cannot grow while the program runs: a program with deep
+recursion or large local arrays may need more.
+.TP
+.BI \-l name
+Link with the library
+.BI /usr/lib/cc/lib name .a\fR.\fP
+The link takes from a library only the object files that the files
+before it on the command line need, so put
+.B \-l
+after them.
+.B \-lm
+is the math library
+.RB ( intro (3)),
+.B \-ltermcap
+the terminal capability library
+.RB ( termcap (3)).
+.PP
+Other arguments beginning with \- are reported as unknown and ignored.
+.SS "The Language"
+cc compiles the C language described in
+.I "The C Programming Language"
+by Brian W. Kernighan and Dennis M. Ritchie (Prentice-Hall, 1978), with
+the additions made to it since:
+.B void
+functions,
+.B enum
+types, structure assignment, and structures passed to and returned from
+functions. It does not take the function prototypes or the
+.B const
+and
+.B volatile
+of the ANSI committee's draft standard. Functions are declared, and
+their arguments given types, the original way:
+.PP
+.nf
+	long
+	sum(a, n)
+	int *a;
+	int n;
+	{
+		...
+	}
+.fi
+.PP
+A function that returns anything but an
+.B int
+must be declared before it is called, or the value is taken to be an
+int: include the header for library functions, or declare them, as in
+.BR "double atof();" .
+.SS "The Machine"
+Programs are compiled for the 8086's small model, with separate
+instruction and data spaces: up to 64K bytes of code, and up to 64K of
+data, stack and memory from
+.BR malloc (3)
+together. A
+.B char
+is 8 bits and unsigned (0 to 255), a
+.B short
+and an
+.B int
+16 bits, a
+.B long
+32 bits, and a pointer 16 bits.
+.B float
+and
+.B double
+are the IEEE single and double precision formats, 32 and 64 bits; the
+arithmetic is done in software, correctly rounded, so no 8087 is needed
+and a program gives the same results on every machine.
+.PP
+The preprocessor defines
+.BR M_XENIX ,
+.BR M_I86 ,
+.BR M_I8086 ,
+.B M_I86SM
+and
+.BR unix ,
+as the cc of XENIX does, and
+.BR __BCC__ ,
+.B __8086__
+and
+.BR __BCC_VERSION__ .
+.SS "Debugging"
+A program keeps its symbol table unless it is linked with
+.BR \-s ,
+so the debugger
+.BR adb (1),
+from the Operating System's disk N5, knows its functions and variables
+by name. The C names begin with an underscore:
+.B main
+is
+.BR _main .
+These are some of adb's commands:
+.TP 16
+.B adb prog
+start adb on the program prog
+.TP
+.B _square:br
+set a breakpoint at the function square
+.TP
+.B :r
+run the program; arguments may follow
+.TP
+.B :co
+continue after a breakpoint
+.TP
+.B :s
+execute one instruction
+.TP
+.B $c
+show the chain of function calls, with their arguments
+.TP
+.B _count/d
+show the int variable count, in decimal
+.TP
+.B _main,8?ia
+show the first eight instructions of main
+.TP
+.B :k
+kill the program
+.TP
+.B $q
+leave adb
+.PP
+A breakpoint stops a function at its first instruction, before it has
+made its stack frame: execute two instructions
+.RB ( :s
+twice) before
+.BR $c ,
+to see the function itself in the chain of calls.
+.SH ENVIRONMENT
+.TP 10
+.B CCROOT
+A directory under which cc looks for its passes, libraries and headers,
+instead of under /: the way to try a Development System that has not
+been installed.
+.SH FILES
+.TP 26
+file.c
+C source
+.TP
+file.s
+assembly language source
+.TP
+file.o
+object file
+.TP
+a.out
+the executable program
+.TP
+/usr/lib/cc/bcc-cpp
+the preprocessor
+.TP
+/usr/lib/cc/bcc-cc1
+the compiler proper
+.TP
+/usr/lib/cc/copt
+the optimizer
+.TP
+/usr/lib/cc/rules.*
+the optimizer's rules
+.TP
+/usr/bin/as86
+the assembler
+.TP
+/usr/bin/ld86
+the link editor
+.TP
+/usr/lib/cc/aout2x
+turns the link editor's output into a XENIX executable
+.TP
+/usr/lib/cc/crt0.o
+the start-up routine
+.TP
+/usr/lib/cc/libc.a
+the C library
+.TP
+/usr/lib/cc/libm.a
+the math library
+.TP
+/usr/lib/cc/libtermcap.a
+the terminal capability library
+.TP
+/usr/include
+the standard headers
+.TP
+/tmp/ctm*
+temporary files
+.SH DIAGNOSTICS
+Each pass reports errors with the name of the file and the line. cc
+exits with status 0 when every pass succeeded, and 8 when one failed or
+the command line was wrong.
+.SH SEE ALSO
+as86(1), ld86(1), ar86(1), make(1), nm(1), size(1), strip(1), adb(1),
+intro(3)
+.PP
+B. W. Kernighan and D. M. Ritchie,
+.IR "The C Programming Language" ,
+Prentice-Hall, 1978.
+.PP
+D. M. Ritchie,
+.IR "C Reference Manual" ,
+Bell Laboratories.
+.SH HISTORY
+A
+.B cc
+command first appeared in Version 2 AT&T UNIX, in 1972. The C language
+was designed by Dennis Ritchie at Bell Laboratories, and grew out of
+Ken Thompson's language B.
+.PP
+The options of this cc are those of the cc of Version 7 AT&T UNIX and
+System V, with
+.B \-F
+from the cc of XENIX.
+.SH AUTHORS
+The compiler passes are those of BCC, written by Bruce Evans. The cc
+command, the start-up routine and the C library were written for the
+xenix86-devsys Development System.
+.SH BUGS
+The preprocessor writes floating point constants in hexadecimal for the
+compiler, which has no room to convert decimal ones; the output of
+.B \-E
+shows them as they were written.

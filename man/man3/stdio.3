@@ -1,0 +1,128 @@
+.TH STDIO 3
+.SH NAME
+stdio \- standard buffered input and output
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+FILE *stdin;
+FILE *stdout;
+FILE *stderr;
+.fi
+.SH DESCRIPTION
+The standard I/O library reads and writes
+.IR streams :
+files opened with a buffer, so that a program can take or give one
+character at a time without a system call for each. A stream is named
+by a pointer to a FILE, the structure <stdio.h> defines;
+.BR fopen (3)
+returns one. Three streams are open when a program starts:
+.TP 9
+.B stdin
+the standard input, file descriptor 0
+.TP
+.B stdout
+the standard output, file descriptor 1
+.TP
+.B stderr
+the standard error, file descriptor 2
+.PP
+A stream gets a buffer of BUFSIZ bytes (512) from
+.BR malloc (3)
+when it is first read or written, unless
+.BR setbuf (3)
+has given it one, or none. Output to a stream is kept in its buffer and
+written when the buffer is full, when
+.BR fflush (3)
+or
+.BR fclose (3)
+is called, and when the program calls
+.BR exit (2)
+or returns from
+.BR main .
+.B stdout
+is line buffered when it is a terminal: what is written to it goes out
+at the end of each line, and also whenever the program is about to read
+from
+.BR stdin ,
+so that a prompt is seen before the answer is typed. Written to a file
+or a pipe, stdout is buffered fully.
+.B stderr
+has no buffer: each character goes out as it is written, so that
+messages appear at once, in the right order.
+.PP
+A program that ends with
+.BR _exit (2),
+or is killed by a signal, loses what is still in its buffers.
+.PP
+At most _NFILE (20) streams can be open at once, the three standard ones
+among them.
+.PP
+The constant EOF (\-1) is returned by the input functions at the end of
+the file and after an error; NULL (0) is the null pointer.
+.PP
+The functions of the library, each described on its own page:
+.TP 20
+.B fopen
+open a stream; also freopen, fdopen
+.TP
+.B fclose
+close a stream; fflush writes out its buffer
+.TP
+.B getc
+read a character; also getchar, fgetc
+.TP
+.B gets
+read a line; also fgets
+.TP
+.B putc
+write a character; also putchar, fputc
+.TP
+.B puts
+write a string; also fputs
+.TP
+.B printf
+formatted output; also fprintf, sprintf
+.TP
+.B scanf
+formatted input; also fscanf, sscanf
+.TP
+.B fread
+read or write blocks of bytes; also fwrite
+.TP
+.B fseek
+move in a file; also ftell, rewind
+.TP
+.B ungetc
+push a character back
+.TP
+.B ferror
+a stream's error and end of file flags; also feof, clearerr, fileno
+.TP
+.B setbuf
+give a stream a buffer of the program's, or none
+.SH NOTES
+getc, getchar, putc, putchar, feof, ferror, clearerr and fileno are
+macros, defined in <stdio.h>. getchar and putchar are also functions,
+for programs that do not include it.
+.PP
+The functions of the library and the system calls
+.BR read (2)
+and
+.BR write (2)
+should not both be used on the same file: the stream's buffer would
+hold data the system calls do not see.
+.SH FILES
+.TP 26
+/usr/include/stdio.h
+the definitions
+.TP
+/usr/lib/cc/libc.a
+the library
+.SH SEE ALSO
+open(2), close(2), read(2), write(2), malloc(3), intro(3)
+.SH HISTORY
+The early editions of AT&T UNIX had fopen, getc and putc, working on
+buffers the program declared itself. The standard I/O library, with
+FILE streams, <stdio.h>, and stdin, stdout and stderr, first appeared in
+Version 7 AT&T UNIX.

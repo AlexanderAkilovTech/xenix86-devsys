@@ -1,0 +1,55 @@
+.TH RENAME 3
+.SH NAME
+rename \- change the name of a file
+.SH SYNOPSIS
+.nf
+int
+rename(from, to)
+char *from, *to;
+.fi
+.SH DESCRIPTION
+.B rename
+gives the file named
+.I from
+the name
+.IR to .
+If a file named
+.I to
+already exists, it is removed first, unless it is a directory. If
+.I from
+and
+.I to
+are names of the same file, nothing is done.
+.PP
+XENIX has no rename system call. rename makes the new name with
+.BR link (2)
+and then removes the old one with
+.BR unlink (2),
+as
+.BR mv (1)
+does; for a moment the file has both names. Both names must therefore be
+in the same file system.
+.SH "RETURN VALUES"
+0 on success; \-1 on failure, with errno set.
+.SH ERRORS
+.TP 10
+.B ENOENT
+.I from
+does not exist, or a directory in
+.I to
+does not.
+.TP
+.B EXDEV
+The two names are in different file systems.
+.TP
+.B EISDIR
+.I to
+is a directory.
+.TP
+.B EACCES
+A directory cannot be searched, or written to make or remove a name.
+.SH SEE ALSO
+mv(1), link(2), unlink(2)
+.SH HISTORY
+rename is a system call in 4.2BSD. Version 7 AT&T UNIX and System V
+have none.

@@ -1,0 +1,66 @@
+.TH GETC 3
+.SH NAME
+getc, getchar, fgetc \- get a character from a stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+getc(stream)
+FILE *stream;
+
+int
+getchar()
+
+int
+fgetc(stream)
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B getc
+returns the next character from
+.IR stream .
+.B getchar()
+is
+.BR getc(stdin) .
+.B fgetc
+does what
+.B getc
+does, as a function instead of a macro: it is slower, but it may be
+passed as a pointer to a function, and its argument is evaluated only
+once.
+.PP
+The result must be kept in an int, not a char, so that EOF can be told
+apart from the character 0377:
+.PP
+.nf
+	int c;
+
+	while ((c = getchar()) != EOF)
+		putchar(c);
+.fi
+.SH "RETURN VALUES"
+The character, as an int from 0 to 255, or EOF at the end of the file
+or after an error;
+.BR feof (3)
+and
+.BR ferror (3)
+tell which.
+.SH SEE ALSO
+gets(3), fread(3), scanf(3), ungetc(3), ferror(3), putc(3), stdio(3)
+.SH HISTORY
+The
+.B getc
+function first appeared in Version 1 AT&T UNIX,
+.B getchar
+in Version 2, and
+.B fgetc
+in Version 7.
+.SH BUGS
+Since
+.B getc
+is a macro, it evaluates
+.I stream
+more than once: an argument with side effects, as in
+.BR getc(*f++) ,
+does not work.

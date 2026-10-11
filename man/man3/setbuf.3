@@ -1,0 +1,50 @@
+.TH SETBUF 3
+.SH NAME
+setbuf \- assign buffering to a stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+setbuf(stream, buf)
+FILE *stream;
+char *buf;
+.fi
+.SH DESCRIPTION
+.B setbuf
+makes
+.I stream
+use the array
+.I buf
+of BUFSIZ characters as its buffer, in place of the one the library
+would take from
+.BR malloc (3).
+If
+.I buf
+is NULL, the stream has no buffer at all, and each character is read or
+written by a system call of its own. setbuf is called after the stream
+is opened and before it is first read or written.
+.PP
+A stream given a buffer by setbuf is fully buffered, even on a
+terminal: its output is written only when the buffer is full, or is
+flushed.
+.SH EXAMPLES
+.nf
+	static char buf[BUFSIZ];
+
+	setbuf(stdout, buf);	/* fully buffered, even to a terminal */
+	setbuf(stdout, NULL);	/* or not buffered at all */
+.fi
+.SH SEE ALSO
+fopen(3), fclose(3), getc(3), putc(3), malloc(3), stdio(3)
+.SH HISTORY
+The
+.B setbuf
+function first appeared in Version 7 AT&T UNIX.
+.SH BUGS
+A buffer that is a local variable of a function is gone when the
+function returns, while the stream still uses it: close the stream
+first, or make the buffer static. This holds for
+.B main
+too, since
+.BR exit (2)
+flushes the streams after main has returned.

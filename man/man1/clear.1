@@ -1,0 +1,41 @@
+.TH CLEAR 1
+.SH NAME
+clear \- clear the terminal screen
+.SH SYNOPSIS
+.B clear
+.SH DESCRIPTION
+.B clear
+clears the screen of the terminal, if it can be cleared, and puts the
+cursor at the top left. It finds the terminal's type in the environment
+variable TERM, and how to clear its screen, the
+.B cl
+capability, in the terminal capability data base,
+.BR /etc/termcap .
+.SH ENVIRONMENT
+.TP 10
+.B TERM
+the type of the terminal
+.TP
+.B TERMCAP
+another termcap file to read, if it begins with /, or the terminal's
+entry itself (see
+.BR termcap (3))
+.SH FILES
+.TP 14
+/etc/termcap
+the terminal capability data base
+.SH DIAGNOSTICS
+"TERM is not set", "cannot read /etc/termcap", "unknown terminal type",
+or "a
+.I type
+cannot clear its screen" when the entry has no cl capability. The exit
+status is 1 when the screen was not cleared.
+.SH SEE ALSO
+termcap(3), tset(1)
+.SH HISTORY
+A
+.B clear
+command using the termcap data base and library appeared in 2BSD, in
+1979.
+.SH AUTHORS
+This clear was written for the xenix86-devsys Development System.

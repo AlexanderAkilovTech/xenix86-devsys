@@ -1,0 +1,205 @@
+.TH PRINTF 3
+.SH NAME
+printf, fprintf, sprintf \- formatted output conversion
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+printf(format [, arg ] ...)
+char *format;
+
+int
+fprintf(stream, format [, arg ] ...)
+FILE *stream;
+char *format;
+
+int
+sprintf(s, format [, arg ] ...)
+char *s, *format;
+.fi
+.SH DESCRIPTION
+.B printf
+writes on the standard output,
+.B fprintf
+on the named
+.IR stream ,
+and
+.B sprintf
+in the array
+.IR s ,
+followed by a NUL. Each converts, formats and writes its
+.IR arg s
+as the string
+.I format
+directs. The format holds plain characters, which are copied unchanged,
+and conversion specifications, each of which converts the next
+.IR arg .
+.PP
+A conversion specification is a % followed by, in order:
+.TP 4
+\(bu
+Flags, none or several of:
+.RS
+.TP 8
+.B \-
+Put the converted value at the left of its field, with the padding
+after it.
+.TP
+.B 0
+Pad numbers with leading zeros instead of spaces. Ignored with
+.B \-
+and, for an integer, when a precision is given.
+.TP
+.B +
+Begin a signed conversion with a sign, + or \-.
+.TP
+.I space
+Begin a signed conversion that has no sign with a space.
++ wins over it.
+.TP
+.B #
+The alternate form: for
+.BR o ,
+a leading 0; for
+.B x
+and
+.BR X ,
+a leading 0x or 0X before a value that is not 0; for
+.BR e ,
+.BR E ,
+.BR f ,
+.B g
+and
+.BR G ,
+a decimal point always, and for g and G, the zeros at the end kept.
+.RE
+.TP 4
+\(bu
+A field width: the least number of characters the value takes. A
+shorter value is padded with spaces (or zeros, with the flag 0) on the
+left, or on the right with the flag \-. A longer one is not cut.
+.TP
+\(bu
+A precision, written as a period and a number: for
+.BR d ,
+.BR i ,
+.BR o ,
+.BR u ,
+.B x
+and
+.BR X ,
+the least number of digits; for
+.BR e ,
+.B E
+and
+.BR f ,
+the number of digits after the decimal point (6 if none is given); for
+.B g
+and
+.BR G ,
+the most significant digits; for
+.BR s ,
+the most characters printed from the string.
+.TP
+\(bu
+.BR l ,
+to say that the argument of d, i, o, u, x or X is a long.
+.TP
+\(bu
+The conversion character:
+.RS
+.TP 8
+.BR d ", " i
+An int, in signed decimal.
+.TP
+.B u
+An unsigned int, in decimal.
+.TP
+.B o
+An unsigned int, in octal.
+.TP
+.BR x ", " X
+An unsigned int, in hexadecimal, with the digits abcdef, or ABCDEF.
+.TP
+.B c
+An int, printed as the character it is.
+.TP
+.B s
+A string: a pointer to char; characters are printed up to the NUL, or
+as many as the precision says. A null pointer prints as (null).
+.TP
+.B f
+A double, in the style [\-]ddd.ddd.
+.TP
+.BR e ", " E
+A double, in the style [\-]d.ddde\(+-dd, with at least two digits in
+the exponent; E writes E.
+.TP
+.BR g ", " G
+A double, in the style of f, or of e (E) when the exponent is less than
+\-4 or not less than the precision; the zeros at the end of the
+fraction, and a decimal point with no digits after it, are left off.
+.TP
+.B %
+A %; no argument is used.
+.RE
+.PP
+A width or precision may be given as *, which takes it from the next
+argument, an int; a negative width means the flag \- and the width.
+A float argument is passed as a double, so the same conversions serve
+for both.
+.PP
+The floating point conversions print the digits of the double's exact
+value, rounded correctly to the number asked for, however many that is.
+An infinity prints as inf and a not-a-number as nan.
+.SH "RETURN VALUES"
+Each returns the number of characters written, not counting the NUL
+that sprintf adds.
+.B printf
+and
+.B fprintf
+return EOF instead if the stream had a write error.
+.SH EXAMPLES
+To print a date and time, as "Sunday, July 3, 10:02":
+.PP
+.nf
+	printf("%s, %s %d, %02d:%02d\en",
+		weekday, month, day, hour, min);
+.fi
+.PP
+To print pi to five decimal places:
+.PP
+.nf
+	printf("pi = %.5f\en", 4 * atan(1.0));
+.fi
+.SH NOTES
+The code for e, E, f, g and G is put into a program only when the
+program needs it: cc includes it when the program passes a float or a
+double to a function whose name ends in printf. A program that prints
+doubles only through a function of its own, which hands them on to
+printf, is then left without it, and stops with the message "printf:
+floating point conversion not linked in". Naming the symbol __xfpcvt
+includes it:
+.PP
+.nf
+	extern int __xfpcvt;
+	int *need_fp = &__xfpcvt;
+.fi
+.SH SEE ALSO
+putc(3), puts(3), scanf(3), ecvt(3), stdio(3)
+.SH HISTORY
+The
+.B printf
+function first appeared in Version 2 AT&T UNIX, and
+.B fprintf
+and
+.B sprintf
+in Version 7.
+.SH BUGS
+.B sprintf
+cannot know the length of
+.IR s ,
+and a result too long for it overwrites whatever follows.
+.PP
+There is no h size; the l size is not used with c or s.

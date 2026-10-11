@@ -1,0 +1,70 @@
+.TH FLOOR 3
+.SH NAME
+floor, ceil, fabs, fmod \- floor, ceiling, absolute value, remainder
+.SH SYNOPSIS
+.nf
+#include <math.h>
+
+double
+floor(x)
+double x;
+
+double
+ceil(x)
+double x;
+
+double
+fabs(x)
+double x;
+
+double
+fmod(x, y)
+double x, y;
+.fi
+.PP
+cc ... \-lm
+.SH DESCRIPTION
+.B floor
+returns the largest whole number not greater than
+.IR x ,
+and
+.B ceil
+the smallest whole number not less than
+.IR x .
+.PP
+.B fabs
+returns the absolute value of
+.IR x .
+.PP
+.B fmod
+returns the remainder of
+.I x
+divided by
+.IR y :
+.I x
+\-
+.I n
+*
+.IR y ,
+for the whole number
+.I n
+that makes the result have the sign of
+.I x
+and a magnitude less than that of
+.IR y .
+fmod(x, 0.0) returns
+.IR x .
+.PP
+All four results are exact.
+.SH SEE ALSO
+abs(3), frexp(3), intro(3)
+.SH HISTORY
+The
+.B floor
+and
+.B fmod
+functions first appeared in Version 5 AT&T UNIX, and
+.B fabs
+in Version 6. Version 7 has
+.B ceil
+as well.

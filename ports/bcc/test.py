@@ -85,8 +85,8 @@ print(file=sys.stderr)
 for name in [n for n in objs if n.startswith('tests/') and n not in ('tests/regdump.c', 'tests/fptest.c',
                                                                     'tests/fpu87.c')]:
     b = f'{tmp}/link_{os.path.basename(name)[:-2]}'
-    args = ['-0', '-i', '-o', None, f'{ROOT}/build/crt0.o', objs[name], f'{ROOT}/build/libm.a',
-            f'{ROOT}/build/libc.a']
+    args = ['-0', '-i', '-o', None, f'{ROOT}/build/crt0.o', objs[name], f'{ROOT}/build/libtermcap.a',
+            f'{ROOT}/build/libm.a', f'{ROOT}/build/libc.a']
     h = run(['ld86'] + [a if a else f'{b}.h' for a in args])
     x = run(SIM + [f'{BIN}/ld86'] + [a if a else f'{b}.x' for a in args])
     count['ld'] += 1
@@ -104,8 +104,8 @@ for src in sorted(glob.glob(f'{ROOT}/tests/*.c')):
         continue
     more = [f'{ROOT}/tests/{HALVES[t]}'] if t in HALVES else []
     run([f'{ROOT}/build.sh', src] + more)
-    # build.sh links every program with libm.a: so does -lm
-    run(SIM + [f'{R}/usr/bin/cc', '-o', f'{tmp}/{t}.native', src] + more + ['-lm'], env=cenv, cwd=tmp)
+    # build.sh links every program with libtermcap.a and libm.a: so do -ltermcap -lm
+    run(SIM + [f'{R}/usr/bin/cc', '-o', f'{tmp}/{t}.native', src] + more + ['-ltermcap', '-lm'], env=cenv, cwd=tmp)
     count['cc'] += 1
     if not os.path.exists(f'{tmp}/{t}.native') or not same(f'{tmp}/{t}.native', f'{ROOT}/build/{t}'):
         fails['cc'].append(f'tests/{t}.c')
@@ -144,7 +144,7 @@ cc1src = ('bcc-cc1 codefrag dbnode declare express exptree floatop function genc
           'input label loadexp longop output preproc preserve scan softop state table type assign hashcmd').split()
 for name, args, ref in (
         # as ports/bcc/build.sh builds it: callersaves, copt (with rules.mc), as86 -O, no atof
-        ('bcc-cc1', ['-O', '-Mc', '-DNO_ATOF', '-Dconst=', '-F', '2000'] + [f + '.c' for f in cc1src],
+        ('bcc-cc1', ['-O', '-Mc', '-s', '-DNO_ATOF', '-Dconst=', '-F', '2000'] + [f + '.c' for f in cc1src],
          f'{BIN}/bcc-cc1'),
         ('cc', [f'{ROOT}/cmd/cc.c'], f'{ROOT}/build/cc'),
         ('aout2x', [f'{ROOT}/cmd/aout2x.c'], f'{ROOT}/build/aout2x')):

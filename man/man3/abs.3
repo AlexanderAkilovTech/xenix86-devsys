@@ -1,0 +1,34 @@
+.TH ABS 3
+.SH NAME
+abs, labs \- integer absolute value
+.SH SYNOPSIS
+.nf
+int
+abs(i)
+int i;
+
+long
+labs(l)
+long l;
+.fi
+.SH DESCRIPTION
+.B abs
+returns the absolute value of the int
+.IR i ,
+and
+.B labs
+of the long
+.IR l .
+.BR fabs (3)
+does it for a double.
+.SH SEE ALSO
+floor(3)
+.SH HISTORY
+The
+.B abs
+function first appeared in Version 6 AT&T UNIX.
+.B labs
+is not in the C library of Version 7.
+.SH BUGS
+The most negative int, \-32768, and the most negative long,
+\-2147483648, have no positive counterparts, and come back unchanged.

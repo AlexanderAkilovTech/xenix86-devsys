@@ -1,0 +1,294 @@
+.TH MAKE 1
+.SH NAME
+make \- maintain groups of programs
+.SH SYNOPSIS
+.B make
+[\ \-f\ makefile\ ] [\ \-eiknpqrst\ ] [\ name=value\ ...\ ] [\ target\ ...\ ]
+.SH DESCRIPTION
+.B make
+keeps the files of a program up to date with the files they are made
+from. It reads a description of how each file, a
+.IR target ,
+is made from others, its
+.IR prerequisites ,
+and remakes the targets that are older than any of their prerequisites,
+by running the commands the description gives for them. Prerequisites
+are brought up to date first, in the same way, so that only what has
+changed, and what depends on it, is made again.
+.PP
+make makes each
+.I target
+named on the command line, or, with none named, the first target in
+the description. The description is read from the file
+.BR makefile ,
+or from
+.B Makefile
+if there is no
+.BR makefile ,
+unless
+.B \-f
+names another. Arguments of the form
+.I name=value
+define macros, as described below.
+.PP
+The options are:
+.TP 12
+.BI \-f " makefile"
+Read the description from
+.IR makefile .
+A
+.I makefile
+of \- is the standard input. More than one
+.B \-f
+may be given; the files are read in order, as one description.
+.TP
+.B \-e
+Let the environment's variables override the macros defined in the
+description.
+.TP
+.B \-i
+Ignore the exit status of commands: go on as if each had succeeded, as
+if every command began with \-.
+.TP
+.B \-k
+When a command fails, abandon only the targets that depend on it, and
+go on making the others.
+.TP
+.B \-n
+Print the commands that would be run, without running them. Lines
+beginning with @ are printed too.
+.TP
+.B \-p
+Print the complete set of macros and rules, those built in included,
+before making anything.
+.TP
+.B \-q
+Question: run nothing, and exit with status 0 if the targets are up to
+date, 1 if they are not.
+.TP
+.B \-r
+Do not use the built-in suffix rules and macros.
+.TP
+.B \-s
+Silent: do not print the commands before running them, as if every
+command began with @.
+.TP
+.B \-t
+Touch the targets: change their times to now instead of running their
+commands, so that they are taken as up to date.
+.SS Rules
+A rule is a line of target names, a colon, and the names of the
+prerequisites, followed by the commands that make the targets, each on
+a line beginning with a tab:
+.PP
+.nf
+	prog: main.o util.o
+		cc \-o prog main.o util.o
+	main.o util.o: defs.h
+.fi
+.PP
+A target is remade when it does not exist, or when any prerequisite is
+newer than it. A target may appear in several rules with a single colon;
+their prerequisites are added together, and only one of the rules may
+have commands. With two colons,
+.BR :: ,
+each rule stands alone: its commands are run when the target is older
+than one of that rule's own prerequisites.
+.PP
+Each command line is printed, then run. A command containing none of
+the shell's special characters is run directly; any other is given to
+.B "/bin/sh \-c"
+to run. Each line is a separate command: a
+.B cd
+on one line does not affect the next. A command line beginning with
+.B @
+is not printed; one beginning with
+.B \-
+may fail without stopping make. Otherwise, when a command exits with a
+status other than 0, make stops, unless
+.B \-i
+or
+.B \-k
+was given.
+.PP
+A line ending with \e is joined to the next. # begins a comment, to the
+end of the line. A line
+.PP
+.nf
+	include \fIfile\fP
+.fi
+.PP
+reads the description in
+.I file
+in its place.
+.SS Macros
+A line
+.PP
+.nf
+	\fIname\fP = \fIvalue\fP
+.fi
+.PP
+defines a macro. Elsewhere,
+.BI $( name )
+or
+.BI ${ name }
+is replaced by the macro's value, and
+.BI $ x
+for a macro whose name is the single character
+.IR x .
+.BI $( name : old = new )
+is the value with the ending
+.I old
+of each word changed to
+.IR new ,
+as in $(OBJS:.o=.c). A macro that is not defined is empty. $$ is a $.
+.PP
+Macros are taken from the built-in rules, then the environment, then
+the description, then the command line, each overriding those before
+it; with
+.BR \-e ,
+the environment overrides the description.
+.PP
+In the commands of a rule, make defines these:
+.TP 8
+.B $@
+the name of the target
+.TP
+.B $*
+the target's name without its suffix (in a suffix rule)
+.TP
+.B $<
+the prerequisite that made the target out of date; in a suffix rule,
+the source file
+.TP
+.B $?
+the prerequisites that are newer than the target
+.TP
+.B $(@D)
+the directory part of $@, or . if it has none
+.TP
+.B $(@F)
+the file name part of $@
+.SS Suffix rules
+A target that has no commands of its own is made by a suffix rule, if
+one fits. The rule
+.B .c.o:
+tells how to make a file whose name ends in .o from one, with the same
+name before the suffix, ending in .c; the rule
+.B .c:
+how to make a file with no suffix from one ending in .c. The suffixes
+that count, in the order they are tried, are the prerequisites of the
+special target
+.BR .SUFFIXES ;
+a
+.B .SUFFIXES
+rule adds to the list, and one with no prerequisites empties it. The
+built-in macros and rules are:
+.PP
+.nf
+	.SUFFIXES: .o .c .s
+	MAKE = make
+	CC = cc
+	CFLAGS = \-O
+	AS = as86
+	LD = ld86
+	AR = ar86
+	ARFLAGS = rv
+	.c.o:
+		$(CC) $(CFLAGS) \-c $<
+	.s.o:
+		$(CC) \-c $<
+	.c:
+		$(CC) $(CFLAGS) $(LDFLAGS) \-o $@ $<
+	.s:
+		$(CC) $(LDFLAGS) \-o $@ $<
+.fi
+.SS Special targets
+.TP 12
+.B .DEFAULT
+Its commands make any target that has no rule and no file.
+.TP
+.B .IGNORE
+Ignore the exit status of every command, as with
+.BR \-i .
+.TP
+.B .SILENT
+Print no commands, as with
+.BR \-s .
+.TP
+.B .PRECIOUS
+When make is interrupted while making a target, it removes the target,
+which may be half made, unless the target is a prerequisite of
+.BR .PRECIOUS .
+.SH ENVIRONMENT
+Every environment variable is a macro, as described above.
+.SH FILES
+.TP 12
+makefile
+.PD 0
+.TP
+Makefile
+the description, if \-f is not given
+.PD
+.SH EXAMPLES
+A library and a program that uses it:
+.PP
+.nf
+	OBJS = main.o parse.o
+	LIB = libutil.a
+	LOBJS = strsave.o error.o
+
+	prog: $(OBJS) $(LIB)
+		$(CC) \-o prog $(OBJS) $(LIB)
+
+	$(LIB): $(LOBJS)
+		$(AR) $(ARFLAGS) $(LIB) $?
+
+	$(OBJS): defs.h
+
+	clean:
+		rm \-f prog $(OBJS) $(LOBJS) $(LIB)
+.fi
+.SH DIAGNOSTICS
+make exits with status 0 when all the targets were made, 1 under
+.B \-q
+when one is out of date, and 2 after an error. Its messages include:
+.TP 8
+.B "Don't know how to make \fItarget\fP.  Stop."
+There is no file named
+.IR target ,
+no rule for it, and no suffix rule that fits.
+.TP
+.B "\fItarget\fP depends on itself"
+The rules form a loop.
+.TP
+.B "\fItarget\fP not remade because of errors"
+Under
+.BR \-k ,
+a prerequisite of the target failed.
+.TP
+.B "makefile, line \fIn\fP: \fImessage\fP"
+The description has a line make does not understand.
+.SH SEE ALSO
+sh(1), cc(1), ar86(1), touch(1)
+.PP
+S. I. Feldman,
+.IR "Make \(em A Program for Maintaining Computer Programs" ,
+Bell Laboratories.
+.SH HISTORY
+A
+.B make
+command first appeared outside of Bell Laboratories in PWB/UNIX 1.0. It
+was written by Stuart Feldman, in 1976.
+.SH AUTHORS
+This make was written for the xenix86-devsys Development System,
+following the make of Version 7 AT&T UNIX and System V.
+.SH BUGS
+make decides what is out of date by the files' times, so the system
+clock must be right. A file whose time is in the future always looks up
+to date.
+.PP
+A make run by a command in a description does not inherit the options
+of the one that ran it.
+.PP
+File names with spaces in them cannot be targets or prerequisites.

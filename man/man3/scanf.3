@@ -1,0 +1,150 @@
+.TH SCANF 3
+.SH NAME
+scanf, fscanf, sscanf \- formatted input conversion
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+scanf(format [, pointer ] ...)
+char *format;
+
+int
+fscanf(stream, format [, pointer ] ...)
+FILE *stream;
+char *format;
+
+int
+sscanf(s, format [, pointer ] ...)
+char *s, *format;
+.fi
+.SH DESCRIPTION
+.B scanf
+reads from the standard input,
+.B fscanf
+from the named
+.IR stream ,
+and
+.B sscanf
+from the string
+.IR s .
+Each reads characters, interprets them as the string
+.I format
+directs, and stores the results through the
+.IR pointer s
+that follow it, which must point to variables of the right types.
+.PP
+The format may hold:
+.TP 4
+\(bu
+White space, which matches any amount of white space in the input,
+including none.
+.TP
+\(bu
+Ordinary characters, other than %, each of which must match the next
+character of the input.
+.TP
+\(bu
+Conversion specifications, each made of a %; a * if the field is to be
+read but not stored; a number, the greatest width of the field; a size,
+.B l
+or
+.BR h ;
+and a conversion character.
+.PP
+An input field is the characters up to the next white space, or as
+many as the width allows, whichever comes first; the conversions other
+than c and [ skip white space before it. The conversion characters are:
+.TP 8
+.B d
+A decimal integer, with an optional sign; the pointer is to an int.
+.TP
+.B u
+A decimal integer; to an unsigned int.
+.TP
+.B o
+An octal integer; to an int.
+.TP
+.BR x ", " X
+A hexadecimal integer, with or without a leading 0x; to an int.
+.TP
+.B i
+An integer written as in C: hexadecimal after 0x, octal after 0,
+otherwise decimal; to an int.
+.TP
+.BR e ", " f ", " g
+A floating point number: an optional sign, digits with an optional
+decimal point, and an optional exponent of e or E and an integer; to a
+float.
+.TP
+.B s
+A string of characters other than white space; the pointer is to an
+array of characters large enough for it and the NUL that is added.
+.TP
+.B c
+Characters: as many as the width, or one if there is no width, white
+space included; the pointer is to an array of characters, and no NUL is
+added. To read the next character that is not white space, use %1s.
+.TP
+.B [
+A string of the characters between the brackets, as in [abc], or, if
+the first is ^, as in [^abc], of the characters not between them; a ]
+right after [ or [^ is one of them. A NUL is added.
+.TP
+.B n
+Nothing is read; the number of characters read so far is stored, in an
+int.
+.TP
+.B %
+Matches a %.
+.PP
+.B l
+before d, i, o, u or x means that the pointer is to a long, and before
+e, f or g, that it is to a double.
+.B h
+before d, i, o, u or x means that the pointer is to a short.
+.SH "RETURN VALUES"
+Each returns the number of fields stored, which is less than the
+format asks for when the input stops matching it, or EOF if the input
+ends before the first field is stored.
+.SH EXAMPLES
+.nf
+	int i, n;
+	long size;
+	double x;
+	char name[50];
+
+	n = scanf("%d %ld %lf %49s", &i, &size, &x, name);
+.fi
+.PP
+with the input
+.PP
+.nf
+	25 70000 3.5e2 thomas
+.fi
+.PP
+stores 25 in i, 70000 in size, 350.0 in x and "thomas" in name, and
+sets n to 4.
+.SH NOTES
+The floating point conversions are put into a program only when the
+program needs them: cc includes them when the program passes a pointer
+to a float or a double to a function whose name ends in scanf. Otherwise
+there is the message "scanf: floating point conversion not linked in".
+.SH SEE ALSO
+getc(3), gets(3), atof(3), printf(3), stdio(3)
+.SH HISTORY
+The
+.BR scanf ,
+.B fscanf
+and
+.B sscanf
+functions first appeared in Version 7 AT&T UNIX.
+.SH BUGS
+A string read with s or [ and no width can overrun its array.
+.PP
+The result says how many fields were stored, not where the input
+stopped matching; the characters that did not match are left in the
+input, and are read again by the next call.
+.PP
+Each argument must be a pointer: scanf("%d", n) instead of
+scanf("%d", &n) stores at whatever address n holds.

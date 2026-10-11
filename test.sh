@@ -72,6 +72,16 @@ python3 tests/unit/test_fmt.py 400 > /tmp/xds_fmt.out 2>&1 && ok "printf, strtod
 python3 tests/unit/test_m.py 300 > /tmp/xds_m.out 2>&1 && ok "math library vs mpmath ($(tail -1 /tmp/xds_m.out))" \
 	|| { bad "math library"; head -20 /tmp/xds_m.out; }
 
+python3 tests/unit/test_nm.py > /tmp/xds_nm.out 2>&1 && ok "nm, size, strip vs Python ($(tail -1 /tmp/xds_nm.out))" \
+	|| { bad "nm, size, strip"; head -20 /tmp/xds_nm.out; }
+
+python3 tests/unit/test_termcap.py > /tmp/xds_tc.out 2>&1 && ok "termcap library vs Python ($(tail -1 /tmp/xds_tc.out))" \
+	|| { bad "termcap library"; head -20 /tmp/xds_tc.out; }
+
+./build.sh cmd/man.c > /dev/null
+python3 tests/unit/test_man.py > /tmp/xds_man.out 2>&1 && ok "man and its page formatter ($(tail -1 /tmp/xds_man.out))" \
+	|| { bad "man"; head -20 /tmp/xds_man.out; }
+
 python3 tests/unit/test_time.py > /tmp/xds_time.out 2>&1 && ok "time conversions vs Python ($(tail -1 /tmp/xds_time.out))" || bad "time conversions"
 
 for t in echo true false; do ./build.sh tests/bin/$t.c > /dev/null; done

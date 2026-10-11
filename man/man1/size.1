@@ -1,0 +1,50 @@
+.TH SIZE 1
+.SH NAME
+size \- size of an object file
+.SH SYNOPSIS
+.B size
+[\ \-o\ ] [\ \-x\ ] [\ file\ ...\ ]
+.SH DESCRIPTION
+.B size
+prints the sizes in bytes of the text (code), the initialized data and
+the bss (uninitialized data) of each
+.IR file ,
+an executable program, an object file, or each member of a library,
+and their sum:
+.PP
+.nf
+	$ size prog
+	7888 + 384 + 48 = 8320
+.fi
+.PP
+When more than one file is named, each line begins with the file's
+name; a library member is shown as library(member). With no
+.IR file ,
+size shows a.out.
+.PP
+For an object file, the bss is the space asked for by its common and
+local uninitialized variables. For a program, the sum does not include
+the stack, whose size
+.B "cc \-F"
+sets, or what it takes with
+.BR malloc (3).
+On the 8086 a program's text must fit in 64K, and its data, bss, stack
+and allocated memory together in another 64K.
+.PP
+The options are:
+.TP 6
+.B \-o
+Print the sizes in octal.
+.TP
+.B \-x
+Print the sizes in hexadecimal.
+.SH DIAGNOSTICS
+The exit status is 1 if a file could not be read, and 0 otherwise.
+.SH SEE ALSO
+cc(1), nm(1), strip(1), ar86(1)
+.SH HISTORY
+A
+.B size
+command appeared in Version 3 AT&T UNIX.
+.SH AUTHORS
+This size was written for the xenix86-devsys Development System.

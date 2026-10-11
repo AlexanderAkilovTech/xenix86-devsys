@@ -1,0 +1,35 @@
+.TH SYSTEM 3
+.SH NAME
+system \- issue a shell command
+.SH SYNOPSIS
+.nf
+int
+system(string)
+char *string;
+.fi
+.SH DESCRIPTION
+.B system
+runs the command
+.I string
+with
+.BR "/bin/sh \-c" ,
+just as if it had been typed to the shell, and waits until it has
+finished. While it waits, the program ignores the interrupt and quit
+signals, so that the key that stops the command does not stop the
+program as well.
+.PP
+Output the program has written to a stream should be flushed with
+.BR fflush (3)
+before system is called, or it may come out after the command's.
+.SH "RETURN VALUES"
+The command's status, as
+.BR wait (2)
+gives it: its exit code times 256, plus the number of the signal that
+killed it, if one did. \-1 if no process could be made; an exit code of
+127 if the shell could not be run.
+.SH SEE ALSO
+sh(1), exec(2), fork(2), wait(2)
+.SH HISTORY
+The
+.B system
+function first appeared in Version 6 AT&T UNIX.

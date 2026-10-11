@@ -1,0 +1,215 @@
+.TH AS86 1
+.SH NAME
+as86 \- assembler for the 8086
+.SH SYNOPSIS
+.B as86
+[\ \-0123agjOuwk\ ] [\ \-o\ objfile\ ] [\ \-l\ [listfile]\ ] [\ \-m\ [listfile]\ ]
+[\ \-n\ name\ ] [\ \-b\ binfile\ ] [\ \-s\ symfile\ ] [\ \-t\ n\ ] file
+.SH DESCRIPTION
+.B as86
+assembles the assembly language program in
+.I file
+(\- for the standard input) into an object file for
+.BR ld86 (1).
+.BR cc (1)
+runs it on the compiler's output and on
+.B .s
+files; it can also be run alone.
+.PP
+The options are:
+.TP 14
+.BI \-o " objfile"
+Write the object file to
+.IR objfile .
+Without
+.B \-o
+(or
+.BR \-b ),
+as86 only checks the program.
+.TP
+.BR \-0 ", " \-1 ", " \-2
+Assemble 16-bit code, for the 8086, the 80186 or the 80286. cc uses
+.BR \-0 .
+.TP
+.B \-3
+Assemble 32-bit code for the 80386. A program for XENIX on the 8086
+cannot use it.
+.TP
+.B \-a
+Another assembler's syntax: round and square brackets exchange their
+meanings, and jumps and calls through a register are written
+differently.
+.TP
+.B \-g
+Put only the global symbols in the object file.
+.TP
+.B \-j
+Make every jump a long one; a conditional branch becomes a short
+branch around a long jump.
+.TP
+.B \-O
+Optimize: make more passes over the program, so that each jump to a
+label further on can be as short as its distance allows. The passes go
+on until no label moves.
+.B "cc \-O"
+uses it.
+.TP
+.B \-u
+Take undefined symbols to be imported, from a segment not given,
+instead of reporting them.
+.TP
+.B \-w
+Do not print warnings.
+.TP
+.B \-k
+Keep the object file even when there are errors.
+.TP
+.BR \-l " [\fIlistfile\fP]"
+Write a listing: to
+.IR listfile ,
+or to the standard output.
+.TP
+.BR \-m " [\fIlistfile\fP]"
+A listing with the expansions of macros.
+.TP
+.BI \-n " name"
+Give the module the name
+.I name
+in the object file, instead of the source file's name.
+.TP
+.BI \-b " binfile"
+Write a raw binary image of the program, with no header, to
+.IR binfile .
+.TP
+.BI \-s " symfile"
+Write the symbols, as text, to
+.IR symfile .
+.TP
+.BI \-t " n"
+Put the text in segment
+.IR n +3.
+.SS Syntax
+A line holds a label, an instruction or a directive, and its operands,
+in the order of Intel's assembler:
+.PP
+.nf
+	_square:
+		push	bp
+		mov	bp,sp
+		mov	ax,4[bp]	! the first argument
+		imul	ax
+		pop	bp
+		ret
+.fi
+.PP
+A label ends with a colon. ! and ; begin comments.
+Numbers are decimal; $ or 0x before one makes it hexadecimal, % binary.
+A
+.B #
+marks an immediate operand:
+.B "mov ax,#10"
+puts 10 in ax, while
+.B "mov ax,10"
+loads the word at address 10. Square brackets mark an indirect
+operand:
+.BR "mov ax,[bx]" ;
+an offset may come before them, as in
+.BR "mov ax,_table[bx]" .
+.PP
+Besides the instructions of the 8086, with the 8087's, there are:
+.TP 14
+.B br
+the longest unconditional jump
+.TP
+.B "beq, bne, ..."
+conditional branches that reach any distance, as a short branch around
+a long jump: beq bne blt ble bgt bge blo blos bhi bhis bcc bcs bmi bpl
+bvc bvs
+.TP
+.B "callf, jmpf"
+far calls and jumps
+.TP
+.B "movb, cmpb, ..."
+byte forms of the instructions, where the operands do not show the size
+.SS Directives
+.TP 22
+.B ".text, .data, .bss"
+choose the segment to assemble into
+.TP
+.B "export, .globl"
+make labels global: export only those defined here; .globl also
+imports those that are not
+.TP
+.B "import, extern"
+use labels defined in another file
+.TP
+.B ".byte, db"
+bytes
+.TP
+.B ".word, dw"
+16-bit words
+.TP
+.B ".long, dd"
+32-bit long words
+.TP
+.B ".ascii"
+a string;
+.B .asciz
+a string and a NUL
+.TP
+.B ".blkb, .space"
+reserve bytes;
+.B .blkw
+words
+.TP
+.B ".comm, .lcomm"
+a common area, global or local
+.TP
+.B ".even, .align"
+align the location
+.TP
+.B "equ, set"
+give a label a value;
+.B set
+may give it another later
+.TP
+.B "if, else, endif"
+assemble lines only if a value is not 0
+.TP
+.B "include, get"
+read another source file here
+.TP
+.B "macro, mend"
+define a macro; ?1, ?2 ... in its body stand for its arguments
+.SH FILES
+.TP 14
+a.out
+.PD 0
+.TP
+file.o
+the object file
+.PD
+.SH DIAGNOSTICS
+Errors and warnings are printed with the line of the source and a
+description. The exit status is 0 if there were no errors.
+.SH SEE ALSO
+cc(1), ld86(1), nm(1), adb(1)
+.PP
+Intel Corporation,
+.IR "iAPX 86/88, 186/188 User's Manual" .
+.SH HISTORY
+An
+.B as
+command first appeared in Version 1 AT&T UNIX.
+.SH AUTHORS
+as86 was written by Bruce Evans.
+.SH BUGS
+A source line may be at most 256 characters long.
+.PP
+as86 does not check that an instruction is one the processor named by
+.BR \-0 ,
+.B \-1
+or
+.B \-2
+has: an instruction of the 80186 or a later processor assembles without
+a warning, and the 8086 cannot run it.

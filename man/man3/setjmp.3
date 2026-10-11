@@ -1,0 +1,70 @@
+.TH SETJMP 3
+.SH NAME
+setjmp, longjmp \- non-local goto
+.SH SYNOPSIS
+.nf
+#include <setjmp.h>
+
+int
+setjmp(env)
+jmp_buf env;
+
+longjmp(env, val)
+jmp_buf env;
+int val;
+.fi
+.SH DESCRIPTION
+These functions deal with errors and interrupts met in a low-level
+function of a program.
+.PP
+.B setjmp
+saves its stack environment in
+.I env
+and returns 0.
+.B longjmp
+restores the environment saved by the last call of setjmp with
+.IR env ,
+and the program goes on as if that call of setjmp had just returned,
+this time with the value
+.I val
+(1, if
+.I val
+is 0).
+.PP
+The function that called setjmp must not have returned before longjmp
+is called.
+.SH EXAMPLES
+To go back to the main loop of a program when an interrupt arrives:
+.PP
+.nf
+	#include <setjmp.h>
+	#include <signal.h>
+
+	jmp_buf top;
+
+	onintr()
+	{
+		signal(SIGINT, onintr);
+		longjmp(top, 1);
+	}
+
+	main()
+	{
+		setjmp(top);
+		signal(SIGINT, onintr);
+		for (;;)
+			command();
+	}
+.fi
+.SH SEE ALSO
+signal(2)
+.SH HISTORY
+The
+.B setjmp
+and
+.B longjmp
+functions first appeared in the Programmer's Workbench, PWB/UNIX.
+.SH BUGS
+Register variables of the function that called setjmp have, after
+longjmp, the values they had when setjmp was called; its other
+automatic variables have the values they had when longjmp was called.

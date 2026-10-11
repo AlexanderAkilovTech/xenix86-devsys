@@ -1,0 +1,118 @@
+.TH AR86 1
+.SH NAME
+ar86 \- archive and library maintainer
+.SH SYNOPSIS
+.B ar86
+key [\ posname\ ] archive [\ file\ ...\ ]
+.SH DESCRIPTION
+.B ar86
+keeps a group of files together in a single file, an
+.IR archive .
+Its main use is to make and update libraries of object files, from which
+.BR ld86 (1)
+takes the members a program needs:
+.B "cc prog.c libutil.a"
+links with one. An archive begins with the string
+.BR !<arch> ,
+and each member with a header of 60 characters giving its name, date,
+owner, group, mode and size.
+.PP
+.I key
+is a single letter for the operation, from among
+.BR drqtpmx ,
+and any number of the letters
+.B abciluov
+that change how it is done. The operations are:
+.TP 6
+.B r
+Replace the named files in the archive, adding at the end any that are
+not there yet (or at the place
+.BR a ,
+.B b
+or
+.B i
+says). The archive is created if it does not exist.
+.TP
+.B q
+Quickly append the named files to the end of the archive, without
+looking for them in it.
+.TP
+.B d
+Delete the named files from the archive.
+.TP
+.B t
+Print a table of the contents of the archive: the named files, or all.
+.TP
+.B p
+Print the named files, or all, to the standard output.
+.TP
+.B m
+Move the named files to the end of the archive (or to the place
+.BR a ,
+.B b
+or
+.B i
+says).
+.TP
+.B x
+Extract the named files, or all; the archive is not changed.
+.PP
+The letters that change them are:
+.TP 6
+.B v
+Verbose: give a line for each file the operation acts on. With
+.BR t ,
+give a long listing: the mode, owner, group, size and date of each
+member.
+.TP
+.B c
+Do not report that the archive is being created.
+.TP
+.B u
+With
+.BR r ,
+replace only files newer than the members of the same name.
+.TP
+.B a
+Put new or moved files after the member
+.IR posname .
+.TP
+.BR b ", " i
+Put new or moved files before the member
+.IR posname .
+.TP
+.B o
+With
+.BR x ,
+give the extracted files the dates of the members, not the present.
+.TP
+.B l
+Accepted, and ignored.
+.SH EXAMPLES
+.nf
+	ar86 rv libutil.a strsave.o error.o	make or update a library
+	ar86 t libutil.a			list what is in it
+	ar86 x libutil.a error.o		extract a member
+	ar86 d libutil.a error.o		delete it
+.fi
+.SH FILES
+.TP 20
+\fIarchive\fP_supersede
+the new archive, while it is written, in the archive's directory (t_\fIarchive\fP
+when the archive's name is long)
+.SH SEE ALSO
+ld86(1), cc(1), make(1), nm(1), size(1)
+.SH HISTORY
+An
+.B ar
+command first appeared in Version 1 AT&T UNIX.
+.SH AUTHORS
+ar86 is the ar of the GNU project, adapted for the 8086 tools by Greg
+Haerr.
+.SH BUGS
+Member names are kept to 15 characters.
+.PP
+Do not use the
+.B s
+letter: the symbol index it writes is for another object file format,
+and ld86, which reads every member, needs none.

@@ -1,0 +1,73 @@
+.TH FREAD 3
+.SH NAME
+fread, fwrite \- binary input and output
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+fread(ptr, size, nitems, stream)
+char *ptr;
+unsigned size, nitems;
+FILE *stream;
+
+int
+fwrite(ptr, size, nitems, stream)
+char *ptr;
+unsigned size, nitems;
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B fread
+reads up to
+.I nitems
+items of
+.I size
+bytes each from
+.I stream
+into the memory at
+.IR ptr .
+.B fwrite
+writes
+.I nitems
+items of
+.I size
+bytes each, from the memory at
+.IR ptr ,
+to
+.IR stream .
+The bytes go through the stream's buffer, unchanged.
+.PP
+To read or write a structure, or an array:
+.PP
+.nf
+	struct rec r;
+	long table[100];
+
+	fread((char *)&r, sizeof r, 1, fp);
+	fwrite((char *)table, sizeof table[0], 100, fp);
+.fi
+.SH "RETURN VALUES"
+Each returns the number of whole items read or written.
+.B fread
+returns fewer than
+.I nitems
+at the end of the file or after an error;
+.BR feof (3)
+and
+.BR ferror (3)
+tell which.
+.B fwrite
+returns fewer only after an error.
+.SH SEE ALSO
+read(2), write(2), getc(3), putc(3), ferror(3), stdio(3)
+.SH HISTORY
+The
+.B fread
+and
+.B fwrite
+functions first appeared in Version 7 AT&T UNIX.
+.SH BUGS
+A file written with fwrite holds the bytes of the 8086's numbers, low
+byte first, and a program on another kind of machine may not read them
+back the same.

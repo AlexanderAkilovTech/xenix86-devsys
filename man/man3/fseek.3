@@ -1,0 +1,66 @@
+.TH FSEEK 3
+.SH NAME
+fseek, ftell, rewind \- reposition a stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+fseek(stream, offset, ptrname)
+FILE *stream;
+long offset;
+int ptrname;
+
+long
+ftell(stream)
+FILE *stream;
+
+rewind(stream)
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B fseek
+sets the position at which the next read or write on
+.I stream
+takes place:
+.I offset
+bytes from the beginning of the file if
+.I ptrname
+is 0, from the current position if it is 1, or from the end of the
+file if it is 2. What is waiting in the stream's buffer to be written is
+written first; what was read into the buffer and not yet taken, and a
+character pushed back by
+.BR ungetc (3),
+are forgotten. The end of file flag is cleared.
+.PP
+.B ftell
+returns the current position of
+.IR stream ,
+in bytes from the beginning of the file. It is the offset to give
+fseek, with ptrname 0, to come back to the same place.
+.PP
+.B rewind(stream)
+is
+.BR "fseek(stream, 0L, 0)" ,
+and clears the error flag as well.
+.PP
+On a stream open for both reading and writing, one of these must come
+between a read and a write.
+.PP
+The offset is a long: write 0L, not 0, or the high word of the argument
+is whatever is on the stack.
+.SH "RETURN VALUES"
+.B fseek
+returns 0, or \-1 if the file cannot be positioned (a pipe), or the
+position would be before the beginning of the file.
+.B ftell
+returns the position, or \-1 after an error.
+.SH SEE ALSO
+lseek(2), fopen(3), ungetc(3), stdio(3)
+.SH HISTORY
+The
+.BR fseek ,
+.B ftell
+and
+.B rewind
+functions first appeared in Version 7 AT&T UNIX.

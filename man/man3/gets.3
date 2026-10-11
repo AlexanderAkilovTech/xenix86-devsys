@@ -1,0 +1,54 @@
+.TH GETS 3
+.SH NAME
+gets, fgets \- get a line from a stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+char *
+gets(s)
+char *s;
+
+char *
+fgets(s, n, stream)
+char *s;
+int n;
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B gets
+reads characters from
+.B stdin
+into the array
+.I s
+up to a newline, which it replaces with a NUL.
+.PP
+.B fgets
+reads characters from
+.I stream
+into the array
+.I s
+until it has read a newline, which it keeps, or
+.IR n \-1
+characters, or comes to the end of the file, and ends them with a NUL.
+.SH "RETURN VALUES"
+Both return
+.IR s ,
+or NULL at the end of the file, or after an error, when no characters
+were read.
+.SH SEE ALSO
+getc(3), puts(3), scanf(3), ferror(3), stdio(3)
+.SH HISTORY
+The
+.B fgets
+function first appeared in Version 7 AT&T UNIX, which also has
+.BR gets .
+.SH BUGS
+.B gets
+cannot know the length of
+.IR s :
+a line longer than the array overwrites whatever follows it. Use
+.B fgets
+on stdin when the input could be anything.
+.PP
+The two functions differ in what they do with the newline.

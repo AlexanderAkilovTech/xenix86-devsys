@@ -14,6 +14,19 @@ native `ld` from our OMF objects.
 - Data and bss are kept in whole 16-byte paragraphs. An odd-sized data segment
   panicked the kernel at process exit.
 
+## Symbol table (verified with SCO's adb)
+- An executable's symbols are a third segment table entry, type 3 (symbol table),
+  attributes 1, after text and data; x_syms in the header holds its size.
+- Each symbol is 8 bytes, then its name and a NUL: a type word (1 absolute,
+  2 text, 3 data, 4 bss, 8 a segment's name; 0x20 added for an external), the
+  segment number (63 text, 71 data), and a 32-bit value. The segment names _TEXT
+  and _DATA come first. tools/aout2xout.py and cmd/aout2x.c write it.
+- With it, adb shows C names: `_main:br` sets a breakpoint (`_main:b` does not
+  work: `:` there reads as segment:offset), `:r` runs, `:co` continues, `:s`
+  steps, `:k` kills, `$c` lists the calls, `_count/d` prints a variable,
+  `_main,8?ia` disassembles, `$q` quits. A breakpoint stops at the function's
+  first instruction, before its frame is made, so `$c` then shows its caller.
+
 ## Text segment: reserved block 0x00-0x7F (fixed offsets, the kernel depends on them)
     00: jmp 0x80           entry: execution really starts at 0x80 (x_entry is ignored)
     02: jmp 0x17           system call gate
@@ -112,6 +125,14 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   never asked for D02. Removing both names of the old list first makes it read the
   new one (verified: D01, D02 and N05 were then asked for and installed).
 
+- `custom` option 3 pipes `fixperm -l` through `pr -2ptl24`: blank while fixperm
+  works, then a bell and a wait for Return before each page. Returns typed ahead
+  reach the main menu as empty answers, each repeating the menu (one `rm` per
+  pass, a second or two on an XT); the menu loop does not test its `read`, and
+  SIGINT is trapped back to the menu, while SIGQUIT (`Ctrl-\`) keeps the script's
+  first trap, which exits (read from the script, not tried). Verified: one Return
+  per bell, then q, quits cleanly.
+
 ## The 8087 (measured with tests/fpu87.c on 86Box, 8087 fitted and not)
 - `fninit` leaves the control word 0x03FF and status word 0x0000 on an 8087; with
   no 8087, `fnstcw`/`fnstsw` write nothing (memory set to 0x5A5A beforehand stays),
@@ -124,3 +145,13 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   `sys/a.out.h`) set, both processes were corrupted; the kernel also ran that
   program on a machine without an 8087. So XE_FPH does not make the kernel save the
   8087, and an 8087 can be used safely by only one process at a time.
+
+## The shell
+- XENIX 2.1.3's `/bin/sh` has no shell functions: `name() { ... }` is a syntax
+  error ("'(' unexpected"). Scripts meant for it use only `for`, `if`, `case`,
+  `while` and plain commands.
+
+## Commands present
+- XENIX 2.1.3 has `/usr/bin/more` (with `--More--(15%)`) but no `pg`, and no
+  `nroff`, so the manual is formatted ahead of time (tools/man.py) and `man`
+  pages it through `more`.

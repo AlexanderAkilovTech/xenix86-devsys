@@ -23,15 +23,25 @@ LABEL = './tmp/_lbl/prd=xnxsv/ver=ALL86/rel=2.1.3/vol={}'
 BIN = 3                    # uid and gid of bin
 
 # package, type, mode, path (relative to root). Directories have no volume.
+# The manual is a package of its own, MAN: the man command and /usr/man.
+MANDIRS = ('usr/man/cat1', 'usr/man/cat3')
+
 def entries():
     e = [('SOFT', 'd', 0o755, './usr/include'), ('SOFT', 'd', 0o755, './usr/lib/cc')]
     for d, typ, mode in (('usr/bin', 'x', 0o711), ('usr/lib/cc', None, None), ('usr/include', 'f', 0o644)):
         for f in sorted(os.listdir(f'{root}/{d}')):
             p = f'{root}/{d}/{f}'
-            if not os.path.isfile(p):
+            if not os.path.isfile(p) or f'{d}/{f}' == 'usr/bin/man':
                 continue
             t, m = (typ, mode) if typ else (('x', 0o711) if os.access(p, os.X_OK) else ('f', 0o644))
             e.append(('SOFT', t, m, f'./{d}/{f}'))
+    if os.path.exists(f'{root}/usr/bin/man'):
+        e.append(('MAN', 'd', 0o755, './usr/man'))
+        e += [('MAN', 'd', 0o755, f'./{d}') for d in MANDIRS]
+        e.append(('MAN', 'x', 0o711, './usr/bin/man'))
+        e.append(('MAN', 'f', 0o644, './usr/man/whatis'))
+        for d in MANDIRS:
+            e += [('MAN', 'f', 0o644, f'./{d}/{f}') for f in sorted(os.listdir(f'{root}/{d}'))]
     return e
 
 def blocks(size):
@@ -94,6 +104,8 @@ for pkg, t, m, p in files:
 
 def perms_text(permsize):
     pk = {'PERM': blocks(permsize), 'SOFT': pkgblocks['SOFT']}
+    if 'MAN' in pkgblocks:
+        pk['MAN'] = pkgblocks['MAN']
     L = ['# soft.perms - the Development System for XENIX 2.1.3 (8086): xenix86-devsys,',
          '# an open source recreation (GPL). Not SCO software.',
          '#', '#prd=xnxsv', '#ver=ALL86', '#rel=2.1.3', '#',
@@ -111,6 +123,8 @@ def perms_text(permsize):
           f'#!SOFT\t{pk["SOFT"]}\tC compiler, assembler, linker, make, libraries, headers',
           '#\t(with adb and /usr/include/sys from the Operating System disk N05)']
     for pkg, t, m, p in files:
+        if pkg == 'MAN' and L[-1].startswith('SOFT'):
+            L.append(f'#!MAN\t{pk["MAN"]}\tManual pages for the Development System (man, /usr/man)')
         tabs = '\t' * max(1, 4 - len(p) // 8)
         if t == 'd':
             L.append(f'{pkg}\t{t}{m:o}\tbin/bin\t\t1\t{p}')
@@ -137,4 +151,4 @@ for i, v in enumerate(vols):
     img += bytes(DISK - len(img))
     open(f'{out}/{vol}.img', 'wb').write(img)
     print(f'{out}/{vol}.img: {len(v)} files')
-print(f'{out}/soft.perms: {len(files)} entries; SOFT {pkgblocks["SOFT"]} blocks')
+print(f'{out}/soft.perms: {len(files)} entries; ' + ', '.join(f'{k} {v} blocks' for k, v in pkgblocks.items()))

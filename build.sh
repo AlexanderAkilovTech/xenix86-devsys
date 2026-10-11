@@ -39,6 +39,12 @@ done
 python3 tools/objclass.py build/libm/matherr.o 1	# a program's own matherr wins
 ar86 rc build/libm.a build/libm/*.o
 python3 tools/arfix.py build/libm.a
+# the termcap library, libtermcap.a (cc ... -ltermcap)
+rm -f build/libtermcap.a
+$BCC -0 -I -Iinclude -c -o build/termcap.o lib/termcap/termcap.c
+ar86 rc build/libtermcap.a build/termcap.o
+python3 tools/arfix.py build/libtermcap.a
+rm -f build/termcap.o
 [ $# -gt 0 ] || { echo "libc.a built ($(ls build/lib/*.o | wc -l) modules), libm.a ($(ls build/libm/*.o | wc -l))"; exit 0; }
 OBJS=""
 for f in "$@"; do
@@ -51,5 +57,6 @@ done
 prog=build/$(basename "$1" .c)
 # crt0.o must come first: it supplies the text reserved block and the DS:0 header.
 # ld86 takes only the library modules the program actually uses.
-ld86 -0 -i -o "$prog.aout" build/crt0.o $OBJS build/libm.a build/libc.a
+# -y: the symbol table keeps whole names, which aout2xout turns into the x.out's
+ld86 -0 -i -y -o "$prog.aout" build/crt0.o $OBJS build/libtermcap.a build/libm.a build/libc.a
 python3 tools/aout2xout.py "$prog.aout" "$prog"

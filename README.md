@@ -60,10 +60,21 @@ Development and testing happen in 86Box on an emulated XT.
       `-O` (Dev86's peephole optimiser, made to run on XENIX) and `-Mc`. Float programs
       compiled on XENIX by its own `cc` give results identical to the bit to the
       cross-compiled ones
+- [x] Milestone 9: **developer tools.** Programs keep a symbol table in XENIX's own
+      format, so SCO's debugger `adb` (from the Operating System's disk N5) shows C
+      names: breakpoints by function, stack traces, variables (`cc -s` or `strip`
+      leave it out). New commands: `nm`, `size` and `strip`, which read executables,
+      object files and libraries; `clear`; and `man`, with manual pages for every
+      command and library function of the Development System, sections 1 and 3, in
+      the style of BSD's manual, each with a HISTORY of where the command or function
+      came from (only what was so by 1986), formatted ahead of time since XENIX 2.1.3
+      has no `nroff`. A termcap library,
+      `libtermcap.a` (`cc ... -ltermcap`), reads XENIX's own `/etc/termcap`: checked
+      against every entry there
 - [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
       registers when it switches processes (measured: two programs using it at once
       corrupt each other's results), so it can only ever be an option
-- [ ] `nm`, `size`, `strip`, `lex`/`yacc`, debugger, running on XENIX
+- [ ] `lex` and `yacc`
 - [ ] Remaining standard C headers (stdio.h, stdlib.h, string.h, ctype.h, errno.h,
       signal.h, setjmp.h, time.h, fcntl.h, unistd.h, math.h, float.h and values.h are
       done; `sys/` is SCO's, from N5)
@@ -87,12 +98,19 @@ Development and testing happen in 86Box on an emulated XT.
                     floating point conversions are linked only when used)
     tools/arfix.py  gives library archives fixed dates and owners, for
                     reproducible builds
+    tools/man.py    formats the manual pages as plain text, and makes the
+                    whatis index that man -k reads
     include/        C headers; include/sys holds stand-ins used only for
                     cross-compiling (on XENIX, /usr/include/sys is SCO's)
     lib/            the C library, laid out like Version 7's: csu/ (crt0), crt/
                     (compiler support), sys/ (system calls), gen/, stdio/, fp/
-                    (software floating point); and m/, the math library
-    cmd/            XENIX commands of our own: cc, make and aout2x
+                    (software floating point); m/, the math library; and
+                    termcap/, the termcap library
+    cmd/            XENIX commands of our own: cc, make, aout2x, nm, size,
+                    strip (with objfile.c, which reads the file formats),
+                    clear and man
+    man/            the manual pages, in -man form: man1 commands, man3
+                    library functions
     ports/bcc/      the BCC compiler, assembler and linker, built for XENIX
     build.sh        builds crt0.o, libc.a and a C program: ./build.sh prog.c
     dist.sh         builds everything, laid out as it installs on XENIX
@@ -112,9 +130,11 @@ Install BCC and the 8086 binutils (on Debian/Ubuntu: `apt install bcc bin86`), t
 
 This builds the C library, fetches BCC's source (checked by SHA-256; see
 [ports/bcc](ports/bcc/README.md)), builds the toolchain as XENIX programs, and lays
-out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `ld86` and
-`ar86` in `/usr/bin`; the compiler passes, the optimiser `copt` and its rules, `crt0.o`,
-`libc.a` and `libm.a` in `/usr/lib/cc`; headers in `/usr/include`. Then it makes that tree into an installable set under
+out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `ld86`,
+`ar86`, `nm`, `size`, `strip`, `clear` and `man` in `/usr/bin`; the compiler passes, the
+optimiser `copt` and its rules, `crt0.o`, `libc.a`, `libm.a` and `libtermcap.a` in
+`/usr/lib/cc`; headers in `/usr/include`; the formatted manual in `/usr/man`. Then it
+makes that tree into an installable set under
 `build/xenix/set`: the disk images `D01.img` (and `D02.img` and on, once the set
 outgrows one disk) and the permissions list `soft.perms` they carry. The build is
 reproducible: the same source gives the same disk images, byte for byte, whenever
@@ -133,10 +153,20 @@ which installs the Development System (pick the whole set, ALL). `custom` asks f
 volume D1: insert `D01.img`. It then asks for the Operating System's volume N5,
 your own SCO disk, which holds `adb` and the system headers in `/usr/include/sys`
 that the Development System uses. When it has checked the file permissions, `cc`,
-`make`, `as86`, `ld86` and `ar86` are in `/usr/bin`. `custom` can also list,
+`make`, `as86`, `ld86`, `ar86`, `nm`, `size`, `strip`, `clear` and `man` are in
+`/usr/bin`. The manual is a package of its own, MAN, which can be left out to save
+space; `man intro` lists the commands, and `man 3 intro` the libraries. `custom` can also list,
 reinstall or remove the set, the same as SCO's own. On a 640K machine, `cron` may
 print "cannot fork" while `custom` reads N5; the extraction carries on underneath,
 so let it finish.
+
+`custom`'s option 3, listing the files in a package, shows the list a page at a time:
+the screen stays blank while it is made, then the bell rings before each page.
+Press Return once for each bell, and nothing else: every extra Return waits in the
+input and is taken, at the menu, as an empty answer, so the menu repeats once for
+each of them, slowly on an XT, and a `q` typed meanwhile waits behind them. The
+interrupt key does not stop `custom` (it is caught, and returns to the menu); the
+quit key, `Ctrl-\`, is not caught, and ends it.
 
 **Upgrading.** `custom` remembers which disk each file is on from the list it
 installed the first time, `/etc/soft.perms`, and uses that list again rather than
@@ -151,8 +181,9 @@ installing a newer set over an older one, remove the old list:
 ## Using cc
 
 `cc` takes the options of the Unix cc of its day: `-c`, `-S`, `-E`, `-o name`,
-`-Dname`, `-Uname`, `-Idir`, `-lname` (`-lm` for the math library) and `-F size` (the
-stack size in hexadecimal, as with SCO's cc). Two more come from BCC:
+`-Dname`, `-Uname`, `-Idir`, `-lname` (`-lm` for the math library, `-ltermcap` for the
+termcap library), `-s` (leave out the symbol table) and `-F size` (the stack size in
+hexadecimal, as with SCO's cc). Two more come from BCC:
 
 - `-O` runs the peephole optimiser and has the assembler make each jump as short
   as it can be: programs are smaller and faster.
@@ -160,6 +191,8 @@ stack size in hexadecimal, as with SCO's cc). Two more come from BCC:
   caller, which is smaller again. Compile all of a program's C files with it, or
   none of them: a function compiled without it expects its registers back from
   one compiled with it. The C library is compiled without it, and works with both.
+
+`man cc` has the details, and how to debug a program with `adb`.
 
 ## Testing
 

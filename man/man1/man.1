@@ -1,0 +1,89 @@
+.TH MAN 1
+.SH NAME
+man \- print sections of the manual
+.SH SYNOPSIS
+.B man
+[\ section\ ] name ...
+.br
+.B man \-k
+keyword ...
+.SH DESCRIPTION
+.B man
+prints the page of the manual that describes each
+.IR name :
+a command, or a function of the libraries. The manual is in sections:
+.TP 6
+.B 1
+commands
+.TP
+.B 2
+system calls
+.TP
+.B 3
+the functions of the libraries
+.PP
+A
+.I section
+number before the names restricts man to that section; otherwise the
+page shown is the first one found, looking in section 1, then 2, and so
+on. A name may be that of the page, or of any of the commands or
+functions a page describes:
+.B "man strcpy"
+prints the page string(3), which describes strcpy among others.
+.PP
+On a terminal, the page is shown through
+.BR more (1):
+the space bar shows the next screen, the return key the next line, and
+.B q
+stops. When the output is not a terminal, the page is copied to it as
+it is, as in
+.BR "man cc > cc.txt" .
+.PP
+.B "man \-k"
+prints the one-line summary of every page whose names or description
+contain one of the
+.IR keyword s,
+in upper or lower case:
+.PP
+.nf
+	$ man \-k directory
+.fi
+.PP
+The pages are kept formatted, as plain text, since XENIX has no text
+formatter to make them each time they are asked for.
+.SH ENVIRONMENT
+.TP 10
+.B MANPATH
+a directory to look for the pages in, instead of /usr/man
+.SH FILES
+.TP 24
+/usr/man/cat\fIN\fP/\fIpage\fP.\fIN\fP
+the pages of section N, formatted
+.TP
+/usr/man/whatis
+the index: each page, the names it describes, and its summary
+.TP
+/usr/bin/more
+the pager
+.SH DIAGNOSTICS
+"no manual entry for
+.IR name \(rq
+when there is no page for it; "no entry for
+.I name
+in section
+.IR N \(rq
+when there is none in that section. The exit status is 1 if any page
+was not found, and 0 otherwise.
+.SH SEE ALSO
+more(1), intro(1), intro(3)
+.SH HISTORY
+A
+.B man
+command first appeared in Version 2 AT&T UNIX. The
+.B \-k
+option first appeared in 4.0BSD.
+.SH AUTHORS
+This man was written for the xenix86-devsys Development System.
+.SH BUGS
+There are pages only for the Development System: the commands and
+system calls of the Operating System have none.

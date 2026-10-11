@@ -1,0 +1,47 @@
+.TH PUTS 3
+.SH NAME
+puts, fputs \- put a string on a stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+puts(s)
+char *s;
+
+int
+fputs(s, stream)
+char *s;
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B puts
+writes the string
+.I s
+and a newline on
+.BR stdout .
+.B fputs
+writes the string
+.I s
+on
+.IR stream ,
+without adding a newline. Neither writes the NUL that ends the string.
+.SH "RETURN VALUES"
+The last character written (0 for an empty string), or EOF after an
+error.
+.SH SEE ALSO
+gets(3), putc(3), printf(3), ferror(3), stdio(3)
+.SH HISTORY
+The
+.B puts
+function first appeared in Version 6 AT&T UNIX, and
+.B fputs
+in Version 7.
+.SH BUGS
+.B puts
+adds a newline and
+.B fputs
+does not, in keeping with
+.B gets
+and
+.BR fgets .

@@ -1,0 +1,91 @@
+.TH INTRO 3
+.SH NAME
+intro \- introduction to the library functions
+.SH DESCRIPTION
+This section describes the functions of the libraries that
+.BR cc (1)
+links with programs. They are kept in /usr/lib/cc:
+.TP 16
+.B libc.a
+The C library: standard input and output, strings, conversions,
+memory, time, and the system calls. Every program is linked with it.
+.TP
+.B libm.a
+The math library: exp, log, pow, sqrt, the trigonometric and hyperbolic
+functions, floor, ceil, fmod and hypot. A program that uses it is linked
+with
+.BR \-lm ,
+written after the files that use it:
+.RS
+.PP
+.nf
+	cc \-o prog prog.c \-lm
+.fi
+.RE
+.TP 16
+.B libtermcap.a
+The terminal capability library,
+.BR termcap (3).
+Link with
+.BR \-ltermcap .
+.PP
+The headers in /usr/include declare the functions, and define the
+types and constants they use; the page of each function names its
+header. In C without function prototypes, a function that returns
+anything but an int must be declared before it is called, or its value
+is taken to be an int: include the header, or declare the function, as
+in
+.BR "double atof();" .
+.PP
+The pages, by subject:
+.TP 16
+input, output
+stdio(3), fopen(3), fclose(3), getc(3), gets(3), putc(3), puts(3),
+printf(3), scanf(3), fread(3), fseek(3), ungetc(3), ferror(3),
+setbuf(3)
+.TP
+strings
+string(3), memory(3), ctype(3)
+.TP
+numbers
+atof(3), ecvt(3), abs(3), frexp(3)
+.TP
+mathematics
+exp(3), trig(3), sinh(3), floor(3), hypot(3), matherr(3)
+.TP
+memory
+malloc(3)
+.TP
+time
+ctime(3), sleep(3)
+.TP
+errors
+perror(3), abort(3), setjmp(3)
+.TP
+the system
+getenv(3), system(3), isatty(3), rename(3), setlocale(3)
+.TP
+terminals
+termcap(3)
+.PP
+.B man \-k
+finds a function by a word of its description.
+.SH FILES
+.TP 26
+/usr/lib/cc/libc.a
+the C library
+.TP
+/usr/lib/cc/libm.a
+the math library
+.TP
+/usr/lib/cc/libtermcap.a
+the terminal capability library
+.TP
+/usr/include
+the headers
+.SH SEE ALSO
+cc(1), intro(1), man(1), nm(1)
+.SH HISTORY
+In Version 7 AT&T UNIX, as here, the math functions were in a library
+of their own, linked with \-lm. The page of each function tells where
+it first appeared.

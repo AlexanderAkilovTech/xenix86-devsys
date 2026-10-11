@@ -1,0 +1,22 @@
+# termcap.test - made-up terminals for tests/unit/test_termcap.py, to try the
+# corners of the termcap format
+dumb|un|unknown:co#80:am:
+
+vt|vt100|a made-up ANSI terminal:\
+	:cl=\E[H\E[J:cm=\E[%i%d;%dH:co#80:li#24:\
+	:up=\E[A:bc=^H:am:bs:xn@:\
+	 :so=\E[7m:se=\E[m:pa=50*\E[J:p2=3.5\E[K:p3=20.25*x:p4=7:
+v2|vt-bigger:li#43:am@:tc=vt
+v3|chain:co#132:cl=\E[2J:tc=v2
+ad|adm|motion with plus:cm=\E=%+ %+ :up=^K:bc=^H:
+d1|dotty:cm=\E%.%.:up=^K:
+d2|dotty-nobc:cm=\E%r%.%.:
+d3|dotty-none:cm=%.%.:
+bc|bcd:cm=%B%2%B%3:
+dd|delta:cm=%D%.%D%.:
+nn|ncodes:cm=%n%+ %n%+ :
+gt|greater:cm=\E%>\001\040%+\040%>x\001%d%%:
+ri|reversed:cm=%r%i%3,%d;:
+es|escapes:s1=\E\e\n\r\t\b\f\\\^\:x:s2=^A^Z^?^[:s3=\101\0\007\177\377:s4=a\qb:s5=:
+mt|missing:co#10:tc=nosuch:xx=after:
+lp|loop:tc=lp:

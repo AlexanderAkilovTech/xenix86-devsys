@@ -10,8 +10,6 @@ double	sqrt(), hypot(), cabs();
 double	exp(), log(), log10(), pow();
 double	sin(), cos(), tan(), asin(), acos(), atan(), atan2();
 double	sinh(), cosh(), tanh();
-double	gamma();
-double	j0(), j1(), jn(), y0(), y1(), yn();
 
 extern double _huge;		/* infinity */
 #define	HUGE_VAL	_huge

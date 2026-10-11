@@ -1,0 +1,60 @@
+.TH PUTC 3
+.SH NAME
+putc, putchar, fputc \- put a character on a stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+putc(c, stream)
+int c;
+FILE *stream;
+
+int
+putchar(c)
+int c;
+
+int
+fputc(c, stream)
+int c;
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B putc
+writes the character
+.I c
+on
+.IR stream .
+.B putchar(c)
+is
+.BR "putc(c, stdout)" .
+.B fputc
+does what
+.B putc
+does, as a function instead of a macro.
+.SH "RETURN VALUES"
+The character written, or EOF if it could not be written. Since putc
+writes into the stream's buffer, a failure may show only later, when
+the buffer is written out: check
+.BR ferror (3),
+or the result of
+.BR fflush (3)
+or
+.BR fclose (3),
+at the end.
+.SH SEE ALSO
+puts(3), printf(3), fwrite(3), fclose(3), ferror(3), getc(3), stdio(3)
+.SH HISTORY
+The
+.B putc
+function first appeared in Version 1 AT&T UNIX,
+.B putchar
+in Version 2, and
+.B fputc
+in Version 7.
+.SH BUGS
+Since
+.B putc
+is a macro, it evaluates
+.I stream
+more than once.

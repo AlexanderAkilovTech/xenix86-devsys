@@ -1,0 +1,94 @@
+.TH MALLOC 3
+.SH NAME
+malloc, free, realloc, calloc \- memory allocator
+.SH SYNOPSIS
+.nf
+#include <malloc.h>
+
+char *
+malloc(size)
+unsigned size;
+
+free(ptr)
+char *ptr;
+
+char *
+realloc(ptr, size)
+char *ptr;
+unsigned size;
+
+char *
+calloc(nelem, elsize)
+unsigned nelem, elsize;
+.fi
+.SH DESCRIPTION
+.B malloc
+returns a pointer to a block of at least
+.I size
+bytes, aligned for any use.
+.PP
+.B free
+releases a block that malloc, realloc or calloc returned, for use again
+by a later call. A NULL pointer is ignored. The block must not be used
+after it is freed.
+.PP
+.B realloc
+changes the size of the block at
+.I ptr
+to
+.I size
+bytes, and returns a pointer to the block, which may have moved. Its
+contents are unchanged, up to the smaller of the old and new sizes. A
+block made smaller stays where it is, and the space no longer used is
+freed. realloc with a NULL
+.I ptr
+is the same as malloc.
+.PP
+.B calloc
+returns a block for an array of
+.I nelem
+elements of
+.I elsize
+bytes each, with every byte set to zero.
+.PP
+The allocator keeps a list of the free blocks, in the order of their
+addresses, and gives each request the first block large enough for it,
+joining blocks as they are freed. When none is large enough, it takes
+more memory above the program's data with
+.BR sbrk (2).
+.PP
+A program in the 8086's small model has one segment of 64K bytes for its
+data, its stack and the memory it allocates, so what malloc can give
+comes to less than 64K altogether, and less again as the program's
+data and stack are larger.
+.SH "RETURN VALUES"
+malloc, realloc and calloc return NULL when there is not enough memory.
+When realloc returns NULL, the old block is still there, unchanged.
+.SH SEE ALSO
+brk(2), sbrk(2)
+.PP
+B. W. Kernighan and D. M. Ritchie,
+.IR "The C Programming Language" ,
+Prentice-Hall, 1978, section 8.7.
+.SH HISTORY
+The
+.BR malloc ,
+.B calloc
+and
+.B realloc
+functions first appeared in Version 7 AT&T UNIX; Version 6 had
+.B alloc
+and
+.BR free .
+This allocator follows the one in
+.IR "The C Programming Language" .
+.SH BUGS
+Writing past the end of a block, using a block after freeing it, or
+freeing it twice damages the list of free blocks, and the program
+usually fails later, at a place that has nothing to do with the mistake.
+.PP
+calloc does not check that
+.I nelem
+times
+.I elsize
+fits in an unsigned.

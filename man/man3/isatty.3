@@ -1,0 +1,30 @@
+.TH ISATTY 3
+.SH NAME
+isatty \- find out whether a file descriptor is a terminal
+.SH SYNOPSIS
+.nf
+int
+isatty(fildes)
+int fildes;
+.fi
+.SH DESCRIPTION
+.B isatty
+returns 1 if the open file descriptor
+.I fildes
+is a terminal, and 0 if it is not, as for a file or a pipe. It asks
+the terminal driver for the terminal's modes with
+.BR ioctl (2),
+which succeeds only for a terminal.
+.PP
+A program uses it to behave one way for a person at a terminal and
+another for a file:
+.BR man (1)
+sends its pages through
+.B more
+only when its output is a terminal.
+.SH SEE ALSO
+ioctl(2), termio(7)
+.SH HISTORY
+The
+.B isatty
+function first appeared in Version 7 AT&T UNIX.

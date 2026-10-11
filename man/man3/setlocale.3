@@ -1,0 +1,31 @@
+.TH SETLOCALE 3
+.SH NAME
+setlocale \- select a locale
+.SH SYNOPSIS
+.nf
+#include <locale.h>
+
+char *
+setlocale(category, locale)
+int category;
+char *locale;
+.fi
+.SH DESCRIPTION
+XENIX has a single locale, "C": the ASCII character set, and the
+conventions of the C language for numbers and the like.
+.B setlocale
+returns "C" when
+.I locale
+is "C", the empty string, or NULL, and NULL, for a locale it does not
+have, otherwise. The
+.I category
+is not looked at.
+.PP
+It is here for programs that call it.
+.SH "RETURN VALUES"
+"C", or NULL.
+.SH SEE ALSO
+ctype(3)
+.SH HISTORY
+.B setlocale
+is not in the C libraries of Version 7 AT&T UNIX, System V or 4.3BSD.

@@ -1,0 +1,80 @@
+.TH MATHERR 3
+.SH NAME
+matherr \- error-handling function for the math library
+.SH SYNOPSIS
+.nf
+#include <math.h>
+
+int
+matherr(x)
+struct exception *x;
+.fi
+.PP
+cc ... \-lm
+.SH DESCRIPTION
+When a function of the math library meets an error, it calls
+.B matherr
+with a pointer to a structure that describes it:
+.PP
+.nf
+	struct exception {
+		int type;	/* the kind of error */
+		char *name;	/* the function, as "log" */
+		double arg1;	/* its arguments */
+		double arg2;
+		double retval;	/* the value it will return */
+	};
+.fi
+.PP
+.I type
+is one of these, defined in <math.h>:
+.TP 12
+.B DOMAIN
+an argument outside the function's domain, as sqrt(\-1.0)
+.TP
+.B SING
+a singularity, as log(0.0)
+.TP
+.B OVERFLOW
+a result too large to be held
+.TP
+.B UNDERFLOW
+a result too small to be told from zero
+.TP
+.B TLOSS
+a total loss of significance, as sin(1e20)
+.PP
+The library's own matherr returns 0. The function then sets errno, to
+EDOM for DOMAIN and SING errors and to ERANGE for the others; for
+DOMAIN, SING and TLOSS errors it writes a message, such as "log: SING
+error", on the standard error; and it returns
+.IR retval .
+.PP
+A program may define a matherr of its own, which the link editor then
+uses instead. If it returns nonzero, the function sets no errno and
+writes no message. In either case the function returns
+.IR retval ,
+which matherr may have changed.
+.SH EXAMPLES
+To make log(0.0) return 0 quietly, and leave the other errors alone:
+.PP
+.nf
+	#include <math.h>
+
+	int
+	matherr(x)
+	struct exception *x;
+	{
+		if (x\->type == SING && strcmp(x\->name, "log") == 0) {
+			x\->retval = 0.0;
+			return 1;
+		}
+		return 0;
+	}
+.fi
+.SH SEE ALSO
+exp(3), trig(3), sinh(3), hypot(3), intro(3)
+.SH HISTORY
+The
+.B matherr
+function is that of System V.

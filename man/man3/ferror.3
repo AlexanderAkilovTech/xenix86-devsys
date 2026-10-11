@@ -1,0 +1,66 @@
+.TH FERROR 3
+.SH NAME
+ferror, feof, clearerr, fileno \- stream status inquiries
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+int
+feof(stream)
+FILE *stream;
+
+int
+ferror(stream)
+FILE *stream;
+
+clearerr(stream)
+FILE *stream;
+
+int
+fileno(stream)
+FILE *stream;
+.fi
+.SH DESCRIPTION
+.B feof
+returns nonzero once a read on
+.I stream
+has come to the end of the file, and 0 until then.
+.PP
+.B ferror
+returns nonzero once a read or write on
+.I stream
+has failed, and 0 until then.
+.PP
+The two flags stay set until
+.B clearerr
+clears them both;
+.BR rewind (3)
+clears both too, and
+.BR fseek (3)
+and
+.BR ungetc (3)
+clear the end of file flag.
+.PP
+.B fileno
+returns the file descriptor of
+.IR stream ,
+for use with the system calls.
+.PP
+These are macros.
+.SH EXAMPLES
+.nf
+	while ((c = getc(fp)) != EOF)
+		...
+	if (ferror(fp))
+		fprintf(stderr, "read error\en");
+.fi
+.SH SEE ALSO
+fopen(3), getc(3), fread(3), stdio(3)
+.SH HISTORY
+The
+.BR clearerr ,
+.BR feof ,
+.B ferror
+and
+.B fileno
+functions first appeared in Version 7 AT&T UNIX.

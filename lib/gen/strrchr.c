@@ -7,8 +7,9 @@ register int c;
 {
 	char *r = 0;
 
+	c &= 0377;		/* as a char: strchr(s, 0351) finds a byte 0351 */
 	do {
-		if (*s == c)
+		if ((*s & 0377) == c)
 			r = s;
 	} while (*s++);
 	return r;

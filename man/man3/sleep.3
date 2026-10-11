@@ -1,0 +1,33 @@
+.TH SLEEP 3
+.SH NAME
+sleep \- suspend execution for an interval
+.SH SYNOPSIS
+.nf
+unsigned
+sleep(seconds)
+unsigned seconds;
+.fi
+.SH DESCRIPTION
+.B sleep
+suspends the program for
+.I seconds
+seconds, or until a signal that it catches arrives. It sets the alarm
+clock with
+.BR alarm (2)
+and waits for its signal with
+.BR pause (2).
+.SH "RETURN VALUES"
+0.
+.SH SEE ALSO
+alarm(2), pause(2), signal(2)
+.SH HISTORY
+A
+.B sleep
+system call first appeared in Version 2 AT&T UNIX. In Version 7 it was
+replaced by this function of the C library, built on alarm and pause.
+.SH BUGS
+sleep uses the alarm clock: an alarm the program had set is lost, and
+its handler for SIGALRM is put back when sleep returns.
+.PP
+The time is counted in whole seconds by the system clock, and may be up
+to a second shorter than asked for.

@@ -1,0 +1,195 @@
+.TH STRING 3
+.SH NAME
+strcat, strncat, strcmp, strncmp, strcpy, strncpy, strlen, strchr, strrchr, strpbrk, strspn, strcspn, strtok, strdup, index, rindex \- string operations
+.SH SYNOPSIS
+.nf
+#include <string.h>
+
+char *strcat(s1, s2)		char *strncat(s1, s2, n)
+char *s1, *s2;			char *s1, *s2; int n;
+
+int strcmp(s1, s2)		int strncmp(s1, s2, n)
+char *s1, *s2;			char *s1, *s2; int n;
+
+char *strcpy(s1, s2)		char *strncpy(s1, s2, n)
+char *s1, *s2;			char *s1, *s2; int n;
+
+int strlen(s)
+char *s;
+
+char *strchr(s, c)		char *strrchr(s, c)
+char *s; int c;			char *s; int c;
+
+char *index(s, c)		char *rindex(s, c)
+char *s; int c;			char *s; int c;
+
+char *strpbrk(s1, s2)
+char *s1, *s2;
+
+int strspn(s1, s2)		int strcspn(s1, s2)
+char *s1, *s2;			char *s1, *s2;
+
+char *strtok(s1, s2)
+char *s1, *s2;
+
+char *strdup(s)
+char *s;
+.fi
+.SH DESCRIPTION
+A string is an array of characters ended by a NUL, a zero byte. These
+functions work on strings, and do not check for overflow of the arrays
+they write into.
+.TP 10
+.B strcat
+appends a copy of
+.I s2
+to the end of
+.IR s1 .
+.B strncat
+appends at most
+.I n
+characters of
+.IR s2 ,
+and then a NUL. Both return
+.IR s1 .
+.TP
+.B strcmp
+compares
+.I s1
+and
+.I s2
+and returns a number less than, equal to, or greater than 0, as
+.I s1
+comes before
+.IR s2 ,
+is the same, or comes after it, in the order of the ASCII character
+set: the characters are compared as unsigned numbers.
+.B strncmp
+compares at most
+.I n
+characters.
+.TP
+.B strcpy
+copies
+.I s2
+into
+.IR s1 ,
+up to and including its NUL.
+.B strncpy
+copies exactly
+.I n
+characters: if
+.I s2
+is shorter, the rest of the
+.I n
+are NULs; if it is
+.I n
+characters or longer, only the first
+.I n
+are copied, with no NUL after them. Both return
+.IR s1 .
+.TP
+.B strlen
+returns the number of characters in
+.IR s ,
+not counting the NUL.
+.TP
+.B strchr
+returns a pointer to the first occurrence of the character
+.I c
+in
+.IR s ,
+and
+.B strrchr
+to the last, or NULL if
+.I c
+does not occur in it. The NUL that ends the string can be found too:
+strchr(s, 0) points to it.
+.B index
+and
+.B rindex
+are the same as strchr and strrchr.
+.TP
+.B strpbrk
+returns a pointer to the first character in
+.I s1
+that is one of the characters in
+.IR s2 ,
+or NULL if there is none.
+.TP
+.B strspn
+returns the length of the longest initial part of
+.I s1
+made only of characters in
+.IR s2 ,
+and
+.B strcspn
+of the longest made only of characters not in it.
+.TP
+.B strtok
+splits the string
+.I s1
+into tokens: strings of characters not in
+.IR s2 ,
+separated by one or more characters that are. The first call, with
+.IR s1 ,
+returns a pointer to the first token; each later call, with NULL as its
+first argument, returns the next token, and NULL when there are none
+left.
+.I s2
+may differ from one call to the next. strtok writes a NUL into
+.I s1
+at the end of each token it returns, and remembers where it stopped, so
+only one string can be split at a time.
+.TP
+.B strdup
+returns a pointer to a copy of
+.IR s ,
+in memory from
+.BR malloc (3),
+or NULL if no memory is left.
+.SH EXAMPLES
+.nf
+	char line[] = "cc \-O \-o prog prog.c";
+	char *t;
+
+	t = strtok(line, " ");
+	while (t != NULL) {
+		printf("%s\en", t);
+		t = strtok((char *)0, " ");
+	}
+.fi
+.PP
+prints each word of the line on a line of its own.
+.SH SEE ALSO
+memory(3), malloc(3), ctype(3)
+.SH HISTORY
+The
+.BR strcat ,
+.B strcmp
+and
+.B strcpy
+functions first appeared outside of Bell Laboratories in PWB/UNIX 1.0.
+.B strlen
+first appeared in Version 6 AT&T UNIX;
+.BR strncat ,
+.BR strncmp ,
+.BR strncpy ,
+.B index
+and
+.B rindex
+in Version 7;
+.BR strchr ,
+.BR strrchr ,
+.BR strpbrk ,
+.BR strspn ,
+.B strcspn
+and
+.B strtok
+in System III.
+.PP
+.B strdup
+is not in the C libraries of Version 7 AT&T UNIX or 4.3BSD.
+.SH BUGS
+strcmp and strncmp compare by the numeric values of the characters,
+which is alphabetical order only for letters of the same case.

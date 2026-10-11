@@ -1,0 +1,77 @@
+.TH INTRO 1
+.SH NAME
+intro \- introduction to the commands of the Development System
+.SH DESCRIPTION
+This section of the manual describes the commands of the xenix86-devsys
+Development System, which adds to XENIX System V 2.1.3 for the 8086 and
+8088 what is needed to write programs in C and in assembly language:
+.TP 10
+.B cc
+compile C programs
+.TP
+.B as86
+assemble 8086 assembly language
+.TP
+.B ld86
+link object files into a program (cc runs it)
+.TP
+.B ar86
+make and change libraries of object files
+.TP
+.B make
+keep the files of a program up to date
+.TP
+.B nm
+print the symbols of programs, object files and libraries
+.TP
+.B size
+print the sizes of programs and object files
+.TP
+.B strip
+remove the symbol table from programs
+.TP
+.B clear
+clear the terminal screen
+.TP
+.B man
+print pages of this manual
+.PP
+The debugger
+.B adb
+and the system headers in /usr/include/sys come with the Operating
+System, on its disk N5, which the Development System's installation asks
+for.
+.PP
+Section 3 of the manual describes the functions of the libraries; see
+.BR intro (3).
+.SH "A FIRST PROGRAM"
+.nf
+	$ cat hello.c
+	main()
+	{
+		printf("hello, world\en");
+	}
+	$ cc \-o hello hello.c
+	$ ./hello
+	hello, world
+.fi
+.SH DIAGNOSTICS
+A command exits with status 0 when it succeeds, and with another
+status when it fails; the shell's
+.B $?
+holds it, and
+.B make
+stops on it.
+.SH SEE ALSO
+man(1), intro(3)
+.PP
+B. W. Kernighan and D. M. Ritchie,
+.IR "The C Programming Language" ,
+Prentice-Hall, 1978.
+.PP
+B. W. Kernighan and R. Pike,
+.IR "The UNIX Programming Environment" ,
+Prentice-Hall, 1984.
+.SH HISTORY
+The commands follow those of Version 7 AT&T UNIX, System V and 4.2BSD;
+the page for each says where it came from.

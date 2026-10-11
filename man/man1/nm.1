@@ -1,0 +1,91 @@
+.TH NM 1
+.SH NAME
+nm \- print the symbol table
+.SH SYNOPSIS
+.B nm
+[\ \-gnopru\ ] [\ file\ ...\ ]
+.SH DESCRIPTION
+.B nm
+prints the symbol table, the names of the functions, variables and
+labels and what they stand for, of each
+.IR file :
+an executable program, an object file, or a library of object files, in
+which case the symbols of each member are printed under its name. With
+no
+.IR file ,
+nm prints the symbols of a.out.
+.PP
+Each symbol is printed on a line with its value in hexadecimal, a
+letter for its type, and its name:
+.TP 6
+.B T
+text: a function or a label in the code; the value is its address
+.TP
+.B D
+data: an initialized variable
+.TP
+.B B
+bss: an uninitialized variable, set to zeros when the program starts
+.TP
+.B A
+absolute: a value that is not an address
+.TP
+.B C
+common: in an object file, an uninitialized external variable that
+several files may declare; the value is its size in bytes
+.TP
+.B U
+undefined: used in this file, and defined in another one; no value is
+printed
+.PP
+A lower case letter means the symbol is local to its file (for
+instance, a C function or variable declared static). The names of C
+functions and external variables begin with an underscore:
+.B main
+is
+.BR _main .
+The symbols are sorted by name.
+.PP
+The options are:
+.TP 6
+.B \-g
+Print only external (global) symbols.
+.TP
+.B \-u
+Print only undefined symbols.
+.TP
+.B \-n
+Sort by value instead of by name.
+.TP
+.B \-r
+Reverse the order of the sort.
+.TP
+.B \-p
+Do not sort: print the symbols in the order of the symbol table.
+.TP
+.B \-o
+Put the file's name, and the library member's, at the front of every
+line, instead of in a heading before each file's symbols: the form to
+search with grep.
+.SH EXAMPLES
+.nf
+	nm \-g prog		the program's external symbols
+	nm \-u prog.o		what an object file needs from others
+	nm \-o /usr/lib/cc/libc.a | grep printf
+				which members of the C library
+				define or use printf
+.fi
+.SH DIAGNOSTICS
+"no symbols" for a program linked with
+.B "cc \-s"
+or stripped. "not an executable, object file or archive" for any other kind of file. The
+exit status is 1 if a file could not be read or had no symbols, and 0
+otherwise.
+.SH SEE ALSO
+cc(1), ld86(1), size(1), strip(1), ar86(1), adb(1)
+.SH HISTORY
+An
+.B nm
+command appeared in Version 1 AT&T UNIX.
+.SH AUTHORS
+This nm was written for the xenix86-devsys Development System.

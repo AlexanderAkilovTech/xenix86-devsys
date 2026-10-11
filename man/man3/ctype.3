@@ -1,0 +1,91 @@
+.TH CTYPE 3
+.SH NAME
+isalpha, isupper, islower, isdigit, isxdigit, isalnum, isspace, ispunct, isprint, isgraph, iscntrl, isascii, toupper, tolower, toascii \- character classification and conversion
+.SH SYNOPSIS
+.nf
+#include <ctype.h>
+
+isalpha(c)
+\&...
+
+toupper(c)
+tolower(c)
+toascii(c)
+int c;
+.fi
+.SH DESCRIPTION
+These macros classify characters by looking them up in a table. Each
+is nonzero if
+.I c
+is in its class, and 0 if it is not:
+.TP 10
+.B isalpha
+a letter
+.TP
+.B isupper
+an upper case letter
+.TP
+.B islower
+a lower case letter
+.TP
+.B isdigit
+a digit, 0 to 9
+.TP
+.B isxdigit
+a hexadecimal digit: 0 to 9, A to F, or a to f
+.TP
+.B isalnum
+a letter or a digit
+.TP
+.B isspace
+a space, tab, newline, carriage return, vertical tab or form feed
+.TP
+.B ispunct
+a punctuation character: a printing character that is not a letter, a
+digit or a space
+.TP
+.B isprint
+a printing character, from 040 (space) to 0176 (~)
+.TP
+.B isgraph
+a printing character other than the space
+.TP
+.B iscntrl
+a control character: below 040, or 0177 (delete)
+.TP
+.B isascii
+an ASCII character, from 0 to 0177
+.PP
+They are defined for every value of
+.I c
+from \-1 (EOF) to 255, and for no others; the characters from 0200 to
+0377 are in none of the classes.
+.PP
+.B toupper
+converts a lower case letter to upper case, and
+.B tolower
+an upper case letter to lower case; any other character is returned
+unchanged. These two are functions.
+.B _toupper
+and
+.B _tolower
+are macros that do the same faster, but only for a
+.I c
+known to be a letter of the other case.
+.B toascii
+clears all but the lowest 7 bits of
+.IR c .
+.SH SEE ALSO
+string(3), ascii(5)
+.SH HISTORY
+The classifying macros, and
+.B toupper
+and
+.BR tolower ,
+first appeared in Version 7 AT&T UNIX.
+.BR isgraph ,
+.B _toupper
+and
+.B _tolower
+first appeared in System III, where toupper and tolower took their
+present form, leaving characters that are not letters unchanged.

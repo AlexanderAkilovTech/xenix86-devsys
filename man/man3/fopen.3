@@ -1,0 +1,113 @@
+.TH FOPEN 3
+.SH NAME
+fopen, freopen, fdopen \- open a stream
+.SH SYNOPSIS
+.nf
+#include <stdio.h>
+
+FILE *
+fopen(filename, type)
+char *filename, *type;
+
+FILE *
+freopen(filename, type, stream)
+char *filename, *type;
+FILE *stream;
+
+FILE *
+fdopen(fildes, type)
+int fildes;
+char *type;
+.fi
+.SH DESCRIPTION
+.B fopen
+opens the file named by
+.I filename
+and returns a pointer to a stream for it.
+.I type
+is a string, one of:
+.TP 8
+.B r
+open for reading
+.TP
+.B w
+truncate to nothing, or create, for writing
+.TP
+.B a
+append: open for writing at the end of the file, or create it
+.TP
+.B r+
+open for reading and writing, at the start
+.TP
+.B w+
+truncate or create, for reading and writing
+.TP
+.B a+
+open for reading and writing at the end of the file, or create it
+.PP
+A
+.B b
+after the first letter, as in rb, w+b or r+b, is accepted and changes
+nothing: XENIX makes no difference between text and binary files. A
+file that is created has the mode 0666, less the bits set in the
+process's
+.BR umask (2).
+.PP
+When a stream is open for both reading and writing, a read may not
+follow a write, nor a write a read, without a call to
+.B fseek
+or
+.B rewind
+between them.
+.PP
+.B freopen
+closes the file of
+.IR stream ,
+then opens
+.I filename
+on the same stream. Its usual use is to give
+.BR stdin ,
+.B stdout
+or
+.B stderr
+another file:
+.PP
+.nf
+	if (freopen("log", "a", stdout) == NULL)
+		perror("log");
+.fi
+.PP
+.B fdopen
+makes a stream for a file descriptor that is already open, as from
+.BR open (2),
+.BR pipe (2)
+or
+.BR dup (2).
+The
+.I type
+must agree with the way the descriptor was opened.
+.SH "RETURN VALUES"
+The stream, or NULL if the file could not be opened, the
+.I type
+is not one of these, or 20 streams are already open.
+.SH ERRORS
+When the file cannot be opened, errno is set by
+.BR open (2)
+or
+.BR creat (2):
+for instance ENOENT if it does not exist, or EACCES if permission is
+denied.
+.SH SEE ALSO
+open(2), creat(2), fclose(3), fseek(3), setbuf(3), stdio(3)
+.SH HISTORY
+The
+.B fopen
+function first appeared in Version 1 AT&T UNIX. The
+.B fdopen
+and
+.B freopen
+functions first appeared in Version 7 AT&T UNIX.
+.SH BUGS
+With type a, the file is positioned at its end once, when it is opened;
+another process writing to the file at the same time may have its
+output overwritten.

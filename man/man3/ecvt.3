@@ -1,0 +1,69 @@
+.TH ECVT 3
+.SH NAME
+ecvt, fcvt, gcvt \- output conversion
+.SH SYNOPSIS
+.nf
+char *
+ecvt(value, ndigit, decpt, sign)
+double value;
+int ndigit, *decpt, *sign;
+
+char *
+fcvt(value, ndigit, decpt, sign)
+double value;
+int ndigit, *decpt, *sign;
+
+char *
+gcvt(value, ndigit, buf)
+double value;
+int ndigit;
+char *buf;
+.fi
+.SH DESCRIPTION
+.B ecvt
+converts
+.I value
+to a string of
+.I ndigit
+digits, the last one rounded, and returns a pointer to it. The string
+has no sign and no decimal point. The position of the decimal point,
+counted from the start of the string, is stored in *\fIdecpt\fP; a
+negative number means that it falls that many places to the left of the
+digits. *\fIsign\fP is set to a nonzero number if the value is negative,
+and to 0 if it is not.
+.PP
+.B fcvt
+is the same, except that
+.I ndigit
+is the number of digits after the decimal point.
+.PP
+.B gcvt
+converts
+.I value
+to the text printf's %g would print, with
+.I ndigit
+significant digits, places it in the array
+.IR buf ,
+with a \- before it if the value is negative, and returns
+.IR buf .
+.PP
+The digits are those of the double's exact value, rounded correctly. An
+infinity converts to "inf" and a not-a-number to "nan".
+.SH EXAMPLES
+.nf
+	p = ecvt(3.14159, 3, &d, &s);	/* "314", d 1, s 0 */
+	p = fcvt(0.00125, 4, &d, &s);	/* "13", d \-2, s 0 */
+	p = ecvt(\-2.5e\-3, 2, &d, &s);	/* "25", d \-2, s 1 */
+.fi
+.SH SEE ALSO
+printf(3)
+.SH HISTORY
+The
+.BR ecvt ,
+.B fcvt
+and
+.B gcvt
+functions are in Version 7 AT&T UNIX.
+.SH BUGS
+ecvt and fcvt return a pointer to the same static array, which the
+next call of either overwrites.

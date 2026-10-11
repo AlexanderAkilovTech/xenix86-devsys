@@ -1,0 +1,156 @@
+.TH MEMORY 3
+.SH NAME
+memccpy, memchr, memcmp, memcpy, memmove, memset, bcopy, bcmp, bzero \- memory operations
+.SH SYNOPSIS
+.nf
+#include <memory.h>
+
+char *
+memccpy(s1, s2, c, n)
+char *s1, *s2;
+int c;
+unsigned n;
+
+char *
+memchr(s, c, n)
+char *s;
+int c;
+unsigned n;
+
+int
+memcmp(s1, s2, n)
+char *s1, *s2;
+unsigned n;
+
+char *
+memcpy(s1, s2, n)
+char *s1, *s2;
+unsigned n;
+
+char *
+memmove(s1, s2, n)
+char *s1, *s2;
+unsigned n;
+
+char *
+memset(s, c, n)
+char *s;
+int c;
+unsigned n;
+
+bcopy(s2, s1, n)
+char *s2, *s1;
+unsigned n;
+
+int
+bcmp(s1, s2, n)
+char *s1, *s2;
+unsigned n;
+
+bzero(s, n)
+char *s;
+unsigned n;
+.fi
+.SH DESCRIPTION
+These functions work on areas of memory of
+.I n
+bytes, which may hold anything, NULs included. <string.h> declares
+them as well.
+.TP 10
+.B memcpy
+copies
+.I n
+bytes from the area
+.I s2
+to the area
+.IR s1 ,
+and returns
+.IR s1 .
+The areas must not overlap.
+.TP
+.B memmove
+copies in the same way, and the areas may overlap: the copy is made as
+if through a third area.
+.TP
+.B memccpy
+copies bytes from
+.I s2
+to
+.IR s1 ,
+stopping after the first byte equal to
+.I c
+has been copied, or after
+.I n
+bytes. It returns a pointer to the byte after the copy of
+.I c
+in
+.IR s1 ,
+or NULL if
+.I c
+was not among the
+.I n
+bytes.
+.TP
+.B memchr
+returns a pointer to the first byte equal to
+.I c
+in the
+.I n
+bytes at
+.IR s ,
+or NULL if there is none.
+.TP
+.B memcmp
+compares the areas byte by byte, as unsigned numbers, and returns a
+number less than, equal to, or greater than 0, as
+.I s1
+is less than, equal to, or greater than
+.IR s2 .
+.TP
+.B memset
+sets each of the
+.I n
+bytes at
+.I s
+to
+.IR c ,
+and returns
+.IR s .
+.TP
+.B bcopy
+copies
+.I n
+bytes from
+.I s2
+to
+.IR s1 ;
+note that the source comes first. The areas may overlap.
+.TP
+.B bcmp
+returns 0 if the areas are the same, and 1 if not.
+.TP
+.B bzero
+sets the
+.I n
+bytes at
+.I s
+to zero.
+.SH SEE ALSO
+string(3)
+.SH HISTORY
+The
+.BR memccpy ,
+.BR memchr ,
+.BR memcmp ,
+.B memcpy
+and
+.B memset
+functions first appeared in System V. The
+.BR bcopy ,
+.B bcmp
+and
+.B bzero
+functions first appeared in 4.2BSD.
+.PP
+.B memmove
+is not in the C libraries of Version 7 AT&T UNIX, System V or 4.3BSD.

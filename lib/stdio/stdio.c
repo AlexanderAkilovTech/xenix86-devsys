@@ -370,7 +370,7 @@ char *s;
 register int n;
 register FILE *p;
 {
-	register int c;
+	register int c = 0;
 	register char *q = s;
 
 	while (--n > 0 && (c = getc(p)) != EOF)

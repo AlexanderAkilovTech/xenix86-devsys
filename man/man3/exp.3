@@ -1,0 +1,108 @@
+.TH EXP 3
+.SH NAME
+exp, log, log10, pow, sqrt \- exponential, logarithm, power, square root
+.SH SYNOPSIS
+.nf
+#include <math.h>
+
+double
+exp(x)
+double x;
+
+double
+log(x)
+double x;
+
+double
+log10(x)
+double x;
+
+double
+pow(x, y)
+double x, y;
+
+double
+sqrt(x)
+double x;
+.fi
+.PP
+cc ... \-lm
+.SH DESCRIPTION
+.B exp
+returns the exponential function of
+.IR x ,
+e to the power
+.IR x .
+.PP
+.B log
+returns the natural logarithm of
+.IR x ,
+and
+.B log10
+the logarithm to base 10.
+.PP
+.B pow
+returns
+.I x
+to the power
+.IR y .
+.PP
+.B sqrt
+returns the square root of
+.IR x .
+.PP
+.B sqrt
+is correctly rounded, as is
+.B log10
+of a power of ten. pow of a whole number power is exact when the result
+can be held exactly, as pow(2.0, 10.0) or pow(10.0, 22.0). The other
+results are within one unit in the last place of the exact value.
+.SH "RETURN VALUES"
+.TP 12
+.B exp
+returns HUGE (an infinity) when the result is too large, and 0 when it
+is too small.
+.TP
+.BR log ", " log10
+of zero return \-HUGE, with a SING error; of a negative
+.IR x ,
+\-HUGE, with a DOMAIN error.
+.TP
+.B pow
+of
+.I x
+zero and
+.I y
+zero or negative, or of
+.I x
+negative and
+.I y
+not a whole number, returns 0, with a DOMAIN error; when the result is
+too large, HUGE or \-HUGE, and when it is too small, 0.
+.TP
+.B sqrt
+of a negative
+.I x
+returns 0, with a DOMAIN error.
+.PP
+For a DOMAIN or SING error, a message such as "sqrt: DOMAIN error" is
+written on the standard error. A program can handle the errors itself
+with
+.BR matherr (3).
+.SH ERRORS
+errno is set to EDOM after a DOMAIN or SING error, and to ERANGE when
+the result is too large or too small.
+.SH SEE ALSO
+hypot(3), sinh(3), matherr(3), intro(3)
+.SH HISTORY
+The
+.B exp
+and
+.B log
+functions first appeared in Version 1 AT&T UNIX,
+.B sqrt
+in Version 2,
+.B pow
+in Version 3, and
+.B log10
+in Version 7.
