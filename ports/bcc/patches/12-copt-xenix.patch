@@ -1,10 +1,10 @@
-copt, BCC's peephole optimiser, for XENIX: K&R C, so that BCC compiles it,
+copt, BCC's peephole optimizer, for XENIX: K&R C, so that BCC compiles it,
 and an input taken a piece at a time, so that it runs in a 16-bit
 program's 64K of data.
 
 Dev86's copt read the whole input, applied the first rules file to it, then
 the next, and so on, and kept every line it read or made in a hash table
-for good. Now it reads the rules files first, then optimises the input one
+for good. Now it reads the rules files first, then optimizes the input one
 piece at a time with each set of rules in turn, writes the piece out and
 frees it. A piece ends before a global label (_name:), which no rule
 matches, so no rule could have matched lines on both sides of it; a piece
@@ -18,7 +18,7 @@ in the hash table (a rule whose variables would not fit there does not
 match); a line and its text are one allocation; optline() reports a match
 rather than having optimize() look at a line it has freed, and a match at
 the very start of a piece continues from there, where Dev86's copt
-stopped optimising the rest of the file; a rule whose first line cannot
+stopped optimizing the rest of the file; a rule whose first line cannot
 match the line at hand is skipped before its variables are cleared, which
 makes copt nearly twice as fast on an 8086.
 

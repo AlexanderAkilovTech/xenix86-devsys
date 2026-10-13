@@ -3,13 +3,50 @@
  * - 0 + space #, field width and precision (* for either). The floating point
  * conversions print the double's exact value correctly rounded (fltcvt.c),
  * and inf or nan for those. As in System V, each returns the number of
- * characters written (EOF after an output error). */
+ * characters written (EOF after an output error).
+ *
+ * Speed matters on a 4.77 MHz 8088: the text between conversions, the
+ * converted strings and the padding go into the stream's buffer whole, with
+ * memcpy and memset, when the buffer has room for them, rather than a putc
+ * for each character; and numbers that fit in 16 bits are converted with the
+ * 8086's own division rather than the 32-bit routines. */
 #include <stdio.h>
 
-char	*_fltfmt();
+char	*_fltfmt(), *memchr();
 
 static int nout;		/* characters written by the current _doprnt */
-#define	PUT(c, f)	(putc(c, f), nout++)
+
+/* n characters of s, or n copies of *s when rep, into f */
+static
+put(s, n, rep, f)
+register char *s;
+register int n;
+int rep;
+register FILE *f;
+{
+	if (n <= 0)
+		return;
+	nout += n;
+	/* room in the buffer, and no newline for a line-buffered stream
+	 * (whose _cnt is the room left only after _flsbuf has set it) */
+	if (f->_cnt >= n && (!(f->_flag & _IOLBF) || !rep && memchr(s, '\n', n) == NULL)) {
+		if (rep)
+			memset(f->_ptr, *s, n);
+		else
+			memcpy(f->_ptr, s, n);
+		f->_ptr += n;
+		f->_cnt -= n;
+		return;
+	}
+	while (n-- > 0) {
+		putc(*s, f);
+		if (!rep)
+			s++;
+	}
+}
+
+/* most pieces are empty (no padding, no prefix): no call for those */
+#define	PUT(s, n, rep, f)	if ((n) > 0) put(s, n, rep, f)
 
 static char *
 cvt(v, base, upper, buf)
@@ -19,12 +56,18 @@ char *buf;
 {
 	register char *p = buf + 12;
 	register char *digits = upper ? "0123456789ABCDEF" : "0123456789abcdef";
+	register unsigned u;
 
 	*--p = 0;
-	do {
+	while (v > 65535L) {
 		*--p = digits[(int)(v % base)];
 		v /= base;
-	} while (v);
+	}
+	u = v;
+	do {
+		*--p = digits[u % base];
+		u /= base;
+	} while (u);
 	return p;
 }
 
@@ -36,12 +79,15 @@ register FILE *f;
 	int left, zero, plus, space, alt, width, prec, islong, neg, len, n;
 	unsigned long uv;
 	long sv;
-	char buf[13], *s, *pfx;
+	char buf[13], *s, *pfx, *e;
 
 	nout = 0;
 	for (; *fmt; fmt++) {
-		if (*fmt != '%') {
-			PUT(*fmt, f);
+		if (*fmt != '%') {		/* the text up to the next % */
+			s = fmt;
+			while (fmt[1] && fmt[1] != '%')
+				fmt++;
+			PUT(s, fmt - s + 1, 0, f);
 			continue;
 		}
 		left = zero = plus = space = alt = islong = 0;
@@ -109,19 +155,28 @@ register FILE *f;
 			if (alt && uv)
 				pfx = *fmt == 'o' ? "0" : *fmt == 'x' ? "0x" : *fmt == 'X' ? "0X" : "";
 		number:
+			if (prec == 0 && uv == 0)	/* zero at precision 0: no digits */
+				s = "";
 			len = strlen(s);
 			if (prec >= 0)
 				zero = 0;
 			n = prec > len ? prec - len : 0;	/* precision zeros */
+			if (*fmt == 'o' && alt)		/* # makes the first digit 0 */
+				pfx = n > 0 || *s == '0' ? "" : "0";
 			width -= len + n + strlen(pfx);
-			if (!left && !zero)
-				while (width-- > 0) PUT(' ', f);
-			while (*pfx) PUT(*pfx++, f);
-			if (!left && zero)
-				while (width-- > 0) PUT('0', f);
-			while (n-- > 0) PUT('0', f);
-			while (*s) PUT(*s++, f);
-			while (width-- > 0) PUT(' ', f);
+			if (!left && !zero) {
+				PUT(" ", width, 1, f);
+				width = 0;
+			}
+			if (*pfx)
+				put(pfx, strlen(pfx), 0, f);
+			if (!left && zero) {
+				PUT("0", width, 1, f);
+				width = 0;
+			}
+			PUT("0", n, 1, f);
+			PUT(s, len, 0, f);
+			PUT(" ", width, 1, f);
 			break;
 		case 'e':
 		case 'E':
@@ -136,13 +191,18 @@ register FILE *f;
 				zero = 0;
 			len = strlen(s);
 			width -= len + strlen(pfx);
-			if (!left && !zero)
-				while (width-- > 0) PUT(' ', f);
-			while (*pfx) PUT(*pfx++, f);
-			if (!left && zero)
-				while (width-- > 0) PUT('0', f);
-			while (*s) PUT(*s++, f);
-			while (width-- > 0) PUT(' ', f);
+			if (!left && !zero) {
+				PUT(" ", width, 1, f);
+				width = 0;
+			}
+			if (*pfx)
+				put(pfx, strlen(pfx), 0, f);
+			if (!left && zero) {
+				PUT("0", width, 1, f);
+				width = 0;
+			}
+			PUT(s, len, 0, f);
+			PUT(" ", width, 1, f);
 			break;
 		case 'c':
 			buf[0] = *ap++;
@@ -154,19 +214,25 @@ register FILE *f;
 			s = (char *)*ap++;
 			if (s == NULL)
 				s = "(null)";
-			for (len = 0; s[len] && (prec < 0 || len < prec); len++)
-				;
+			if (prec < 0)
+				len = strlen(s);
+			else if ((e = memchr(s, 0, prec)) != NULL)
+				len = e - s;
+			else
+				len = prec;
 		string:
 			width -= len;
-			if (!left)
-				while (width-- > 0) PUT(' ', f);
-			while (len-- > 0) PUT(*s++, f);
-			while (width-- > 0) PUT(' ', f);
+			if (!left) {
+				PUT(" ", width, 1, f);
+				width = 0;
+			}
+			PUT(s, len, 0, f);
+			PUT(" ", width, 1, f);
 			break;
 		case 0:
 			return nout;
 		default:
-			PUT(*fmt, f);
+			PUT(fmt, 1, 0, f);
 		}
 	}
 	return nout;

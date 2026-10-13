@@ -1,0 +1,26 @@
+bcc-cc1: string concatenation across the end of the input buffer.
+
+bcc-cc1 joins adjacent string constants on one line ("a" "b"), looking past
+the space after the first with *++lineptr. When that space ran up to the end
+of the block it had read from bcc-cpp, it found the buffer's end mark
+instead of the next string, and the two strings were left apart: a "need
+')'" error on a correct line, which came and went with the length of the
+file's name (bcc-cpp's # line marks put it in the output, moving the block
+boundaries). gch1() reads the next character the way the scanner does,
+refilling the buffer at its end.
+
+--- a/bcc/scan.c
++++ b/bcc/scan.c
+@@ -868,8 +868,10 @@
+ 	{
+ 	    *charptr++ = terminator;
+ 
+-	    /* This adds ansi string concatenation BUT only on one line */
+-	    do { ch = *++lineptr; } while(SYMOFCHAR(ch) == WHITESPACE);
++	    /* This adds ansi string concatenation BUT only on one line.
++	     * gch1(), not *++lineptr: the space between the strings can
++	     * run past the end of the input buffer, which gch1 refills */
++	    do { gch1(); } while(SYMOFCHAR(ch) == WHITESPACE);
+ 	    if( ch == terminator ) /* Hang on .. that's another string ... */
+ 	    {
+ 	       charptr--;	   /* Stick it together */

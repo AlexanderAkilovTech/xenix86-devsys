@@ -57,7 +57,7 @@ Development and testing happen in 86Box on an emulated XT.
       `fmod`, `floor`, `ceil` and the rest, each within 1.5 units in the last place of the
       exact result (`sqrt` correctly rounded), with System V's `matherr` error handling.
       The compiler on XENIX handles floating point too; to fit it in 64K, `cc` gained
-      `-O` (Dev86's peephole optimiser, made to run on XENIX) and `-Mc`. Float programs
+      `-O` (Dev86's peephole optimizer, made to run on XENIX) and `-Mc`. Float programs
       compiled on XENIX by its own `cc` give results identical to the bit to the
       cross-compiled ones
 - [x] Milestone 9: **developer tools.** Programs keep a symbol table in XENIX's own
@@ -71,6 +71,19 @@ Development and testing happen in 86Box on an emulated XT.
       has no `nroff`. A termcap library,
       `libtermcap.a` (`cc ... -ltermcap`), reads XENIX's own `/etc/termcap`: checked
       against every entry there
+- [x] Milestone 10: **system tools.** A screen library, `libcurses.a` (`cc ... -lcurses
+      -ltermcap`). `ls` and `df` in place of XENIX's own: the same output as XENIX's,
+      checked against them on the same files, with an option `-h` for sizes in K and M;
+      `df -v`, the table `custom` shows as the disk usage, is in K and M too.
+      `whereis`. And `xtop` (also `top`), a full-screen view of the machine after `top`
+      and `htop`: meters for the processor, all 640K of memory, the swap area and each
+      file system, the processes with their terminals, the swapping as it happens,
+      whether an 8087 is fitted, and the display adapter (CGA, MDA or Hercules), in a
+      Color or a Monochrome theme. New accounts that `mkuser` makes get a C shell prompt
+      showing the current directory, in color on the console. To make `xtop` cheap
+      enough for a 4.77 MHz 8088, `printf`, `fgets` and the termcap library got faster;
+      it takes about an eighth of the processor at 3 seconds between screens, and starts
+      in about 3 seconds
 - [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
       registers when it switches processes (measured: two programs using it at once
       corrupt each other's results), so it can only ever be an option
@@ -105,10 +118,14 @@ Development and testing happen in 86Box on an emulated XT.
     lib/            the C library, laid out like Version 7's: csu/ (crt0), crt/
                     (compiler support), sys/ (system calls), gen/, stdio/, fp/
                     (software floating point); m/, the math library; and
-                    termcap/, the termcap library
+                    termcap/ and curses/, the termcap and screen libraries
     cmd/            XENIX commands of our own: cc, make, aout2x, nm, size,
                     strip (with objfile.c, which reads the file formats),
-                    clear and man
+                    clear and man; and the system tools ls, df, whereis and
+                    xtop (with hwprobe.s, which looks for an 8087 and a
+                    Hercules card)
+    skel/           the shell start-up files that mkuser copies into new
+                    accounts, and cdprompt.csh, the C shell prompt's cd
     man/            the manual pages, in -man form: man1 commands, man3
                     library functions
     ports/bcc/      the BCC compiler, assembler and linker, built for XENIX
@@ -132,11 +149,12 @@ This builds the C library, fetches BCC's source (checked by SHA-256; see
 [ports/bcc](ports/bcc/README.md)), builds the toolchain as XENIX programs, and lays
 out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `ld86`,
 `ar86`, `nm`, `size`, `strip`, `clear` and `man` in `/usr/bin`; the compiler passes, the
-optimiser `copt` and its rules, `crt0.o`, `libc.a`, `libm.a` and `libtermcap.a` in
-`/usr/lib/cc`; headers in `/usr/include`; the formatted manual in `/usr/man`. Then it
-makes that tree into an installable set under
-`build/xenix/set`: the disk images `D01.img` (and `D02.img` and on, once the set
-outgrows one disk) and the permissions list `soft.perms` they carry. The build is
+optimizer `copt` and its rules, `crt0.o`, `libc.a`, `libm.a`, `libtermcap.a` and
+`libcurses.a` in `/usr/lib/cc`; headers in `/usr/include`; the formatted manual in
+`/usr/man`; and the system tools: `ls` and `df` in `/bin`, `whereis` and `xtop` in
+`/usr/bin`, and the shell start-up files in `/usr/lib/mkuser`. Then it makes that tree
+into an installable set under `build/xenix/set`: the disk images `D01.img`, `D02.img`
+and `D03.img` and the permissions list `soft.perms` they carry. The build is
 reproducible: the same source gives the same disk images, byte for byte, whenever
 and wherever it is built (every date in them is 1 January 1986; see `tools/arfix.py`).
 
@@ -150,15 +168,37 @@ Log in as root and run
     custom -d
 
 which installs the Development System (pick the whole set, ALL). `custom` asks for
-volume D1: insert `D01.img`. It then asks for the Operating System's volume N5,
-your own SCO disk, which holds `adb` and the system headers in `/usr/include/sys`
-that the Development System uses. When it has checked the file permissions, `cc`,
-`make`, `as86`, `ld86`, `ar86`, `nm`, `size`, `strip`, `clear` and `man` are in
-`/usr/bin`. The manual is a package of its own, MAN, which can be left out to save
-space; `man intro` lists the commands, and `man 3 intro` the libraries. `custom` can also list,
-reinstall or remove the set, the same as SCO's own. On a 640K machine, `cron` may
-print "cannot fork" while `custom` reads N5; the extraction carries on underneath,
-so let it finish.
+volume D1: insert `D01.img`, then `D02.img` and `D03.img` as it asks for them. It
+also asks for the Operating System's volume N5, your own SCO disk, which holds `adb`
+and the system headers in `/usr/include/sys` that the Development System uses. When
+it has checked the file permissions, `cc`, `make`, `as86`, `ld86`, `ar86`, `nm`,
+`size`, `strip`, `clear` and `man` are in `/usr/bin`. `man intro` lists the
+commands, and `man 3 intro` the libraries. `custom` can also list, reinstall or
+remove the set, the same as SCO's own. On a 640K machine, `cron` may print "cannot
+fork" while `custom` reads N5; the extraction carries on underneath, so let it
+finish.
+
+The set has three packages, and any of them can be installed alone: SOFT, the
+compiler, libraries and headers; MAN, the manual; and TOOLS, the system tools.
+All three take about 705K on the root file system. `custom`'s menu lists each
+package's size in its Size column, in 512-byte blocks as all of `custom`'s lists
+do, and at the end of its description in K; its option 6, Display current disk
+usage, shows how much is free.
+TOOLS puts its `ls` (with its other names `l`, `lc`, `lf`, `lr` and `lx`) and `df`
+in place of XENIX's own in `/bin`, with the owners and permissions XENIX gives them,
+and replaces the start-up files in `/usr/lib/mkuser` with ones whose C shell prompt
+shows the directory (accounts made before keep theirs). `xtop` is set-user-id to
+sysinfo, as `ps` is, so any user can run it; it keeps where it found the
+kernel's tables in `/usr/lib/xtop.syms`, installed empty, and starts faster from
+its second run on. Removing TOOLS with `custom` removes `ls` and `df` with it.
+XENIX's own are on the Operating System's volume B01; to put them back, insert
+it and, as root (not yet tried):
+
+    cd /
+    tar xvf /dev/fd0 ./bin/ls ./bin/l ./bin/lc ./bin/lf ./bin/lr ./bin/lx ./bin/df
+
+(XENIX's start-up files for mkuser are on its volume B02, as
+`./usr/lib/mkuser/mkuser.prof`, `mkuser.login` and `mkuser.cshrc`.)
 
 `custom`'s option 3, listing the files in a package, shows the list a page at a time:
 the screen stays blank while it is made, then the bell rings before each page.
@@ -185,7 +225,7 @@ installing a newer set over an older one, remove the old list:
 termcap library), `-s` (leave out the symbol table) and `-F size` (the stack size in
 hexadecimal, as with SCO's cc). Two more come from BCC:
 
-- `-O` runs the peephole optimiser and has the assembler make each jump as short
+- `-O` runs the peephole optimizer and has the assembler make each jump as short
   as it can be: programs are smaller and faster.
 - `-Mc` compiles "callersaves" code, where a function keeps no registers for its
   caller, which is smaller again. Compile all of a program's C files with it, or

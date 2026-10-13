@@ -83,9 +83,10 @@ print(file=sys.stderr)
 # link every test program (crt0.o + program + libm.a + libc.a) with both linkers,
 # but those with an assembly half
 for name in [n for n in objs if n.startswith('tests/') and n not in ('tests/regdump.c', 'tests/fptest.c',
-                                                                    'tests/fpu87.c')]:
+                                                                    'tests/fpu87.c', 'tests/cgatest.c')]:
     b = f'{tmp}/link_{os.path.basename(name)[:-2]}'
-    args = ['-0', '-i', '-o', None, f'{ROOT}/build/crt0.o', objs[name], f'{ROOT}/build/libtermcap.a',
+    args = ['-0', '-i', '-o', None, f'{ROOT}/build/crt0.o', objs[name], f'{ROOT}/build/libcurses.a',
+            f'{ROOT}/build/libtermcap.a',
             f'{ROOT}/build/libm.a', f'{ROOT}/build/libc.a']
     h = run(['ld86'] + [a if a else f'{b}.h' for a in args])
     x = run(SIM + [f'{BIN}/ld86'] + [a if a else f'{b}.x' for a in args])
@@ -97,15 +98,17 @@ for name in [n for n in objs if n.startswith('tests/') and n not in ('tests/regd
 R = f'{ROOT}/build/xenix/testroot'   # the install tree, plus the sys/ stand-ins
 cenv = dict(os.environ, XSIM_ENV=f'CCROOT={R}')
 count['cc'], fails['cc'] = 0, []
-HALVES = {'fptest': 'fptests.s', 'fpu87': 'fpu87s.s'}   # assembly halves
+HALVES = {'fptest': 'fptests.s', 'fpu87': 'fpu87s.s', 'cgatest': 'cgaio.s'}   # assembly halves
 for src in sorted(glob.glob(f'{ROOT}/tests/*.c')):
     t = os.path.basename(src)[:-2]
     if t == 'regdump':                  # its two halves would both be regdump.o
         continue
     more = [f'{ROOT}/tests/{HALVES[t]}'] if t in HALVES else []
     run([f'{ROOT}/build.sh', src] + more)
-    # build.sh links every program with libtermcap.a and libm.a: so do -ltermcap -lm
-    run(SIM + [f'{R}/usr/bin/cc', '-o', f'{tmp}/{t}.native', src] + more + ['-ltermcap', '-lm'], env=cenv, cwd=tmp)
+    # build.sh links every program with libcurses.a, libtermcap.a and libm.a: so do
+    # -lcurses -ltermcap -lm
+    run(SIM + [f'{R}/usr/bin/cc', '-o', f'{tmp}/{t}.native', src] + more + ['-lcurses', '-ltermcap', '-lm'],
+        env=cenv, cwd=tmp)
     count['cc'] += 1
     if not os.path.exists(f'{tmp}/{t}.native') or not same(f'{tmp}/{t}.native', f'{ROOT}/build/{t}'):
         fails['cc'].append(f'tests/{t}.c')

@@ -1,0 +1,207 @@
+.TH LS 1
+.SH NAME
+ls, l, lc, lf, lr, lx \- list the contents of directories
+.SH SYNOPSIS
+.B ls
+[\ \-1ACFRabcdfghilmnopqrstux\ ] [\ name\ ...\ ]
+.br
+.B l
+[\ options\ ] [\ name\ ...\ ]
+.br
+.B lc
+[\ options\ ] [\ name\ ...\ ]
+.br
+.B lf
+[\ options\ ] [\ name\ ...\ ]
+.br
+.B lr
+[\ options\ ] [\ name\ ...\ ]
+.br
+.B lx
+[\ options\ ] [\ name\ ...\ ]
+.SH DESCRIPTION
+For each directory named,
+.B ls
+lists its contents; for each other file, the file itself. With no names
+it lists the current directory. Files named on the command line come
+first, together, then each directory, under its name when there is more
+than one. The names are sorted, one to a line unless an option asks for
+another form.
+.PP
+The other names are
+.B ls
+with options already given:
+.B l
+is ls \-l,
+.B lc
+ls \-C,
+.B lf
+ls \-CF,
+.B lr
+ls \-CR and
+.B lx
+ls \-x.
+.PP
+The options are:
+.TP 6
+.B \-l
+The long form: for each file its mode, links, owner, group, size in
+bytes and time of last modification:
+.RS
+.PP
+.nf
+drwxr-xr-x   2 bin      bin           48 Jul  1  1986 lib
+.fi
+.PP
+A time more than six months old, or in the future, shows the year in
+place of the hour. A special file shows its major and minor device
+numbers in place of a size. The first letter of the mode is
+.B d
+for a directory,
+.B c
+and
+.B b
+for character and block special files,
+.B p
+for a named pipe,
+.B n
+for a XENIX name space entry (a semaphore or shared data), and
+.B \-
+for an ordinary file. The permissions follow, for the owner, the group
+and the others:
+.B s
+in place of the owner's or the group's
+.B x
+marks a set-user-id or set-group-id file
+.RB ( S
+when the file cannot be executed), and
+.B t
+in place of the others'
+.B x
+the sticky bit
+.RB ( T
+likewise).
+.RE
+.TP 6
+.B \-n
+As \-l, with the numbers of the owner and group for their names.
+.TP
+.B \-o
+As \-l, without the group.
+.TP
+.B \-g
+As \-l, without the owner.
+.TP
+.B \-h
+With \-l and \-s, sizes in units of 1024: B for bytes, K for kilobytes,
+M megabytes, G gigabytes and T terabytes, rounded, with a decimal place
+below 10 (6.7K, 431K, 1.0M).
+.TP
+.B \-C
+In columns, sorted down the columns.
+.TP
+.B \-x
+In columns, sorted across the lines. With both \-C and \-x, the lines
+win.
+.TP
+.B \-m
+As a list across the page, separated by commas.
+.TP
+.B \-1
+One to a line.
+.TP
+.B \-t
+Sorted by the time of last modification, the newest first.
+.TP
+.B \-u
+With \-t and \-l, the time of last access instead.
+.TP
+.B \-c
+With \-t and \-l, the time the i-node last changed instead.
+.TP
+.B \-r
+In the reverse order.
+.TP
+.B \-a
+Every entry, those whose names begin with a dot too.
+.TP
+.B \-A
+Every entry but . and ..; for the super-user, who sees them without it,
+.B \-A
+hides the names that begin with a dot.
+.TP
+.B \-d
+A directory named is listed as a file, not opened.
+.TP
+.B \-R
+The directories found in each directory are listed too, after it.
+.TP
+.B \-f
+Each name is taken as a directory, and its entries are listed in the
+order the directory holds them. \-f turns on \-a and turns off \-l, \-s,
+\-t and \-r.
+.TP
+.B \-i
+The i-number of each file, first.
+.TP
+.B \-s
+The size of each file in blocks of 512 bytes, first, counting the
+indirect blocks that find its data; a directory begins with the total.
+.TP
+.B \-F
+A / after each directory and a * after each file that can be executed.
+.TP
+.B \-p
+A / after each directory.
+.TP
+.B \-b
+A character that cannot be printed shown as \e and its number in octal.
+.TP
+.B \-q
+A character that cannot be printed shown as ?.
+.PP
+The forms are those of XENIX's own ls, line for line: in \-C, \-x and \-m
+the total that \-s begins a directory with takes the place of the first
+name, and \-m prints the numbers of \-i and \-s without padding.
+.SH EXAMPLES
+The files changed most recently first, with sizes easy to read:
+.PP
+.nf
+	ls \-lht /usr/lib
+.fi
+.SH FILES
+.TP 16
+/etc/passwd
+the names of the owners
+.TP
+/etc/group
+the names of the groups
+.SH DIAGNOSTICS
+"\fIname\fP not found" for a name that does not exist; "\fIname\fP
+unreadable" for a directory that cannot be read. The exit status is 2
+after either, or after a mistake in the options, and 0 otherwise.
+.SH SEE ALSO
+chmod(1), find(1), df(1)
+.SH HISTORY
+An
+.B ls
+command appeared in Version 1 AT&T UNIX. The names
+.BR l ,
+.BR lc ,
+.BR lf ,
+.B lr
+and
+.B lx
+are XENIX's. The
+.B \-h
+option is an addition of the xenix86-devsys system tools.
+.SH AUTHORS
+This ls was written for the xenix86-devsys system tools.
+.SH BUGS
+The columns are always 80 characters wide.
+.PP
+Files with the same time are listed under \-t in the reverse order of
+their names; XENIX's ls lists them in the order its sort happens to
+leave them, which is not always the same.
+.PP
+Names of owners and groups are cut to 8 characters.

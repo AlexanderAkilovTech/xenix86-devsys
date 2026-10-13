@@ -45,6 +45,14 @@ $BCC -0 -I -Iinclude -c -o build/termcap.o lib/termcap/termcap.c
 ar86 rc build/libtermcap.a build/termcap.o
 python3 tools/arfix.py build/libtermcap.a
 rm -f build/termcap.o
+# the curses library, libcurses.a (cc ... -lcurses -ltermcap)
+mkdir -p build/libcurses
+rm -f build/libcurses/*.o build/libcurses.a
+for f in lib/curses/*.c; do
+	$BCC -0 -I -Iinclude -c -o build/libcurses/$(basename "$f" .c).o "$f"
+done
+ar86 rc build/libcurses.a build/libcurses/*.o
+python3 tools/arfix.py build/libcurses.a
 [ $# -gt 0 ] || { echo "libc.a built ($(ls build/lib/*.o | wc -l) modules), libm.a ($(ls build/libm/*.o | wc -l))"; exit 0; }
 OBJS=""
 for f in "$@"; do
@@ -58,5 +66,5 @@ prog=build/$(basename "$1" .c)
 # crt0.o must come first: it supplies the text reserved block and the DS:0 header.
 # ld86 takes only the library modules the program actually uses.
 # -y: the symbol table keeps whole names, which aout2xout turns into the x.out's
-ld86 -0 -i -y -o "$prog.aout" build/crt0.o $OBJS build/libtermcap.a build/libm.a build/libc.a
+ld86 -0 -i -y -o "$prog.aout" build/crt0.o $OBJS build/libcurses.a build/libtermcap.a build/libm.a build/libc.a
 python3 tools/aout2xout.py "$prog.aout" "$prog"

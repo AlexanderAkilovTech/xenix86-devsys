@@ -1,4 +1,4 @@
-copt, BCC's peephole optimiser, as this port uses it to make bcc-cc1 small
+copt, BCC's peephole optimizer, as this port uses it to make bcc-cc1 small
 enough for the 8086's 64K of code, and as cc -O uses it.
 
 rules.86: Dev86's rules for 8086 code miscompile bcc-cc1 (it reported

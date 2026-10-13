@@ -6,7 +6,7 @@ int where a long is expected costs nothing. Built as a 16-bit XENIX program in
 K&R mode, the callee reads a 32-bit argument from a 16-bit push and picks up
 garbage in the high word: frame offsets came out as $40004 instead of 4.
 These 15 call sites were found with gcc -Wtraditional-conversion; each gets an
-explicit cast. No change in behaviour on hosts where int and long agree.
+explicit cast. No change in behavior on hosts where int and long agree.
 
 diff -ruN a/bcc/declare.c b/bcc/declare.c
 --- a/bcc/declare.c

@@ -1,0 +1,21 @@
+# .profile - read by the Bourne shell when you log in.
+# From xenix86-devsys: /usr/lib/mkuser/mkuser.prof, which mkuser copies
+# into a new account.
+PATH=$HOME/bin:/bin:/usr/bin:.
+MAIL=/usr/spool/mail/`logname`
+umask 022
+eval `tset -s -Q -m ansi:ansi -m :\?ansi -r`
+# the prompt: you@host, in color on the console (sh cannot show the
+# directory; csh's prompt can)
+host=`uname -n`
+if test -z "$host" -o "$host" = "(empty)"
+then
+	host=xenix
+fi
+if test "$TERM" = ansi
+then
+	PS1="[1m[36m`logname`[0m[37m@[1m[32m$host[0m[37m$ "
+else
+	PS1="`logname`@$host$ "
+fi
+export PATH MAIL PS1

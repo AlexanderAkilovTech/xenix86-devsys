@@ -1,0 +1,318 @@
+.TH CURSES 3
+.SH NAME
+curses \- screen updating and cursor movement
+.SH SYNOPSIS
+.nf
+#include <curses.h>
+
+cc ... \-lcurses \-ltermcap
+.fi
+.SH DESCRIPTION
+The curses functions update the screen of a terminal efficiently: a
+program writes into
+.IR windows ,
+arrays of characters in memory, and asks for the screen to be brought up
+to date; curses then sends the terminal only what has changed, moving the
+cursor by the cheapest means the terminal has. The terminal's codes come
+from the termcap data base,
+.BR /etc/termcap ,
+for the type named by the environment variable TERM, so that the same
+program works on every terminal described there.
+.PP
+A program calls
+.B initscr
+first, and
+.B endwin
+before it exits. The window
+.B stdscr
+is the size of the screen, LINES lines of COLS columns; the functions
+without a w at the front work on it.
+.B curscr
+is what curses believes the screen to hold. Characters are written at a
+window's cursor, which moves on; nothing reaches the screen until
+.B refresh
+(or
+.BR wrefresh ,
+for another window) is called.
+.PP
+A character in a window is a
+.BR chtype :
+the character in its low byte, and attributes in the high byte, or-ed
+together: A_STANDOUT, A_REVERSE, A_BOLD, A_UNDERLINE, A_BLINK and A_DIM.
+A terminal shows those it can; one with standout only shows reverse and
+bold as standout.
+.SS "Starting and ending"
+.TP 22
+.B initscr()
+Read the terminal's description, set up stdscr and curscr, and return
+stdscr. If TERM names a terminal termcap does not know, or one that
+cannot move its cursor, it prints a message and exits.
+.TP
+.B endwin()
+Put the terminal back the way it was, with the cursor at the bottom
+left. The next refresh takes the screen over again: the way back after
+running a shell.
+.TP
+.B longname()
+The full name of the terminal, from its termcap entry.
+.TP
+.B baudrate()
+Its output speed.
+.SS "Terminal modes"
+.TP 22
+.BR cbreak() ", " nocbreak()
+Characters are given to the program as they are typed, or a line at a
+time. The default is a line at a time.
+.TP
+.BR raw() ", " noraw()
+As cbreak, and the interrupt, quit and flow control characters are not
+special either.
+.TP
+.BR echo() ", " noecho()
+Whether getch and getstr show what is typed in the window. curses does
+the echoing itself; the terminal's own echo is always off.
+.TP
+.BR nl() ", " nonl()
+Whether a typed return is turned into a newline.
+.TP
+.B keypad(win, bf)
+With
+.I bf
+TRUE, getch returns a function key as a single value: KEY_UP, KEY_DOWN,
+KEY_LEFT, KEY_RIGHT, KEY_HOME, KEY_BACKSPACE, KEY_NPAGE, KEY_PPAGE,
+KEY_DC, KEY_IC, KEY_F(n) and the rest of <curses.h>, as the terminal's
+termcap entry describes its keys.
+.TP
+.B nodelay(win, bf)
+getch does not wait: it returns ERR when nothing has been typed. Use it
+with cbreak.
+.TP
+.BR savetty() ", " resetty()
+Save the modes, and restore them.
+.TP
+.BR reset_shell_mode() ", " reset_prog_mode()
+The modes the shell had, and the program's.
+.TP
+.BR erasechar() ", " killchar()
+The user's erase and kill characters.
+.TP
+.B flushinp()
+Throw away what has been typed and not read.
+.SS "Windows"
+.TP 22
+.B newwin(lines, cols, y, x)
+A new window of the given size, its top left corner at line
+.I y
+and column
+.I x
+of the screen. Lines or cols 0 means up to the edge of the screen.
+.TP
+.B subwin(win, lines, cols, y, x)
+A window within
+.IR win ,
+sharing its characters: a change in one is a change in the other.
+.I y
+and
+.I x
+are positions on the screen.
+.TP
+.B delwin(win)
+Free a window.
+.TP
+.B mvwin(win, y, x)
+Move a window to another place on the screen.
+.TP
+.B touchwin(win)
+Count all of the window as changed, so that the next refresh sends all
+of it: after another window has covered it.
+.TP
+.BR overlay(src, dst) ", " overwrite(src, dst)
+Copy the characters of
+.I src
+that are not blank onto
+.IR dst ,
+where they overlap on the screen; overwrite copies the blanks too.
+.TP
+.B box(win, vert, hor)
+Draw a box around the edge of the window, with
+.I vert
+for the sides and
+.I hor
+for the top and bottom (| and \- if they are 0), and + at the corners.
+.SS "Output"
+Each of these has a form for stdscr, one for another window with a w at
+the front, and forms that first move the cursor, with mv at the front:
+addch, waddch, mvaddch and mvwaddch.
+.TP 22
+.B addch(ch)
+Write the character
+.I ch
+at the cursor and move the cursor on, to the next line at the end of
+one. A newline clears the rest of the line and goes to the start of the
+next; a return goes to the start of the line, a backspace back one
+place, and a tab to the next multiple of eight. Other control
+characters show as ^X.
+.TP
+.B addstr(str)
+Write a string.
+.TP
+.B printw(fmt, ...)
+Write what
+.BR printf (3)
+would.
+.TP
+.BR attron(a) ", " attroff(a) ", " attrset(a)
+Turn attributes on or off, or set them, for what is written after.
+.B standout()
+and
+.B standend()
+are attrset(A_STANDOUT) and attrset(A_NORMAL).
+.TP
+.B move(y, x)
+Move the cursor.
+.B getyx(win, y, x)
+(a macro) puts the window's cursor in
+.I y
+and
+.IR x .
+.TP
+.BR erase() ", " clear()
+Blank the window; clear also clears the whole screen at the next refresh,
+for when the screen has been spoiled.
+.TP
+.BR clrtoeol() ", " clrtobot()
+Blank from the cursor to the end of the line, or of the window.
+.TP
+.BR insch(ch) ", " delch()
+Insert a character at the cursor, or delete the one there; the rest of
+the line moves.
+.TP
+.BR insertln() ", " deleteln()
+Insert a blank line at the cursor's line, or delete it; the lines below
+move.
+.TP
+.BR scroll(win) ", " scrl(n)
+Scroll the window up a line, or
+.I n
+lines (down, if
+.I n
+is negative). Only a window for which
+.B scrollok(win, TRUE)
+has been called scrolls; then writing past its last line scrolls it.
+.B setscrreg(top, bot)
+limits the scrolling to those lines.
+.TP
+.B inch()
+The chtype at the cursor.
+.TP
+.BR refresh() ", " wrefresh(win)
+Bring the screen up to date with the window, and put the cursor at the
+window's cursor (unless
+.B leaveok(win, TRUE)
+was called). wrefresh(curscr) redraws the whole screen.
+.TP
+.BR wnoutrefresh(win) ", " doupdate()
+wrefresh in two parts: wnoutrefresh notes what a window needs, and
+doupdate sends it, so that several windows are brought up to date with
+one sending.
+.TP
+.BR beep() ", " flash()
+Ring the bell, or flash the screen if the terminal can.
+.TP
+.B curs_set(vis)
+Hide the cursor (0) or show it (1), on a terminal that can.
+.SS "Input"
+.TP 22
+.B getch()
+Read a character, after a refresh of the window. With keypad, a function
+key comes back as its KEY_ value; the later characters of a key are
+waited for a fifth of a second, so that the escape key alone still
+works.
+.TP
+.B ungetch(ch)
+Make
+.I ch
+the next character getch returns.
+.TP
+.B getstr(str)
+Read a line into
+.IR str ,
+with the erase and kill characters working.
+.TP
+.B scanw(fmt, ...)
+Read a line, and convert it as
+.BR scanf (3)
+would.
+.SH "RETURN VALUES"
+The functions that return an int return OK (0), or ERR (\-1) when they
+cannot do what is asked: a move outside the window, a character written
+at the bottom right corner of a window that may not scroll. getch
+returns ERR when nodelay is on and nothing has been typed.
+.SH EXAMPLES
+.nf
+	#include <curses.h>
+
+	main()
+	{
+		initscr();
+		cbreak();
+		noecho();
+		clear();
+		move(LINES / 2, (COLS \- 13) / 2);
+		standout();
+		addstr("hello, world");
+		standend();
+		mvaddstr(LINES \- 1, 0, "press a key");
+		refresh();
+		getch();
+		endwin();
+	}
+.fi
+.PP
+.nf
+	cc \-o hello hello.c \-lcurses \-ltermcap
+.fi
+.SH ENVIRONMENT
+.TP 10
+.B TERM
+the terminal's type
+.TP
+.B TERMCAP
+another termcap file, or the entry itself (see
+.BR termcap (3))
+.TP
+.BR LINES ", " COLUMNS
+the size of the screen, instead of termcap's li and co
+.SH FILES
+.TP 26
+/usr/include/curses.h
+the definitions
+.TP
+/usr/lib/cc/libcurses.a
+the library
+.TP
+/etc/termcap
+the terminal capability data base
+.SH SEE ALSO
+termcap(3), printf(3), scanf(3)
+.PP
+K. C. R. C. Arnold,
+.IR "Screen Updating and Cursor Movement Optimization: A Library Package" ,
+University of California, Berkeley.
+.SH HISTORY
+The curses library was written by Ken Arnold at Berkeley, and distributed
+with BSD. For System V Release 2 it was much extended, by Mark Horton,
+with attributes, function keys and the terminfo data base. This library
+has the interface of System V's curses, kept on the termcap data base,
+which XENIX uses.
+.SH BUGS
+printw and scanw use buffers of 512 and 256 characters.
+.PP
+cc puts printf's floating point conversions into a program only when it
+sees a double passed to a function whose name ends in printf, which
+printw's does not: see
+.BR printf (3)
+for the way to include them.
+.PP
+curses does not use a terminal's ability to insert and delete lines or
+characters: what moves on the screen is sent again.

@@ -67,6 +67,10 @@ python3 tests/unit/test_fp.py 1000 > /tmp/xds_fp.out 2>&1 && ok "floating point 
 ./build.sh tests/fmtest.c > /dev/null
 python3 tests/unit/test_fmt.py 400 > /tmp/xds_fmt.out 2>&1 && ok "printf, strtod, scanf, ecvt with floats vs Python ($(tail -1 /tmp/xds_fmt.out))" \
 	|| { bad "float conversions"; head -20 /tmp/xds_fmt.out; }
+python3 tests/unit/test_fgets.py > /tmp/xds_fgets.out 2>&1 && ok "fgets vs a model of it ($(tail -1 /tmp/xds_fgets.out))" \
+	|| { bad "fgets"; head -20 /tmp/xds_fgets.out; }
+python3 tests/unit/test_printf.py > /tmp/xds_printf.out 2>&1 && ok "printf with integers and strings vs the host's ($(tail -1 /tmp/xds_printf.out))" \
+	|| { bad "printf"; head -20 /tmp/xds_printf.out; }
 
 ./build.sh tests/mtest.c > /dev/null
 python3 tests/unit/test_m.py 300 > /tmp/xds_m.out 2>&1 && ok "math library vs mpmath ($(tail -1 /tmp/xds_m.out))" \
@@ -78,9 +82,34 @@ python3 tests/unit/test_nm.py > /tmp/xds_nm.out 2>&1 && ok "nm, size, strip vs P
 python3 tests/unit/test_termcap.py > /tmp/xds_tc.out 2>&1 && ok "termcap library vs Python ($(tail -1 /tmp/xds_tc.out))" \
 	|| { bad "termcap library"; head -20 /tmp/xds_tc.out; }
 
+./build.sh tests/curt.c > /dev/null
+if python3 -c 'import pyte' 2>/dev/null; then
+	python3 tests/unit/test_curses.py > /tmp/xds_curses.out 2>&1 && ok "curses library through a terminal emulator ($(tail -1 /tmp/xds_curses.out))" \
+		|| { bad "curses library"; head -20 /tmp/xds_curses.out; }
+else
+	echo "SKIP  curses: needs the Python package pyte (pip install pyte)"
+fi
+
 ./build.sh cmd/man.c > /dev/null
 python3 tests/unit/test_man.py > /tmp/xds_man.out 2>&1 && ok "man and its page formatter ($(tail -1 /tmp/xds_man.out))" \
 	|| { bad "man"; head -20 /tmp/xds_man.out; }
+
+for p in df whereis ls; do ./build.sh cmd/$p.c > /dev/null; done
+./build.sh cmd/xtop.c cmd/hwprobe.s > /dev/null
+python3 tests/unit/test_tools.py > /tmp/xds_tools.out 2>&1 && ok "df and whereis ($(tail -1 /tmp/xds_tools.out))" \
+	|| { bad "df and whereis"; head -20 /tmp/xds_tools.out; }
+if [ "$(id -u)" = 0 ]; then
+	python3 tests/unit/test_ls.py > /tmp/xds_ls.out 2>&1 && ok "ls against XENIX's ($(tail -1 /tmp/xds_ls.out))" \
+		|| { bad "ls"; head -20 /tmp/xds_ls.out; }
+else
+	echo "SKIP  ls: rebuilding XENIX's test tree needs root (device files, owners)"
+fi
+if python3 -c "import pyte" 2>/dev/null; then
+	python3 tests/unit/test_xtop.py > /tmp/xds_xtop.out 2>&1 && ok "xtop against a made-up kernel ($(tail -1 /tmp/xds_xtop.out))" \
+		|| { bad "xtop"; head -20 /tmp/xds_xtop.out; }
+else
+	echo "SKIP  xtop: needs the Python package pyte (pip install pyte)"
+fi
 
 python3 tests/unit/test_time.py > /tmp/xds_time.out 2>&1 && ok "time conversions vs Python ($(tail -1 /tmp/xds_time.out))" || bad "time conversions"
 

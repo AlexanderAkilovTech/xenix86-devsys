@@ -1,0 +1,294 @@
+.TH XTOP 1
+.SH NAME
+xtop, top \- show the processes using the machine, kept up to date
+.SH SYNOPSIS
+.B xtop
+[\ \-b\ ] [\ \-c\ |\ \-m\ ] [\ \-d\ seconds\ ] [\ \-n\ times\ ]
+.SH DESCRIPTION
+.B xtop
+(XENIX top) fills the screen with the state of the machine and redraws
+it every few seconds: at the top, a meter for each of the processor, the
+memory, the swap area and each mounted file system, with a summary
+beside them,
+.PP
+.nf
+ CPU[||||||||             31.0%]    Processes: 15, 1 running
+ Mem[|||||||||||||||| 394K/640K]    Uptime: 2 days, 08:58:12
+ Swp[|||||||          457K/1.6M]    Swapped out: 9   last 3s: 0 out, 1 in
+ Dsk[||||||||||        6.8M/18M]    /: 11M free
+                                    FPU: 8087   Video: CGA 80x25
+.fi
+.PP
+and below, a line for each process, the busiest first.
+.B top
+is another name for it.
+.PP
+.B CPU
+is the share of the processor's time since the last screen that the
+processes used, their own times added up: the part spent in their
+programs and the part spent in the kernel for them. The percentage is
+the two together.
+.B Mem
+is the memory in use, of all the machine has, in three parts: the memory
+of the processes in memory; the rest of what XENIX has given out, which
+is the text of the programs running, shared by all the processes running
+each one; and the kernel's: its code, its tables and its buffers, all
+that XENIX keeps from the processes. On an XT with 640K the kernel keeps
+about 240K.
+.B Swp
+is the swap area in use, of the one made when XENIX was installed: the
+part of the hard disk to which XENIX moves whole processes when memory
+is full, and from which it brings them back to run.
+.B Swapped out
+beside it is how many processes are out there now (a 0 in the column
+RES below), and, since the last screen, how many XENIX moved out and how
+many it brought back in, with the seconds since that screen; many
+moves each time mean more is running than fits in memory.
+.B Dsk
+is a mounted file system's space in use, of its size, with its free
+space beside it; there is a meter for each of the first two file systems
+in /etc/mnttab, looked at every 30 seconds.
+.PP
+.B Uptime
+is the time since the system was started, in days, hours, minutes and
+seconds.
+.B FPU
+says whether the machine has an 8087, found by asking one to initialize
+itself:
+.B 8087
+or
+.BR none .
+.B Video
+is the console's display adapter and the screen's size, when xtop runs
+on the console:
+.B CGA
+for a color display;
+.B MDA
+or
+.B Hercules
+for a monochrome one, told apart by the vertical retrace that a Hercules
+card shows in its status port and an IBM monochrome adapter does not.
+.PP
+The columns of the processes are:
+.TP 10
+.B PID
+the process's id
+.TP
+.B USER
+its owner
+.TP
+.B TTY
+its terminal, as ps(1) shows it:
+.B co
+for the console,
+.B 02
+for /dev/tty02,
+.B 1a
+for /dev/tty1a, and
+.B ?
+for none
+.TP
+.B PRI
+its priority; the lower, the sooner it runs
+.TP
+.B NI
+its nice value, as nice(1) set it
+.TP
+.B SIZE
+its size, in kilobytes or megabytes: its data, its stack and the
+kernel's record of it, but not its program's text, which it shares
+.TP
+.B RES
+how much of it is in memory: all of it, or 0 when it is swapped out
+.TP
+.B S
+its state:
+.B R
+running or ready to,
+.B S
+sleeping,
+.B W
+waiting,
+.B I
+being made,
+.B Z
+ended, with its parent yet to wait for it (a zombie),
+.B T
+stopped
+.TP
+.B CPU%
+its share of the processor since the last screen
+.TP
+.B TIME+
+the processor's time it has used, in minutes, seconds and hundredths
+.TP
+.B COMMAND
+the name of the program it runs
+.PP
+Process 0 is the swapper, which moves processes between memory and the
+swap area.
+.SH THEMES
+.B xtop
+has two looks, Color and Monochrome.
+.TP 10
+.B Color
+The parts of each meter in the console's colors: in programs green, in
+the kernel red; the processes' memory green, the shared text yellow
+and the kernel's blue; the swap area red and the disks blue. The heading
+is black on green and the keys' letters bright cyan. Color needs the
+console with a color display (a terminal of type ansi), and is the first
+choice there.
+.TP
+.B Monochrome
+White on black, as on a monochrome display: the heading in reverse
+video, the meters and the keys' letters bright. On a monochrome display
+it is the first choice and the only one; on a terminal other than the
+console, only the heading stands out, in the terminal's standout mode.
+.PP
+The key
+.B c
+changes from one to the other, and the choice is kept in the file
+.I .xtoprc
+in the home directory, as the line
+.B "theme color"
+or
+.BR "theme mono" ,
+for the next time.
+.SH KEYS
+While
+.B xtop
+runs, these keys work:
+.TP 10
+.B P
+sort by the processor's time since the last screen (the first order)
+.TP
+.B M
+sort by size
+.TP
+.B T
+sort by the time used in all
+.TP
+.B N
+sort by process id
+.TP
+.B k
+send a process a signal: xtop asks for its id and then the signal, 15
+when none is given; 15 asks the process to end, 9 ends it
+.TP
+.B d
+set the seconds between screens, from 1 to 25
+.TP
+.B c
+change the theme, Color or Monochrome
+.TP
+.B h
+show the keys
+.TP
+.B q
+quit; the interrupt key quits too
+.PP
+Any other key redraws the screen at once. The bottom line shows the keys,
+and the right end of the heading the order of the processes.
+.SH OPTIONS
+.TP 10
+.B \-b
+Print each screen after the last, without moving about the terminal,
+for a file or a pipe.
+.TP
+.B \-c
+Color, this time, whatever
+.I .xtoprc
+says.
+.TP
+.B \-m
+Monochrome, this time.
+.TP
+.BI \-d " seconds"
+The seconds between screens, from 1 to 25; 3 if not given.
+.TP
+.BI \-n " times"
+Stop after this many screens.
+.SH EXAMPLES
+To save one screen in a file, taken over 5 seconds:
+.PP
+.nf
+	xtop \-b \-n 1 \-d 5 > /tmp/xtop.out
+.fi
+.SH FILES
+.TP 16
+$HOME/.xtoprc
+the theme chosen last
+.TP
+/xenix
+the kernel, for the places of its tables
+.TP
+/usr/lib/xtop.syms
+what xtop found before: those places, while /xenix is the same file;
+the terminals' names, while /dev is unchanged; and the size of memory,
+until the machine is started again
+.TP
+/dev/kmem
+the kernel's memory
+.TP
+/dev/mem
+the processes in memory
+.TP
+/dev/swap
+the processes swapped out
+.TP
+/etc/mnttab
+the mounted file systems
+.TP
+/dev/console, /dev/tty*
+the terminals' names
+.TP
+/etc/passwd
+the names of the owners
+.TP
+/etc/termcap
+the terminal's capabilities
+.SH DIAGNOSTICS
+"cannot read the kernel's symbols in /xenix" when /xenix is not the
+kernel that was started or cannot be read; "cannot read /dev/kmem and
+/dev/mem" when xtop has lost its set-user-id; "no termcap entry" for a
+terminal it does not know. The exit status is 1 after any of these, 2
+after a mistake in the options, and 0 otherwise.
+.SH SEE ALSO
+ps(1), kill(1), nice(1), df(1)
+.SH HISTORY
+A
+.B top
+command was written by William LeFebvre at Rice University in 1984.
+.B xtop
+is this system's, after it.
+.SH AUTHORS
+xtop was written for the xenix86-devsys system tools.
+.SH BUGS
+On an XT xtop takes about a third of a second of the processor for
+each screen, a tenth of its time at 3 seconds between screens, and a
+about three seconds to start, a second or two more the first time and
+after the kernel changes, while it looks through /xenix. A longer delay, as
+.BR "xtop \-d 5" ,
+leaves more for the rest.
+.PP
+XENIX keeps no count of the processor's idle time or of the disk's work,
+so xtop shows neither: the processor's time is the processes' own, and
+the kernel's work for the clock, the disks and the terminals counts
+against whatever process was running when it came. The moves to and
+from the swap area are those xtop sees from one screen to the next; a
+process swapped out and back in between does not show.
+.PP
+The 8087 has no counter of its own work, and XENIX does not keep track
+of which processes use it, so xtop can say only whether there is one.
+.PP
+The file systems are those mounted when xtop starts; it reads them as
+sysinfo, and gives that up after.
+.PP
+xtop reads the kernel's tables while the kernel changes them, so a
+process just made or just ended can show for a screen with its name
+missing.
+.PP
+xtop is set-user-id to sysinfo, who may read the kernel's memory and the
+disks, as ps(1) and df(1) are; it gives that up once its files are open.
+.PP
+At most 30 lines of the terminal are used.

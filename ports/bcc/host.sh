@@ -16,6 +16,6 @@ CC1="bcc-cc1 codefrag dbnode declare express exptree floatop function gencode ge
 files=""
 for f in $CC1; do files="$files $SRC/bcc/$f.c"; done
 ${HOSTCC:-cc} -std=gnu89 -O -w -o $OUT/bcc-cc1 $files
-# copt with patches 11 and 12: build.sh optimises the XENIX bcc-cc1 with it
+# copt with patches 11 and 12: build.sh optimizes the XENIX bcc-cc1 with it
 ${HOSTCC:-cc} -std=gnu89 -O -w -o $OUT/copt $SRC/copt/copt.c
 echo "host bcc-cc1 and copt in $OUT"

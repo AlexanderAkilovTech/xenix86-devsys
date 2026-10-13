@@ -1,0 +1,3005 @@
+# ls as XENIX 2.1.3 printed it, as root, on the tree tests/unit/test_ls.py
+# rebuilds (TZ=PST8PDT, Sat Oct 10 1998 at 4:35 a.m.): "=== ls <options and
+# names>", its exit status, then its output, standard error and output together.
+=== ls t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev
+t/cdev
+t/fifo
+t/huge
+
+t:
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -l t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -l t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -la t
+status 0
+total 1010
+drwxr-xr-x   6 root     root         464 Oct 10 00:05 .
+drwxr-xr-x   3 root     root         192 Oct 10 04:26 ..
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -la t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1010
+drwxr-xr-x   6 root     root         464 Oct 10 00:05 .
+drwxr-xr-x   3 root     root         192 Oct 10 04:26 ..
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -lt t
+status 0
+total 1006
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+=== ls -lt t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+=== ls -ltr t
+status 0
+total 1006
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+=== ls -ltr t/huge t/fifo t/cdev t/bdev t
+status 0
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+
+t:
+total 1006
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+=== ls -lu t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 04:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 04:31 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -lc t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 04:28 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 04:27 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 04:27 a
+-rw-r--r--   1 root     root           2 Oct 10 04:27 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 04:27 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 04:27 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 04:27 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 04:28 empty
+prw-r--r--   1 root     root           0 Oct 10 04:27 fifo
+-rw-r--r--   1 root     root           2 Oct 10 04:28 future
+-rw-r--r--   1 999      999       440835 Oct 10 04:27 huge
+-rw-r--r--   2 root     root           6 Oct 10 04:27 link2
+-rw-r--r--   1 root     root           2 Oct 10 04:28 m5
+-rw-r--r--   1 root     root           2 Oct 10 04:28 m6
+-rw-r--r--   1 root     root           2 Oct 10 04:28 m7
+-rw-r--r--   1 2        2          36790 Oct 10 04:27 medium
+-rw-r--r--   1 root     root           2 Oct 10 04:28 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 04:27 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 04:27 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 04:27 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 04:27 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 04:27 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 04:27 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 04:28 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 04:27 suid
+-rwSr--r--   1 root     root           2 Oct 10 04:27 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 04:28 tdir
+=== ls -lc t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 04:27 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 04:27 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 04:27 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 04:27 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 04:28 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 04:27 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 04:27 a
+-rw-r--r--   1 root     root           2 Oct 10 04:27 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 04:27 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 04:27 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 04:27 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 04:28 empty
+prw-r--r--   1 root     root           0 Oct 10 04:27 fifo
+-rw-r--r--   1 root     root           2 Oct 10 04:28 future
+-rw-r--r--   1 999      999       440835 Oct 10 04:27 huge
+-rw-r--r--   2 root     root           6 Oct 10 04:27 link2
+-rw-r--r--   1 root     root           2 Oct 10 04:28 m5
+-rw-r--r--   1 root     root           2 Oct 10 04:28 m6
+-rw-r--r--   1 root     root           2 Oct 10 04:28 m7
+-rw-r--r--   1 2        2          36790 Oct 10 04:27 medium
+-rw-r--r--   1 root     root           2 Oct 10 04:28 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 04:27 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 04:27 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 04:27 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 04:27 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 04:27 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 04:27 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 04:28 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 04:27 suid
+-rwSr--r--   1 root     root           2 Oct 10 04:27 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 04:28 tdir
+=== ls -lut t/a t/sub t/empty
+status 0
+-rw-r--r--   2 root     root           6 Oct 10 00:10 t/a
+
+t/sub:
+total 4
+drwxr-xr-x   2 root     root          48 Oct 10 00:29 deep
+-rw-r--r--   1 root     root           2 Oct 10 00:27 f
+
+t/empty:
+total 0
+=== ls -n t
+status 0
+total 1006
+drwxr-xr-x   2 0        0             32 Oct 10 00:33 .hdir
+-rw-r--r--   1 0        0              2 Oct 10 00:21 .hidden
+-rw-r--r--   2 0        0              6 Oct 10 00:10 a
+-rw-r--r--   1 0        0              2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 0        0              2 Oct 10 00:23 bl
+brw-r--r--   1 0        0          1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 0        0          3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 0        0             32 Oct 10 00:31 empty
+prw-r--r--   1 0        0              0 Oct 10 00:24 fifo
+-rw-r--r--   1 0        0              2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 0        0              6 Oct 10 00:10 link2
+-rw-r--r--   1 0        0              2 May 10 12:00 m5
+-rw-r--r--   1 0        0              2 Apr 10  1998 m6
+-rw-r--r--   1 0        0              2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 0        0              2 Jan  1  1985 old
+-rwxr-xr-x   1 0        0           8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 0        0              2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 0        0              2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 0        0              2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 0        0              2 Oct 10 00:18 sticky
+-rw-r--r-T   1 0        0              2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 0        0             64 Oct 10 00:30 sub
+-rwsr-xr-x   1 0        0              2 Oct 10 00:14 suid
+-rwSr--r--   1 0        0              2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 0        0             32 Oct 10 00:32 tdir
+=== ls -n t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 0        0          1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 0        0          3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 0        0              0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 0        0             32 Oct 10 00:33 .hdir
+-rw-r--r--   1 0        0              2 Oct 10 00:21 .hidden
+-rw-r--r--   2 0        0              6 Oct 10 00:10 a
+-rw-r--r--   1 0        0              2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 0        0              2 Oct 10 00:23 bl
+brw-r--r--   1 0        0          1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 0        0          3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 0        0             32 Oct 10 00:31 empty
+prw-r--r--   1 0        0              0 Oct 10 00:24 fifo
+-rw-r--r--   1 0        0              2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 0        0              6 Oct 10 00:10 link2
+-rw-r--r--   1 0        0              2 May 10 12:00 m5
+-rw-r--r--   1 0        0              2 Apr 10  1998 m6
+-rw-r--r--   1 0        0              2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 0        0              2 Jan  1  1985 old
+-rwxr-xr-x   1 0        0           8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 0        0              2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 0        0              2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 0        0              2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 0        0              2 Oct 10 00:18 sticky
+-rw-r--r-T   1 0        0              2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 0        0             64 Oct 10 00:30 sub
+-rwsr-xr-x   1 0        0              2 Oct 10 00:14 suid
+-rwSr--r--   1 0        0              2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 0        0             32 Oct 10 00:32 tdir
+=== ls -o t
+status 0
+total 1006
+drwxr-xr-x   2 root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root           6 Oct 10 00:10 a
+-rw-r--r--   1 root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root           2 Oct 10 00:23 bl
+brw-r--r--   1 root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root          32 Oct 10 00:31 empty
+prw-r--r--   1 root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root           2 Jan  1  1999 future
+-rw-r--r--   1 999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root           2 May 10 12:00 m5
+-rw-r--r--   1 root           2 Apr 10  1998 m6
+-rw-r--r--   1 root           2 Mar 10  1998 m7
+-rw-r--r--   1 2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root          32 Oct 10 00:32 tdir
+=== ls -o t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root           6 Oct 10 00:10 a
+-rw-r--r--   1 root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root           2 Oct 10 00:23 bl
+brw-r--r--   1 root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root          32 Oct 10 00:31 empty
+prw-r--r--   1 root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root           2 Jan  1  1999 future
+-rw-r--r--   1 999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root           2 May 10 12:00 m5
+-rw-r--r--   1 root           2 Apr 10  1998 m6
+-rw-r--r--   1 root           2 Mar 10  1998 m7
+-rw-r--r--   1 2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root          32 Oct 10 00:32 tdir
+=== ls -g t
+status 0
+total 1006
+drwxr-xr-x   2 root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root           6 Oct 10 00:10 a
+-rw-r--r--   1 root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root           2 Oct 10 00:23 bl
+brw-r--r--   1 root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root          32 Oct 10 00:31 empty
+prw-r--r--   1 root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root           2 Jan  1  1999 future
+-rw-r--r--   1 999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root           2 May 10 12:00 m5
+-rw-r--r--   1 root           2 Apr 10  1998 m6
+-rw-r--r--   1 root           2 Mar 10  1998 m7
+-rw-r--r--   1 2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root          32 Oct 10 00:32 tdir
+=== ls -g t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root           6 Oct 10 00:10 a
+-rw-r--r--   1 root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root           2 Oct 10 00:23 bl
+brw-r--r--   1 root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root          32 Oct 10 00:31 empty
+prw-r--r--   1 root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root           2 Jan  1  1999 future
+-rw-r--r--   1 999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root           2 May 10 12:00 m5
+-rw-r--r--   1 root           2 Apr 10  1998 m6
+-rw-r--r--   1 root           2 Mar 10  1998 m7
+-rw-r--r--   1 2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root          32 Oct 10 00:32 tdir
+=== ls -og t
+status 0
+total 1006
+drwxr-xr-x   2      32 Oct 10 00:33 .hdir
+-rw-r--r--   1       2 Oct 10 00:21 .hidden
+-rw-r--r--   2       6 Oct 10 00:10 a
+-rw-r--r--   1       2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1       2 Oct 10 00:23 bl
+brw-r--r--   1   1, 40 Oct 10 00:26 bdev
+crw-r--r--   1   3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2      32 Oct 10 00:31 empty
+prw-r--r--   1       0 Oct 10 00:24 fifo
+-rw-r--r--   1       2 Jan  1  1999 future
+-rw-r--r--   1  440835 Oct 10 00:12 huge
+-rw-r--r--   2       6 Oct 10 00:10 link2
+-rw-r--r--   1       2 May 10 12:00 m5
+-rw-r--r--   1       2 Apr 10  1998 m6
+-rw-r--r--   1       2 Mar 10  1998 m7
+-rw-r--r--   1   36790 Oct 10 00:11 medium
+-rw-r--r--   1       2 Jan  1  1985 old
+-rwxr-xr-x   1    8993 Oct 10 00:13 prog
+-rwxr-sr-x   1       2 Oct 10 00:16 sgid
+-rw-r-Sr--   1       2 Oct 10 00:17 sgidnox
+-rw-r--r--   1       2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1       2 Oct 10 00:18 sticky
+-rw-r--r-T   1       2 Oct 10 00:19 stickynox
+drwxr-xr-x   3      64 Oct 10 00:30 sub
+-rwsr-xr-x   1       2 Oct 10 00:14 suid
+-rwSr--r--   1       2 Oct 10 00:15 suidnox
+drwxrwxrwt   2      32 Oct 10 00:32 tdir
+=== ls -og t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1   1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1   3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1       0 Oct 10 00:24 t/fifo
+-rw-r--r--   1  440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2      32 Oct 10 00:33 .hdir
+-rw-r--r--   1       2 Oct 10 00:21 .hidden
+-rw-r--r--   2       6 Oct 10 00:10 a
+-rw-r--r--   1       2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1       2 Oct 10 00:23 bl
+brw-r--r--   1   1, 40 Oct 10 00:26 bdev
+crw-r--r--   1   3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2      32 Oct 10 00:31 empty
+prw-r--r--   1       0 Oct 10 00:24 fifo
+-rw-r--r--   1       2 Jan  1  1999 future
+-rw-r--r--   1  440835 Oct 10 00:12 huge
+-rw-r--r--   2       6 Oct 10 00:10 link2
+-rw-r--r--   1       2 May 10 12:00 m5
+-rw-r--r--   1       2 Apr 10  1998 m6
+-rw-r--r--   1       2 Mar 10  1998 m7
+-rw-r--r--   1   36790 Oct 10 00:11 medium
+-rw-r--r--   1       2 Jan  1  1985 old
+-rwxr-xr-x   1    8993 Oct 10 00:13 prog
+-rwxr-sr-x   1       2 Oct 10 00:16 sgid
+-rw-r-Sr--   1       2 Oct 10 00:17 sgidnox
+-rw-r--r--   1       2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1       2 Oct 10 00:18 sticky
+-rw-r--r-T   1       2 Oct 10 00:19 stickynox
+drwxr-xr-x   3      64 Oct 10 00:30 sub
+-rwsr-xr-x   1       2 Oct 10 00:14 suid
+-rwSr--r--   1       2 Oct 10 00:15 suidnox
+drwxrwxrwt   2      32 Oct 10 00:32 tdir
+=== ls -ln t
+status 0
+total 1006
+drwxr-xr-x   2 0        0             32 Oct 10 00:33 .hdir
+-rw-r--r--   1 0        0              2 Oct 10 00:21 .hidden
+-rw-r--r--   2 0        0              6 Oct 10 00:10 a
+-rw-r--r--   1 0        0              2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 0        0              2 Oct 10 00:23 bl
+brw-r--r--   1 0        0          1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 0        0          3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 0        0             32 Oct 10 00:31 empty
+prw-r--r--   1 0        0              0 Oct 10 00:24 fifo
+-rw-r--r--   1 0        0              2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 0        0              6 Oct 10 00:10 link2
+-rw-r--r--   1 0        0              2 May 10 12:00 m5
+-rw-r--r--   1 0        0              2 Apr 10  1998 m6
+-rw-r--r--   1 0        0              2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 0        0              2 Jan  1  1985 old
+-rwxr-xr-x   1 0        0           8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 0        0              2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 0        0              2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 0        0              2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 0        0              2 Oct 10 00:18 sticky
+-rw-r--r-T   1 0        0              2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 0        0             64 Oct 10 00:30 sub
+-rwsr-xr-x   1 0        0              2 Oct 10 00:14 suid
+-rwSr--r--   1 0        0              2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 0        0             32 Oct 10 00:32 tdir
+=== ls -ln t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 0        0          1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 0        0          3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 0        0              0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 0        0             32 Oct 10 00:33 .hdir
+-rw-r--r--   1 0        0              2 Oct 10 00:21 .hidden
+-rw-r--r--   2 0        0              6 Oct 10 00:10 a
+-rw-r--r--   1 0        0              2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 0        0              2 Oct 10 00:23 bl
+brw-r--r--   1 0        0          1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 0        0          3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 0        0             32 Oct 10 00:31 empty
+prw-r--r--   1 0        0              0 Oct 10 00:24 fifo
+-rw-r--r--   1 0        0              2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 0        0              6 Oct 10 00:10 link2
+-rw-r--r--   1 0        0              2 May 10 12:00 m5
+-rw-r--r--   1 0        0              2 Apr 10  1998 m6
+-rw-r--r--   1 0        0              2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 0        0              2 Jan  1  1985 old
+-rwxr-xr-x   1 0        0           8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 0        0              2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 0        0              2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 0        0              2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 0        0              2 Oct 10 00:18 sticky
+-rw-r--r-T   1 0        0              2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 0        0             64 Oct 10 00:30 sub
+-rwsr-xr-x   1 0        0              2 Oct 10 00:14 suid
+-rwSr--r--   1 0        0              2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 0        0             32 Oct 10 00:32 tdir
+=== ls -s t
+status 0
+total 1006
+   2 .hdir
+   2 .hidden
+   2 a
+   2 abcdefghijklmn
+   2 bl
+   0 bdev
+   0 cdev
+   2 empty
+   0 fifo
+   2 future
+ 872 huge
+   2 link2
+   2 m5
+   2 m6
+   2 m7
+  74 medium
+   2 old
+  18 prog
+   2 sgid
+   2 sgidnox
+   2 sp ace
+   2 sticky
+   2 stickynox
+   2 sub
+   2 suid
+   2 suidnox
+   2 tdir
+=== ls -s t/huge t/fifo t/cdev t/bdev t
+status 0
+   0 t/bdev
+   0 t/cdev
+   0 t/fifo
+ 872 t/huge
+
+t:
+total 1006
+   2 .hdir
+   2 .hidden
+   2 a
+   2 abcdefghijklmn
+   2 bl
+   0 bdev
+   0 cdev
+   2 empty
+   0 fifo
+   2 future
+ 872 huge
+   2 link2
+   2 m5
+   2 m6
+   2 m7
+  74 medium
+   2 old
+  18 prog
+   2 sgid
+   2 sgidnox
+   2 sp ace
+   2 sticky
+   2 stickynox
+   2 sub
+   2 suid
+   2 suidnox
+   2 tdir
+=== ls -ls t
+status 0
+total 1006
+   2 drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+   2 -rw-r--r--   2 root     root           6 Oct 10 00:10 a
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+   0 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+   0 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+   2 drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+   0 prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+   2 -rw-r--r--   1 root     root           2 Jan  1  1999 future
+ 872 -rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+   2 -rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+   2 -rw-r--r--   1 root     root           2 May 10 12:00 m5
+   2 -rw-r--r--   1 root     root           2 Apr 10  1998 m6
+   2 -rw-r--r--   1 root     root           2 Mar 10  1998 m7
+  74 -rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+   2 -rw-r--r--   1 root     root           2 Jan  1  1985 old
+  18 -rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+   2 -rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+   2 -rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+   2 -rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+   2 -rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+   2 drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+   2 -rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+   2 -rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+   2 drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -ls t/huge t/fifo t/cdev t/bdev t
+status 0
+   0 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+   0 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+   0 prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+ 872 -rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+   2 drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+   2 -rw-r--r--   2 root     root           6 Oct 10 00:10 a
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+   0 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+   0 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+   2 drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+   0 prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+   2 -rw-r--r--   1 root     root           2 Jan  1  1999 future
+ 872 -rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+   2 -rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+   2 -rw-r--r--   1 root     root           2 May 10 12:00 m5
+   2 -rw-r--r--   1 root     root           2 Apr 10  1998 m6
+   2 -rw-r--r--   1 root     root           2 Mar 10  1998 m7
+  74 -rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+   2 -rw-r--r--   1 root     root           2 Jan  1  1985 old
+  18 -rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+   2 -rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+   2 -rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+   2 -rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+   2 -rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+   2 -rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+   2 drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+   2 -rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+   2 -rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+   2 drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -i t
+status 0
+  873 .hdir
+  880 .hidden
+  896 a
+  881 abcdefghijklmn
+  878 bl
+  850 bdev
+  869 cdev
+  875 empty
+  870 fifo
+  891 future
+  894 huge
+  896 link2
+  884 m5
+  883 m6
+  882 m7
+  852 medium
+  886 old
+  893 prog
+  888 sgid
+  887 sgidnox
+  879 sp ace
+  885 sticky
+  890 stickynox
+  877 sub
+  892 suid
+  889 suidnox
+  874 tdir
+=== ls -i t/huge t/fifo t/cdev t/bdev t
+status 0
+  850 t/bdev
+  869 t/cdev
+  870 t/fifo
+  894 t/huge
+
+t:
+  873 .hdir
+  880 .hidden
+  896 a
+  881 abcdefghijklmn
+  878 bl
+  850 bdev
+  869 cdev
+  875 empty
+  870 fifo
+  891 future
+  894 huge
+  896 link2
+  884 m5
+  883 m6
+  882 m7
+  852 medium
+  886 old
+  893 prog
+  888 sgid
+  887 sgidnox
+  879 sp ace
+  885 sticky
+  890 stickynox
+  877 sub
+  892 suid
+  889 suidnox
+  874 tdir
+=== ls -li t
+status 0
+total 1006
+  873 drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+  880 -rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+  896 -rw-r--r--   2 root     root           6 Oct 10 00:10 a
+  881 -rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+  878 -rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+  850 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+  869 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+  875 drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+  870 prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+  891 -rw-r--r--   1 root     root           2 Jan  1  1999 future
+  894 -rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+  896 -rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+  884 -rw-r--r--   1 root     root           2 May 10 12:00 m5
+  883 -rw-r--r--   1 root     root           2 Apr 10  1998 m6
+  882 -rw-r--r--   1 root     root           2 Mar 10  1998 m7
+  852 -rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+  886 -rw-r--r--   1 root     root           2 Jan  1  1985 old
+  893 -rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+  888 -rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+  887 -rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+  879 -rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+  885 -rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+  890 -rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+  877 drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+  892 -rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+  889 -rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+  874 drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -li t/huge t/fifo t/cdev t/bdev t
+status 0
+  850 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+  869 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+  870 prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+  894 -rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+  873 drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+  880 -rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+  896 -rw-r--r--   2 root     root           6 Oct 10 00:10 a
+  881 -rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+  878 -rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+  850 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+  869 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+  875 drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+  870 prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+  891 -rw-r--r--   1 root     root           2 Jan  1  1999 future
+  894 -rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+  896 -rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+  884 -rw-r--r--   1 root     root           2 May 10 12:00 m5
+  883 -rw-r--r--   1 root     root           2 Apr 10  1998 m6
+  882 -rw-r--r--   1 root     root           2 Mar 10  1998 m7
+  852 -rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+  886 -rw-r--r--   1 root     root           2 Jan  1  1985 old
+  893 -rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+  888 -rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+  887 -rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+  879 -rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+  885 -rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+  890 -rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+  877 drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+  892 -rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+  889 -rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+  874 drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -lis t
+status 0
+total 1006
+  873    2 drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+  880    2 -rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+  896    2 -rw-r--r--   2 root     root           6 Oct 10 00:10 a
+  881    2 -rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+  878    2 -rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+  850    0 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+  869    0 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+  875    2 drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+  870    0 prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+  891    2 -rw-r--r--   1 root     root           2 Jan  1  1999 future
+  894  872 -rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+  896    2 -rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+  884    2 -rw-r--r--   1 root     root           2 May 10 12:00 m5
+  883    2 -rw-r--r--   1 root     root           2 Apr 10  1998 m6
+  882    2 -rw-r--r--   1 root     root           2 Mar 10  1998 m7
+  852   74 -rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+  886    2 -rw-r--r--   1 root     root           2 Jan  1  1985 old
+  893   18 -rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+  888    2 -rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+  887    2 -rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+  879    2 -rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+  885    2 -rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+  890    2 -rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+  877    2 drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+  892    2 -rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+  889    2 -rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+  874    2 drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -lis t/huge t/fifo t/cdev t/bdev t
+status 0
+  850    0 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+  869    0 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+  870    0 prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+  894  872 -rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+  873    2 drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+  880    2 -rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+  896    2 -rw-r--r--   2 root     root           6 Oct 10 00:10 a
+  881    2 -rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+  878    2 -rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+  850    0 brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+  869    0 crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+  875    2 drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+  870    0 prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+  891    2 -rw-r--r--   1 root     root           2 Jan  1  1999 future
+  894  872 -rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+  896    2 -rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+  884    2 -rw-r--r--   1 root     root           2 May 10 12:00 m5
+  883    2 -rw-r--r--   1 root     root           2 Apr 10  1998 m6
+  882    2 -rw-r--r--   1 root     root           2 Mar 10  1998 m7
+  852   74 -rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+  886    2 -rw-r--r--   1 root     root           2 Jan  1  1985 old
+  893   18 -rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+  888    2 -rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+  887    2 -rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+  879    2 -rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+  885    2 -rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+  890    2 -rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+  877    2 drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+  892    2 -rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+  889    2 -rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+  874    2 drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -F t
+status 0
+.hdir/
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty/
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog*
+sgid*
+sgidnox
+sp ace
+sticky*
+stickynox
+sub/
+suid*
+suidnox
+tdir/
+=== ls -F t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev
+t/cdev
+t/fifo
+t/huge
+
+t:
+.hdir/
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty/
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog*
+sgid*
+sgidnox
+sp ace
+sticky*
+stickynox
+sub/
+suid*
+suidnox
+tdir/
+=== ls -p t
+status 0
+.hdir/
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty/
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub/
+suid
+suidnox
+tdir/
+=== ls -p t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev
+t/cdev
+t/fifo
+t/huge
+
+t:
+.hdir/
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty/
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub/
+suid
+suidnox
+tdir/
+=== ls -lF t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir/
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty/
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog*
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid*
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky*
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub/
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid*
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir/
+=== ls -lF t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir/
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty/
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog*
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid*
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky*
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub/
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid*
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir/
+=== ls -lp t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir/
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty/
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub/
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir/
+=== ls -lp t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir/
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty/
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub/
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir/
+=== ls -C t
+status 0
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+=== ls -C t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev  t/cdev  t/fifo  t/huge
+
+t:
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+=== ls -x t
+status 0
+.hdir           .hidden         a               abcdefghijklmn  bl
+bdev            cdev            empty           fifo            future
+huge            link2           m5              m6              m7
+medium          old             prog            sgid            sgidnox
+sp ace          sticky          stickynox       sub             suid
+suidnox         tdir
+=== ls -x t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev  t/cdev  t/fifo  t/huge
+
+t:
+.hdir           .hidden         a               abcdefghijklmn  bl
+bdev            cdev            empty           fifo            future
+huge            link2           m5              m6              m7
+medium          old             prog            sgid            sgidnox
+sp ace          sticky          stickynox       sub             suid
+suidnox         tdir
+=== ls -m t
+status 0
+.hdir, .hidden, a, abcdefghijklmn, bl, bdev, cdev, empty, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog, sgid, sgidnox,
+sp ace, sticky, stickynox, sub, suid, suidnox, tdir
+=== ls -m t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev, t/cdev, t/fifo, t/huge
+
+t:
+.hdir, .hidden, a, abcdefghijklmn, bl, bdev, cdev, empty, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog, sgid, sgidnox,
+sp ace, sticky, stickynox, sub, suid, suidnox, tdir
+=== ls -CF t
+status 0
+.hdir/           empty/           m7               sticky*
+.hidden          fifo             medium           stickynox
+a                future           old              sub/
+abcdefghijklmn   huge             prog*            suid*
+bl              link2            sgid*            suidnox
+bdev             m5               sgidnox          tdir/
+cdev             m6               sp ace
+=== ls -CF t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev   t/cdev   t/fifo   t/huge
+
+t:
+.hdir/           empty/           m7               sticky*
+.hidden          fifo             medium           stickynox
+a                future           old              sub/
+abcdefghijklmn   huge             prog*            suid*
+bl              link2            sgid*            suidnox
+bdev             m5               sgidnox          tdir/
+cdev             m6               sp ace
+=== ls -Cs t
+status 0
+total 1006              2 future             2 sgidnox
+   2 .hdir            872 huge               2 sp ace
+   2 .hidden            2 link2              2 sticky
+   2 a                  2 m5                 2 stickynox
+   2 abcdefghijklmn     2 m6                 2 sub
+   2 bl                2 m7                 2 suid
+   0 bdev              74 medium             2 suidnox
+   0 cdev               2 old                2 tdir
+   2 empty             18 prog
+   0 fifo               2 sgid
+=== ls -Cs t/a t/sub t/empty
+status 0
+   2 t/a
+
+t/empty:
+total 0
+
+t/sub:
+total 4       2 deep     2 f
+=== ls -Cs t/huge t/fifo t/cdev t/bdev t
+status 0
+   0 t/bdev     0 t/cdev     0 t/fifo   872 t/huge
+
+t:
+total 1006              2 future             2 sgidnox
+   2 .hdir            872 huge               2 sp ace
+   2 .hidden            2 link2              2 sticky
+   2 a                  2 m5                 2 stickynox
+   2 abcdefghijklmn     2 m6                 2 sub
+   2 bl                2 m7                 2 suid
+   0 bdev              74 medium             2 suidnox
+   0 cdev               2 old                2 tdir
+   2 empty             18 prog
+   0 fifo               2 sgid
+=== ls -Ci t
+status 0
+  873 .hdir             891 future            888 sgid
+  880 .hidden           894 huge              887 sgidnox
+  896 a                 896 link2             879 sp ace
+  881 abcdefghijklmn    884 m5                885 sticky
+  878 bl               883 m6                890 stickynox
+  850 bdev              882 m7                877 sub
+  869 cdev              852 medium            892 suid
+  875 empty             886 old               889 suidnox
+  870 fifo              893 prog              874 tdir
+=== ls -Ci t/huge t/fifo t/cdev t/bdev t
+status 0
+  850 t/bdev    869 t/cdev    870 t/fifo    894 t/huge
+
+t:
+  873 .hdir             891 future            888 sgid
+  880 .hidden           894 huge              887 sgidnox
+  896 a                 896 link2             879 sp ace
+  881 abcdefghijklmn    884 m5                885 sticky
+  878 bl               883 m6                890 stickynox
+  850 bdev              882 m7                877 sub
+  869 cdev              852 medium            892 suid
+  875 empty             886 old               889 suidnox
+  870 fifo              893 prog              874 tdir
+=== ls -Cis t
+status 0
+total 1006                   883    2 m6
+  873    2 .hdir             882    2 m7
+  880    2 .hidden           852   74 medium
+  896    2 a                 886    2 old
+  881    2 abcdefghijklmn    893   18 prog
+  878    2 bl               888    2 sgid
+  850    0 bdev              887    2 sgidnox
+  869    0 cdev              879    2 sp ace
+  875    2 empty             885    2 sticky
+  870    0 fifo              890    2 stickynox
+  891    2 future            877    2 sub
+  894  872 huge              892    2 suid
+  896    2 link2             889    2 suidnox
+  884    2 m5                874    2 tdir
+=== ls -Cis t/a t/sub t/empty
+status 0
+  896    2 t/a
+
+t/empty:
+total 0
+
+t/sub:
+total 4            876    2 deep    872    2 f
+=== ls -Cis t/huge t/fifo t/cdev t/bdev t
+status 0
+  850    0 t/bdev    869    0 t/cdev    870    0 t/fifo    894  872 t/huge
+
+t:
+total 1006                   883    2 m6
+  873    2 .hdir             882    2 m7
+  880    2 .hidden           852   74 medium
+  896    2 a                 886    2 old
+  881    2 abcdefghijklmn    893   18 prog
+  878    2 bl               888    2 sgid
+  850    0 bdev              887    2 sgidnox
+  869    0 cdev              879    2 sp ace
+  875    2 empty             885    2 sticky
+  870    0 fifo              890    2 stickynox
+  891    2 future            877    2 sub
+  894  872 huge              892    2 suid
+  896    2 link2             889    2 suidnox
+  884    2 m5                874    2 tdir
+=== ls -xs t
+status 0
+total 1006              2 .hdir              2 .hidden
+   2 a                  2 abcdefghijklmn     2 bl
+   0 bdev               0 cdev               2 empty
+   0 fifo               2 future           872 huge
+   2 link2              2 m5                 2 m6
+   2 m7                74 medium             2 old
+  18 prog               2 sgid               2 sgidnox
+   2 sp ace             2 sticky             2 stickynox
+   2 sub                2 suid               2 suidnox
+   2 tdir
+=== ls -xs t/a t/sub t/empty
+status 0
+   2 t/a
+
+t/empty:
+total 0
+
+t/sub:
+total 4       2 deep     2 f
+=== ls -xs t/huge t/fifo t/cdev t/bdev t
+status 0
+   0 t/bdev     0 t/cdev     0 t/fifo   872 t/huge
+
+t:
+total 1006              2 .hdir              2 .hidden
+   2 a                  2 abcdefghijklmn     2 bl
+   0 bdev               0 cdev               2 empty
+   0 fifo               2 future           872 huge
+   2 link2              2 m5                 2 m6
+   2 m7                74 medium             2 old
+  18 prog               2 sgid               2 sgidnox
+   2 sp ace             2 sticky             2 stickynox
+   2 sub                2 suid               2 suidnox
+   2 tdir
+=== ls -xi t
+status 0
+  873 .hdir             880 .hidden           896 a
+  881 abcdefghijklmn    878 bl               850 bdev
+  869 cdev              875 empty             870 fifo
+  891 future            894 huge              896 link2
+  884 m5                883 m6                882 m7
+  852 medium            886 old               893 prog
+  888 sgid              887 sgidnox           879 sp ace
+  885 sticky            890 stickynox         877 sub
+  892 suid              889 suidnox           874 tdir
+=== ls -xi t/huge t/fifo t/cdev t/bdev t
+status 0
+  850 t/bdev    869 t/cdev    870 t/fifo    894 t/huge
+
+t:
+  873 .hdir             880 .hidden           896 a
+  881 abcdefghijklmn    878 bl               850 bdev
+  869 cdev              875 empty             870 fifo
+  891 future            894 huge              896 link2
+  884 m5                883 m6                882 m7
+  852 medium            886 old               893 prog
+  888 sgid              887 sgidnox           879 sp ace
+  885 sticky            890 stickynox         877 sub
+  892 suid              889 suidnox           874 tdir
+=== ls -mF t
+status 0
+.hdir/, .hidden, a, abcdefghijklmn, bl, bdev, cdev, empty/, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog*, sgid*, sgidnox,
+sp ace, sticky*, stickynox, sub/, suid*, suidnox, tdir/
+=== ls -mF t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev, t/cdev, t/fifo, t/huge
+
+t:
+.hdir/, .hidden, a, abcdefghijklmn, bl, bdev, cdev, empty/, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog*, sgid*, sgidnox,
+sp ace, sticky*, stickynox, sub/, suid*, suidnox, tdir/
+=== ls -mi t
+status 0
+873 .hdir, 880 .hidden, 896 a, 881 abcdefghijklmn, 878 bl,
+850 bdev, 869 cdev, 875 empty, 870 fifo, 891 future, 894 huge,
+896 link2, 884 m5, 883 m6, 882 m7, 852 medium, 886 old, 893 prog,
+888 sgid, 887 sgidnox, 879 sp ace, 885 sticky, 890 stickynox,
+877 sub, 892 suid, 889 suidnox, 874 tdir
+=== ls -mi t/a t/sub t/empty
+status 0
+896 t/a
+
+t/empty:
+
+t/sub:
+876 deep, 872 f
+=== ls -mi t/huge t/fifo t/cdev t/bdev t
+status 0
+850 t/bdev, 869 t/cdev, 870 t/fifo, 894 t/huge
+
+t:
+873 .hdir, 880 .hidden, 896 a, 881 abcdefghijklmn, 878 bl,
+850 bdev, 869 cdev, 875 empty, 870 fifo, 891 future, 894 huge,
+896 link2, 884 m5, 883 m6, 882 m7, 852 medium, 886 old, 893 prog,
+888 sgid, 887 sgidnox, 879 sp ace, 885 sticky, 890 stickynox,
+877 sub, 892 suid, 889 suidnox, 874 tdir
+=== ls -mi t/nosuch t/a
+status 2
+t/nosuch not found
+896 t/a
+=== ls -ms t
+status 0
+total 1006, 2 .hdir, 2 .hidden, 2 a, 2 abcdefghijklmn, 2 bl,
+0 bdev, 0 cdev, 2 empty, 0 fifo, 2 future, 872 huge, 2 link2,
+2 m5, 2 m6, 2 m7, 74 medium, 2 old, 18 prog, 2 sgid, 2 sgidnox,
+2 sp ace, 2 sticky, 2 stickynox, 2 sub, 2 suid, 2 suidnox,
+2 tdir
+=== ls -ms t/a t/sub t/empty
+status 0
+2 t/a
+
+t/empty:
+total 0
+
+t/sub:
+total 4, 2 deep, 2 f
+=== ls -ms t/huge t/fifo t/cdev t/bdev t
+status 0
+0 t/bdev, 0 t/cdev, 0 t/fifo, 872 t/huge
+
+t:
+total 1006, 2 .hdir, 2 .hidden, 2 a, 2 abcdefghijklmn, 2 bl,
+0 bdev, 0 cdev, 2 empty, 0 fifo, 2 future, 872 huge, 2 link2,
+2 m5, 2 m6, 2 m7, 74 medium, 2 old, 18 prog, 2 sgid, 2 sgidnox,
+2 sp ace, 2 sticky, 2 stickynox, 2 sub, 2 suid, 2 suidnox,
+2 tdir
+=== ls -ms t/nosuch t/a
+status 2
+t/nosuch not found
+2 t/a
+=== ls -1 t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -1 t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev
+t/cdev
+t/fifo
+t/huge
+
+t:
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -R t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+
+t/.hdir:
+
+t/empty:
+
+t/sub:
+deep
+f
+
+t/sub/deep:
+g
+
+t/tdir:
+=== ls -R t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev
+t/cdev
+t/fifo
+t/huge
+
+t:
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+
+t/.hdir:
+
+t/empty:
+
+t/sub:
+deep
+f
+
+t/sub/deep:
+g
+
+t/tdir:
+=== ls -lR t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+
+t/.hdir:
+total 0
+
+t/empty:
+total 0
+
+t/sub:
+total 4
+drwxr-xr-x   2 root     root          48 Oct 10 00:29 deep
+-rw-r--r--   1 root     root           2 Oct 10 00:27 f
+
+t/sub/deep:
+total 2
+-rw-r--r--   1 root     root           2 Oct 10 00:28 g
+
+t/tdir:
+total 0
+=== ls -lR t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+
+t/.hdir:
+total 0
+
+t/empty:
+total 0
+
+t/sub:
+total 4
+drwxr-xr-x   2 root     root          48 Oct 10 00:29 deep
+-rw-r--r--   1 root     root           2 Oct 10 00:27 f
+
+t/sub/deep:
+total 2
+-rw-r--r--   1 root     root           2 Oct 10 00:28 g
+
+t/tdir:
+total 0
+=== ls -CR t
+status 0
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+
+t/.hdir:
+
+t/empty:
+
+t/sub:
+deep  f
+
+t/sub/deep:
+g
+
+t/tdir:
+=== ls -CR t/huge t/fifo t/cdev t/bdev t
+status 0
+t/bdev  t/cdev  t/fifo  t/huge
+
+t:
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+
+t/.hdir:
+
+t/empty:
+
+t/sub:
+deep  f
+
+t/sub/deep:
+g
+
+t/tdir:
+=== ls -f t/a t/sub t/empty
+status 0
+
+t/a:
+
+t/empty:
+.
+..
+
+t/sub:
+.
+..
+deep
+f
+# from M33: the same tree, made again on XENIX the next run, with the same dates
+=== ls t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -a t
+status 0
+.
+..
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -l t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -la t
+status 0
+total 1010
+drwxr-xr-x   6 root     root         464 Oct 10 00:05 .
+drwxr-xr-x   3 root     root         192 Oct 10 04:26 ..
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -ltr t
+status 0
+total 1006
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+=== ls -n t
+status 0
+total 1006
+drwxr-xr-x   2 0        0             32 Oct 10 00:33 .hdir
+-rw-r--r--   1 0        0              2 Oct 10 00:21 .hidden
+-rw-r--r--   2 0        0              6 Oct 10 00:10 a
+-rw-r--r--   1 0        0              2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 0        0              2 Oct 10 00:23 bl
+brw-r--r--   1 0        0          1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 0        0          3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 0        0             32 Oct 10 00:31 empty
+prw-r--r--   1 0        0              0 Oct 10 00:24 fifo
+-rw-r--r--   1 0        0              2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 0        0              6 Oct 10 00:10 link2
+-rw-r--r--   1 0        0              2 May 10 12:00 m5
+-rw-r--r--   1 0        0              2 Apr 10  1998 m6
+-rw-r--r--   1 0        0              2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 0        0              2 Jan  1  1985 old
+-rwxr-xr-x   1 0        0           8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 0        0              2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 0        0              2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 0        0              2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 0        0              2 Oct 10 00:18 sticky
+-rw-r--r-T   1 0        0              2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 0        0             64 Oct 10 00:30 sub
+-rwsr-xr-x   1 0        0              2 Oct 10 00:14 suid
+-rwSr--r--   1 0        0              2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 0        0             32 Oct 10 00:32 tdir
+=== ls -o t
+status 0
+total 1006
+drwxr-xr-x   2 root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root           6 Oct 10 00:10 a
+-rw-r--r--   1 root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root           2 Oct 10 00:23 bl
+brw-r--r--   1 root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root          32 Oct 10 00:31 empty
+prw-r--r--   1 root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root           2 Jan  1  1999 future
+-rw-r--r--   1 999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root           2 May 10 12:00 m5
+-rw-r--r--   1 root           2 Apr 10  1998 m6
+-rw-r--r--   1 root           2 Mar 10  1998 m7
+-rw-r--r--   1 2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root          32 Oct 10 00:32 tdir
+=== ls -g t
+status 0
+total 1006
+drwxr-xr-x   2 root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root           6 Oct 10 00:10 a
+-rw-r--r--   1 root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root           2 Oct 10 00:23 bl
+brw-r--r--   1 root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root          32 Oct 10 00:31 empty
+prw-r--r--   1 root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root           2 Jan  1  1999 future
+-rw-r--r--   1 999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root           2 May 10 12:00 m5
+-rw-r--r--   1 root           2 Apr 10  1998 m6
+-rw-r--r--   1 root           2 Mar 10  1998 m7
+-rw-r--r--   1 2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root          32 Oct 10 00:32 tdir
+=== ls -og t
+status 0
+total 1006
+drwxr-xr-x   2      32 Oct 10 00:33 .hdir
+-rw-r--r--   1       2 Oct 10 00:21 .hidden
+-rw-r--r--   2       6 Oct 10 00:10 a
+-rw-r--r--   1       2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1       2 Oct 10 00:23 bl
+brw-r--r--   1   1, 40 Oct 10 00:26 bdev
+crw-r--r--   1   3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2      32 Oct 10 00:31 empty
+prw-r--r--   1       0 Oct 10 00:24 fifo
+-rw-r--r--   1       2 Jan  1  1999 future
+-rw-r--r--   1  440835 Oct 10 00:12 huge
+-rw-r--r--   2       6 Oct 10 00:10 link2
+-rw-r--r--   1       2 May 10 12:00 m5
+-rw-r--r--   1       2 Apr 10  1998 m6
+-rw-r--r--   1       2 Mar 10  1998 m7
+-rw-r--r--   1   36790 Oct 10 00:11 medium
+-rw-r--r--   1       2 Jan  1  1985 old
+-rwxr-xr-x   1    8993 Oct 10 00:13 prog
+-rwxr-sr-x   1       2 Oct 10 00:16 sgid
+-rw-r-Sr--   1       2 Oct 10 00:17 sgidnox
+-rw-r--r--   1       2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1       2 Oct 10 00:18 sticky
+-rw-r--r-T   1       2 Oct 10 00:19 stickynox
+drwxr-xr-x   3      64 Oct 10 00:30 sub
+-rwsr-xr-x   1       2 Oct 10 00:14 suid
+-rwSr--r--   1       2 Oct 10 00:15 suidnox
+drwxrwxrwt   2      32 Oct 10 00:32 tdir
+=== ls -s t
+status 0
+total 1006
+   2 .hdir
+   2 .hidden
+   2 a
+   2 abcdefghijklmn
+   2 bl
+   0 bdev
+   0 cdev
+   2 empty
+   0 fifo
+   2 future
+ 872 huge
+   2 link2
+   2 m5
+   2 m6
+   2 m7
+  74 medium
+   2 old
+  18 prog
+   2 sgid
+   2 sgidnox
+   2 sp ace
+   2 sticky
+   2 stickynox
+   2 sub
+   2 suid
+   2 suidnox
+   2 tdir
+=== ls -F t
+status 0
+.hdir/
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty/
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog*
+sgid*
+sgidnox
+sp ace
+sticky*
+stickynox
+sub/
+suid*
+suidnox
+tdir/
+=== ls -lF t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir/
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty/
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog*
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid*
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky*
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub/
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid*
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir/
+=== ls -C t
+status 0
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+=== ls -x t
+status 0
+.hdir           .hidden         a               abcdefghijklmn  bl
+bdev            cdev            empty           fifo            future
+huge            link2           m5              m6              m7
+medium          old             prog            sgid            sgidnox
+sp ace          sticky          stickynox       sub             suid
+suidnox         tdir
+=== ls -m t
+status 0
+.hdir, .hidden, a, abcdefghijklmn, bl, bdev, cdev, empty, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog, sgid, sgidnox,
+sp ace, sticky, stickynox, sub, suid, suidnox, tdir
+=== ls -CF t
+status 0
+.hdir/           empty/           m7               sticky*
+.hidden          fifo             medium           stickynox
+a                future           old              sub/
+abcdefghijklmn   huge             prog*            suid*
+bl              link2            sgid*            suidnox
+bdev             m5               sgidnox          tdir/
+cdev             m6               sp ace
+=== ls -xs t
+status 0
+total 1006              2 .hdir              2 .hidden
+   2 a                  2 abcdefghijklmn     2 bl
+   0 bdev               0 cdev               2 empty
+   0 fifo               2 future           872 huge
+   2 link2              2 m5                 2 m6
+   2 m7                74 medium             2 old
+  18 prog               2 sgid               2 sgidnox
+   2 sp ace             2 sticky             2 stickynox
+   2 sub                2 suid               2 suidnox
+   2 tdir
+=== ls -ms t
+status 0
+total 1006, 2 .hdir, 2 .hidden, 2 a, 2 abcdefghijklmn, 2 bl,
+0 bdev, 0 cdev, 2 empty, 0 fifo, 2 future, 872 huge, 2 link2,
+2 m5, 2 m6, 2 m7, 74 medium, 2 old, 18 prog, 2 sgid, 2 sgidnox,
+2 sp ace, 2 sticky, 2 stickynox, 2 sub, 2 suid, 2 suidnox,
+2 tdir
+=== ls -mF t
+status 0
+.hdir/, .hidden, a, abcdefghijklmn, bl, bdev, cdev, empty/, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog*, sgid*, sgidnox,
+sp ace, sticky*, stickynox, sub/, suid*, suidnox, tdir/
+=== ls -R t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+
+t/.hdir:
+
+t/empty:
+
+t/sub:
+deep
+f
+
+t/sub/deep:
+g
+
+t/tdir:
+=== ls -lR t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+
+t/.hdir:
+total 0
+
+t/empty:
+total 0
+
+t/sub:
+total 4
+drwxr-xr-x   2 root     root          48 Oct 10 00:29 deep
+-rw-r--r--   1 root     root           2 Oct 10 00:27 f
+
+t/sub/deep:
+total 2
+-rw-r--r--   1 root     root           2 Oct 10 00:28 g
+
+t/tdir:
+total 0
+=== ls -d t
+status 0
+t
+=== ls -ld t
+status 0
+drwxr-xr-x   6 root     root         464 Oct 10 00:05 t
+=== ls -f t
+status 0
+.
+..
+sub
+empty
+tdir
+.hdir
+a
+link2
+medium
+huge
+prog
+suid
+suidnox
+sgid
+sgidnox
+sticky
+stickynox
+old
+future
+m5
+m6
+m7
+abcdefghijklmn
+.hidden
+sp ace
+bl
+fifo
+cdev
+bdev
+=== ls -fl t
+status 0
+.
+..
+sub
+empty
+tdir
+.hdir
+a
+link2
+medium
+huge
+prog
+suid
+suidnox
+sgid
+sgidnox
+sticky
+stickynox
+old
+future
+m5
+m6
+m7
+abcdefghijklmn
+.hidden
+sp ace
+bl
+fifo
+cdev
+bdev
+=== ls -b t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+b\007l
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -q t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+b?l
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -lb t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 b\007l
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -Cb t
+status 0
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+b\007l          huge            old             stickynox
+bdev            link2           prog            sub
+=== ls -mb t
+status 0
+.hdir, .hidden, a, abcdefghijklmn, b\007l, bdev, cdev, empty, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog, sgid, sgidnox,
+sp ace, sticky, stickynox, sub, suid, suidnox, tdir
+=== ls -r t
+status 0
+tdir
+suidnox
+suid
+sub
+stickynox
+sticky
+sp ace
+sgidnox
+sgid
+prog
+old
+medium
+m7
+m6
+m5
+link2
+huge
+future
+fifo
+empty
+cdev
+bdev
+bl
+abcdefghijklmn
+a
+.hidden
+.hdir
+=== ls -tr t
+status 0
+old
+m7
+m6
+m5
+a
+link2
+medium
+huge
+prog
+suid
+suidnox
+sgid
+sgidnox
+sticky
+stickynox
+abcdefghijklmn
+.hidden
+sp ace
+bl
+fifo
+cdev
+bdev
+sub
+empty
+tdir
+.hdir
+future
+=== ls -Cl t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -lC t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls -mC t
+status 0
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+=== ls -Cm t
+status 0
+.hdir, .hidden, a, abcdefghijklmn, bl, bdev, cdev, empty, fifo,
+future, huge, link2, m5, m6, m7, medium, old, prog, sgid, sgidnox,
+sp ace, sticky, stickynox, sub, suid, suidnox, tdir
+=== ls -m1 t
+status 0
+.hdir
+.hidden
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls -Cx t
+status 0
+.hdir           .hidden         a               abcdefghijklmn  bl
+bdev            cdev            empty           fifo            future
+huge            link2           m5              m6              m7
+medium          old             prog            sgid            sgidnox
+sp ace          sticky          stickynox       sub             suid
+suidnox         tdir
+=== ls -xC t
+status 0
+.hdir           .hidden         a               abcdefghijklmn  bl
+bdev            cdev            empty           fifo            future
+huge            link2           m5              m6              m7
+medium          old             prog            sgid            sgidnox
+sp ace          sticky          stickynox       sub             suid
+suidnox         tdir
+=== ls -A t
+status 0
+a
+abcdefghijklmn
+bl
+bdev
+cdev
+empty
+fifo
+future
+huge
+link2
+m5
+m6
+m7
+medium
+old
+prog
+sgid
+sgidnox
+sp ace
+sticky
+stickynox
+sub
+suid
+suidnox
+tdir
+=== ls t/a t/sub t/empty
+status 0
+t/a
+
+t/empty:
+
+t/sub:
+deep
+f
+=== ls t/sub t/empty
+status 0
+
+t/empty:
+
+t/sub:
+deep
+f
+=== ls -l t/huge t/fifo t/cdev t/bdev t
+status 0
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 t/bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 t/cdev
+prw-r--r--   1 root     root           0 Oct 10 00:24 t/fifo
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 t/huge
+
+t:
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== ls t/nosuch t/a
+status 2
+t/nosuch not found
+t/a
+=== ls -d t t/sub t/a
+status 0
+t
+t/a
+t/sub
+=== ls -R t/sub
+status 0
+deep
+f
+
+t/sub/deep:
+g
+=== l t
+status 0
+total 1006
+drwxr-xr-x   2 root     root          32 Oct 10 00:33 .hdir
+-rw-r--r--   1 root     root           2 Oct 10 00:21 .hidden
+-rw-r--r--   2 root     root           6 Oct 10 00:10 a
+-rw-r--r--   1 root     root           2 Oct 10 00:20 abcdefghijklmn
+-rw-r--r--   1 root     root           2 Oct 10 00:23 bl
+brw-r--r--   1 root     root       1, 40 Oct 10 00:26 bdev
+crw-r--r--   1 root     root       3,  5 Oct 10 00:25 cdev
+drwxr-xr-x   2 root     root          32 Oct 10 00:31 empty
+prw-r--r--   1 root     root           0 Oct 10 00:24 fifo
+-rw-r--r--   1 root     root           2 Jan  1  1999 future
+-rw-r--r--   1 999      999       440835 Oct 10 00:12 huge
+-rw-r--r--   2 root     root           6 Oct 10 00:10 link2
+-rw-r--r--   1 root     root           2 May 10 12:00 m5
+-rw-r--r--   1 root     root           2 Apr 10  1998 m6
+-rw-r--r--   1 root     root           2 Mar 10  1998 m7
+-rw-r--r--   1 2        2          36790 Oct 10 00:11 medium
+-rw-r--r--   1 root     root           2 Jan  1  1985 old
+-rwxr-xr-x   1 root     root        8993 Oct 10 00:13 prog
+-rwxr-sr-x   1 root     root           2 Oct 10 00:16 sgid
+-rw-r-Sr--   1 root     root           2 Oct 10 00:17 sgidnox
+-rw-r--r--   1 root     root           2 Oct 10 00:22 sp ace
+-rwxr-xr-t   1 root     root           2 Oct 10 00:18 sticky
+-rw-r--r-T   1 root     root           2 Oct 10 00:19 stickynox
+drwxr-xr-x   3 root     root          64 Oct 10 00:30 sub
+-rwsr-xr-x   1 root     root           2 Oct 10 00:14 suid
+-rwSr--r--   1 root     root           2 Oct 10 00:15 suidnox
+drwxrwxrwt   2 root     root          32 Oct 10 00:32 tdir
+=== lc t
+status 0
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+=== lf t
+status 0
+.hdir/           empty/           m7               sticky*
+.hidden          fifo             medium           stickynox
+a                future           old              sub/
+abcdefghijklmn   huge             prog*            suid*
+bl              link2            sgid*            suidnox
+bdev             m5               sgidnox          tdir/
+cdev             m6               sp ace
+=== lr t
+status 0
+.hdir           cdev            m5              sgid            suid
+.hidden         empty           m6              sgidnox         suidnox
+a               fifo            m7              sp ace          tdir
+abcdefghijklmn  future          medium          sticky
+bl             huge            old             stickynox
+bdev            link2           prog            sub
+
+t/.hdir:
+
+t/empty:
+
+t/sub:
+deep  f
+
+t/sub/deep:
+g
+
+t/tdir:
+=== lx t
+status 0
+.hdir           .hidden         a               abcdefghijklmn  bl
+bdev            cdev            empty           fifo            future
+huge            link2           m5              m6              m7
+medium          old             prog            sgid            sgidnox
+sp ace          sticky          stickynox       sub             suid
+suidnox         tdir

@@ -4,7 +4,7 @@ The compiler, assembler and linker of this Development System are **BCC**, from
 Dev86 0.16.17: Bruce Evans's C compiler, assembler (as86) and linker (ld86),
 with Robert de Bath's preprocessor and the work of the Dev86 contributors.
 The archiver, ar86, is the GNU ar (1988, 1990) that Dev86 ships, and `cc -O`
-runs Dev86's peephole optimiser, copt (Gero Kuhlmann's, after an idea of
+runs Dev86's peephole optimizer, copt (Gero Kuhlmann's, after an idea of
 Christopher W. Fraser's).
 BCC is a K&R C compiler for the 8086 that was written to run on small 16-bit
 systems, and the linker's source still carries a work-around for "a bug in
@@ -23,7 +23,7 @@ against this project's own `libc.a` and headers.
 |----------|--------------------------|-----------------------|
 | bcc-cpp  | preprocessor             | about 30K             |
 | bcc-cc1  | compiler                 | 65,184 bytes          |
-| copt     | peephole optimiser       | about 15K             |
+| copt     | peephole optimizer       | about 15K             |
 | as86     | assembler                | about 33K             |
 | ld86     | linker                   | about 30K             |
 | ar86     | archiver                 | about 24K             |

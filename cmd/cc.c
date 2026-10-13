@@ -16,7 +16,7 @@
  *	-v		show each command as it runs
  *	-s		strip: leave the symbol table out of the program
  *			(by default it is kept, for nm and adb)
- *	-O		optimise: copt rewrites the compiler's output with the
+ *	-O		optimize: copt rewrites the compiler's output with the
  *			rules in LIBDIR, and as86 makes each jump as short as it
  *			can be
  *	-Mc		callersaves: a function keeps no registers for its

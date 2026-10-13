@@ -1,0 +1,102 @@
+.TH WHEREIS 1
+.SH NAME
+whereis \- locate the program, source and manual page of a command
+.SH SYNOPSIS
+.B whereis
+[\ \-sbmu\ ] [\ \-SBM\ dir\ ...\ \-f\ ] name ...
+.SH DESCRIPTION
+.B whereis
+looks for the program, the source and the manual pages of each
+.IR name ,
+in the places they are usually kept, and prints what it finds on one
+line:
+.PP
+.nf
+	$ whereis cc strcpy
+	cc: /usr/bin/cc /usr/man/cat1/cc.1
+	strcpy: /usr/man/cat3/string.3
+.fi
+.PP
+A path before the name is left off, and so is a suffix of one letter or
+digit, such as .c or .1, so that whereis can be given a file name. The
+places looked in are:
+.TP 12
+programs
+/bin, /usr/bin, /etc, /lib, /usr/lib, /usr/lib/cc, /usr/local/bin,
+/usr/local and /usr/games: executable files of that name
+.TP
+manuals
+/usr/man/cat\fIN\fP/\fIname\fP.\fIN\fP and /usr/man/man\fIN\fP/\fIname\fP.\fIN\fP,
+for each section N; and, from the index /usr/man/whatis, the page that
+describes
+.I name
+when it has another name, as string(3) does strcpy
+.TP
+sources
+/usr/src/cmd, /usr/src/lib, /usr/src/local and /usr/src: a file
+.IR name ,
+.IR name .c,
+.IR name .s,
+.IR name .y,
+.IR name .l,
+.IR name .f
+or
+.IR name .sh,
+or a directory
+.I name
+.PP
+The options are:
+.TP 6
+.B \-b
+Look only for programs.
+.TP
+.B \-m
+Look only for manual pages.
+.TP
+.B \-s
+Look only for sources.
+.TP
+.B \-u
+Print only the names that are unusual: those that do not have exactly
+one of each kind asked for.
+.TP
+.B \-B
+.PD 0
+.TP
+.B \-M
+.TP
+.B \-S
+.PD
+Look for programs, manuals or sources in the directories that follow,
+up to a
+.BR \-f ,
+instead of the usual places.
+.TP
+.B \-f
+End a list of directories.
+.SH EXAMPLES
+To list the commands in /usr/bin that do not have exactly one manual
+page:
+.PP
+.nf
+	cd /usr/bin
+	whereis \-m \-u *
+.fi
+.SH DIAGNOSTICS
+The exit status is 0, whether or not anything was found, and 2 after a
+mistake in the options.
+.SH SEE ALSO
+man(1), intro(1)
+.SH HISTORY
+The
+.B whereis
+command appeared in 3.0BSD.
+.SH AUTHORS
+This whereis was written for the xenix86-devsys system tools.
+.SH BUGS
+whereis looks only in the places it knows of, unlike the shell, which
+looks where PATH says.
+.PP
+A name with a suffix of one character, such as a command named
+.BR x.y ,
+loses it.

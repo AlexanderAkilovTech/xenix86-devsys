@@ -1,7 +1,7 @@
 /* string routines (lib/gen/*.s, 8086 string instructions) against reference C versions */
 #include <stdio.h>
 
-extern char *strcpy(), *strcat(), *memcpy(), *memset();
+extern char *strcpy(), *strcat(), *memcpy(), *memset(), *memchr();
 
 static unsigned long seed = 1;
 rnd(n)
@@ -12,6 +12,16 @@ int n;
 }
 
 r_strlen(s) char *s; { int n = 0; while (s[n]) n++; return n; }
+char *
+r_memchr(s, c, n)
+char *s;
+int c, n;
+{
+	for (; n > 0; n--, s++)
+		if ((*s & 0377) == (c & 0377))
+			return s;
+	return 0;
+}
 sgn(x) int x; { return x < 0 ? -1 : x > 0; }
 r_strcmp(a, b)
 char *a, *b;
@@ -78,6 +88,11 @@ main()
 		for (j = 7; j < 7 + n; j++)
 			if (d[j] != (char)0201) { bad++; break; }
 		if (r != d + 7) bad++;
+		/* memchr: found or not, a byte over 127, n = 0 */
+		tests++;
+		j = rnd(3) == 0 ? 0201 : 'a' + rnd(4);
+		n = rnd(25);
+		if (memchr(c + 1, j, n) != r_memchr(c + 1, j, n)) bad++;
 	}
 	printf("%d string tests, %d failures\n", tests, bad);
 	return bad != 0;

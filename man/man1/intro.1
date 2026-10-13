@@ -36,6 +36,26 @@ clear the terminal screen
 .B man
 print pages of this manual
 .PP
+With them come the system tools, a package of their own, TOOLS:
+.TP 10
+.B ls
+list the contents of directories, in place of XENIX's own, with the
+same names l, lc, lf, lr and lx, and an option \-h for sizes in K and M
+.TP
+.B df
+report free disk space, in place of XENIX's own, in K and M with \-v
+and \-h
+.TP
+.B whereis
+locate the program, source and manual page of a command
+.TP
+.B xtop
+show the processes using the machine, kept up to date; also called top
+.PP
+and the C shell prompt for new accounts: mkuser gives each one a .cshrc
+whose prompt shows the user, the machine and the current directory, in
+color on the console.
+.PP
 The debugger
 .B adb
 and the system headers in /usr/include/sys come with the Operating

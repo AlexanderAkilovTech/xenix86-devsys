@@ -1,7 +1,7 @@
 #!/bin/sh
 # build.sh - build BCC (Dev86 0.16.17) to run on XENIX 2.1.3 (8086):
 #   bcc-cpp  preprocessor     bcc-cc1  compiler     as86  assembler     ld86  linker
-#   copt     peephole optimiser (cc -O), and its rules files
+#   copt     peephole optimizer (cc -O), and its rules files
 #   ar86     archiver (GNU ar, as Dev86 ships it)
 # Results go to build/xenix/bin. Each must fit the 8086's 64K code segment;
 # bcc-cc1 is the tight one. Needs the host BCC tools and the fetched sources.

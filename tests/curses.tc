@@ -1,0 +1,14 @@
+# curses.tc - terminal descriptions for tests/unit/test_curses.py, written
+# for this project. Each is understood by the pyte terminal emulator the
+# test uses: a VT100-like one with everything, one with only cursor motion
+# and clearing, and one without automatic margins.
+cvt|curses test terminal, VT100-like:\
+	:am:xn:co#80:li#24:cl=\E[H\E[J:cm=\E[%i%d;%dH:ce=\E[K:cd=\E[J:\
+	:ho=\E[H:up=\E[A:do=^J:nd=\E[C:le=^H:cr=^M:so=\E[7m:se=\E[m:\
+	:us=\E[4m:ue=\E[m:md=\E[1m:mr=\E[7m:me=\E[m:al=\E[L:dl=\E[M:\
+	:ku=\E[A:kd=\E[B:kr=\E[C:kl=\E[D:kh=\E[H:k1=\EOP:k2=\EOQ:kb=^H:
+cmin|curses test terminal with only cursor motion and clearing:\
+	:am:xn:co#80:li#24:cl=\E[H\E[J:cm=\E[%i%d;%dH:
+cnoam|curses test terminal without automatic margins:\
+	:am@:xn@:ti=\E[?7l:te=\E[?7h:so=\E[7m:se=\E[m:ce=\E[K:nd=\E[C:\
+	:le=^H:cr=^M:tc=cmin:

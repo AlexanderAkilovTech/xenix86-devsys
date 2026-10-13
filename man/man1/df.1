@@ -1,0 +1,111 @@
+.TH DF 1
+.SH NAME
+df \- report free disk space
+.SH SYNOPSIS
+.B df
+[\ \-tfvih\ ] [\ filesystem\ |\ file\ ...\ ]
+.SH DESCRIPTION
+.B df
+reports the free space on each mounted file system, as the file systems
+themselves record it in their super blocks. With no arguments it reports
+on every file system in /etc/mnttab. A
+.I filesystem
+may be named by its device, as /dev/root, or by its name in /dev, as root;
+a
+.I file
+or directory stands for the file system it is on. A file holding a
+file system, such as the image of a floppy disk, may be named too.
+.PP
+Space is counted in blocks of 512 bytes, whatever the size of the file
+system's own blocks. With no options, each file system takes a line:
+.PP
+.nf
+	/       (/dev/root ):    22704 blocks    3686 i-nodes
+.fi
+.PP
+the directory it is mounted on, its device, its free blocks and its
+free i-nodes (the number of files that can still be made). The options
+are:
+.TP 6
+.B \-t
+Report the total blocks too, and how many hold the boot block, the super
+block and the i-list:
+.RS
+.PP
+.nf
+	(   37580 total blocks,  592 for i-nodes)
+.fi
+.RE
+.TP
+.B \-f
+Report only the free blocks.
+.TP
+.B \-v
+A table of the space: the size, the used, the free, and the percentage
+used, in K, M, G and T as with
+.BR \-h ,
+where XENIX's own df counts blocks:
+.RS
+.PP
+.nf
+	Mount Dir   Filesystem    size    used    free  % used
+	/           /dev/root      18M    9.9M    8.5M     54%
+.fi
+.RE
+.IP
+This is the table XENIX's installer, custom, shows for Display current
+disk usage.
+.TP
+.B \-i
+A table of the i-nodes: the used, the free, and the percentage used.
+With
+.BR \-v ,
+both tables in one.
+.TP
+.B \-h
+A table in sizes a person reads easily, in units of 1024: K for
+kilobytes, M megabytes, G gigabytes and T terabytes, with a decimal
+place below 10:
+.RS
+.PP
+.nf
+	Filesystem     Size   Used  Avail Capacity  Mounted on
+	/dev/root       18M   7.2M    11M      39%  /
+.fi
+.RE
+.PP
+The forms other than \-v and \-h are those of XENIX's own df, to the
+character, because other programs read them: custom reads the free
+blocks from the first one.
+.SH FILES
+.TP 16
+/etc/mnttab
+the mounted file systems
+.TP
+/dev/*
+the devices
+.SH DIAGNOSTICS
+"cannot open" for a device df may not read; "not a XENIX file system";
+"not found" for a name that is neither a file nor a device. The exit
+status is 1 after any of these, 2 after a mistake in the options, and 0
+otherwise.
+.SH SEE ALSO
+du(1), mount(1), fsck(1)
+.SH HISTORY
+A
+.B df
+command appeared in Version 1 AT&T UNIX. The
+.B \-h
+option, and the sizes in
+.BR \-v ,
+are the xenix86-devsys system tools'.
+.SH AUTHORS
+This df was written for the xenix86-devsys system tools.
+.SH BUGS
+df believes the count of free blocks the super block holds; with
+.BR \-f ,
+XENIX's df counts the free list instead, which can differ on a file
+system that needs checking.
+.PP
+df must be able to read the devices, so it runs as the owner of them,
+sysinfo.

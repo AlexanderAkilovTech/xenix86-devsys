@@ -5,7 +5,7 @@ data/bss at DS:0, fixed stack above bss, argv/envp above the stack, entry at
 CS:0080), then services `int 5` system calls on the host. It implements just the
 calls the project's libc uses; real XENIX remains the final test.
 Usage: python3 xsim.py prog [args...]"""
-import os, struct, sys
+import io, os, struct, sys
 from unicorn import Uc, UC_ARCH_X86, UC_MODE_16, UC_HOOK_INTR, UcError
 from unicorn.x86_const import *
 
@@ -54,11 +54,50 @@ class Sim:
         self.child = False             # True in a process made by fork()
         self.pids = {}                 # XENIX pid -> host pid of our children
         uc.hook_add(UC_HOOK_INTR, self.intr)
+        # XSIM_PROFILE=file: count the instructions run at each address, and
+        # write "address count" lines to the file at the end (tools/xprof.py)
+        # XSIM_VSYNC=1: the monochrome display's status port (3BA) has its
+        # vertical retrace bit change at every read, as a Hercules card's
+        # does now and then; otherwise in reads 0
+        if os.environ.get('XSIM_VSYNC'):
+            from unicorn.x86_const import UC_X86_INS_IN
+            from unicorn import UC_HOOK_INSN
+            self.vsync = 0
+            def port_in(uc, port, size, data):
+                if port == 0x3BA:
+                    self.vsync ^= 0x80
+                    return self.vsync
+                return 0
+            uc.hook_add(UC_HOOK_INSN, port_in, None, 1, 0, UC_X86_INS_IN)
+        self.prof = None
+        if os.environ.get('XSIM_PROFILE'):
+            from unicorn import UC_HOOK_CODE
+            import collections
+            self.prof = collections.Counter()
+            def count(uc, addr, size, data, prof=self.prof): prof[addr - TSEG * 16] += 1
+            uc.hook_add(UC_HOOK_CODE, count)
         self.code = None
         self.sig = [0] * 20
         self.alarm = 0
 
     def mem(self, off, n): return bytes(self.uc.mem_read(DSEG * 16 + off, n))
+    # XSIM_STATMAP: a file of "host-i-number xenix-i-number change-time" lines, for
+    # tests that rebuild a tree as it was on XENIX: stat and directories report those
+    statmap = {}
+    if os.environ.get('XSIM_STATMAP'):
+        for l in open(os.environ['XSIM_STATMAP']):
+            if l.split(): h, x, c = (int(w) for w in l.split()); statmap[h] = (x, c)
+    # XSIM_MAP: "path=hostpath,..." to open another file for a name (/etc/passwd)
+    # (a name ending in / maps everything under it: /dev/=/tmp/dev/)
+    pathmap = dict(kv.split('=', 1) for kv in os.environ.get('XSIM_MAP', '').split(',') if '=' in kv)
+
+    def mapped(self, name):
+        if name in self.pathmap:
+            return self.pathmap[name]
+        for k in sorted((k for k in self.pathmap if k.endswith('/')), key=len, reverse=True):
+            if name.startswith(k):
+                return self.pathmap[k] + name[len(k):]
+        return name
     def cstr(self, off):
         b = bytearray()
         while True:
@@ -86,7 +125,7 @@ class Sim:
                     try: f.write(self.mem(cx, si)); f.flush(); r1 = si
                     except OSError as e: err = e.errno or 5      # EPIPE when the reader has gone
             elif ax in (5, 8):              # open(name, flags, mode) / creat(name, mode)
-                name = self.cstr(bx)
+                name = self.mapped(self.cstr(bx))
                 if ax == 8:
                     flags, mode = os.O_WRONLY | os.O_CREAT | os.O_TRUNC, cx
                 else:
@@ -94,27 +133,46 @@ class Sim:
                     for bit, hf in ((0o400, os.O_CREAT), (0o1000, os.O_TRUNC), (0o2000, os.O_EXCL), (0o10, os.O_APPEND)):
                         if cx & bit: flags |= hf
                     mode = si
-                try:
+                if ax == 5 and (flags & 3) == os.O_RDONLY and os.path.isdir(name):
+                    # a directory reads as XENIX keeps it: 16-byte entries, a
+                    # 2-byte i-number and a 14-byte name
+                    ino = lambda i: self.statmap[i][0] if i in self.statmap else (i & 0xffff) or 1
+                    d = io.BytesIO(b''.join(struct.pack('<H14s', ino(os.stat(os.path.join(name, n)).st_ino),
+                                   n.encode('latin1')[:14]) for n in ['.', '..'] +
+                                   sorted(os.listdir(name), key=lambda n: (os.lstat(os.path.join(name, n)).st_ino, n))))
+                    d.dirpath = name
+                    fd = min(set(range(20)) - set(self.files)); self.files[fd] = d; r1 = fd
+                else:
+                  try:
                     hfd = os.open(name, flags, mode & 0o7777 & ~self.umask)
                     acc = flags & 3
                     f = os.fdopen(hfd, 'rb' if acc == os.O_RDONLY else 'wb' if acc == os.O_WRONLY else 'r+b', buffering=0)
                     fd = min(set(range(20)) - set(self.files)); self.files[fd] = f; r1 = fd
-                except FileNotFoundError: err = ENOENT
-                except FileExistsError: err = 17
-                except IsADirectoryError: err = 21
-                except PermissionError: err = 13
+                  except FileNotFoundError: err = ENOENT
+                  except FileExistsError: err = 17
+                  except IsADirectoryError: err = 21
+                  except PermissionError: err = 13
             elif ax in (18, 28):            # stat(name, buf) / fstat(fd, buf): System V layout, 30 bytes
                 try:
-                    if ax == 18: st = os.stat(self.cstr(bx))
+                    if ax == 18:
+                        if os.environ.get('XSIM_STATLOG'):     # the names stat'ed, one a line
+                            with open(os.environ['XSIM_STATLOG'], 'a') as log: log.write(self.cstr(bx) + '\n')
+                        st = os.stat(self.mapped(self.cstr(bx)))
                     else:
                         f = self.files.get(bx)
                         if f is None: raise KeyError
-                        st = os.fstat(f.fileno())
+                        st = os.stat(f.dirpath) if hasattr(f, 'dirpath') else os.fstat(f.fileno())
                     m = st.st_mode & 0o7777 | {0o040000: 0o040000, 0o020000: 0o020000, 0o060000: 0o060000,
                                                0o010000: 0o010000}.get(st.st_mode & 0o170000, 0o100000)
-                    uc.mem_write(DSEG * 16 + cx, struct.pack('<hHHhHHhllll', st.st_dev & 0x7fff, st.st_ino & 0xffff, m,
-                        min(st.st_nlink, 32767), st.st_uid & 0xffff, st.st_gid & 0xffff, 0, min(st.st_size, 2**31 - 1),
-                        int(st.st_atime), int(st.st_mtime), int(st.st_ctime)))
+                    size, rdev = st.st_size, 0
+                    if st.st_mode & 0o170000 == 0o040000:   # a directory: 16 bytes an entry, as on XENIX
+                        size = 16 * (len(os.listdir(f.dirpath if ax == 28 and hasattr(f, 'dirpath') else self.mapped(self.cstr(bx)))) + 2)
+                    elif st.st_mode & 0o170000 in (0o020000, 0o060000):
+                        rdev = (os.major(st.st_rdev) & 0xff) << 8 | os.minor(st.st_rdev) & 0xff
+                    ino, ctime = self.statmap.get(st.st_ino, (st.st_ino & 0xffff, int(st.st_ctime)))
+                    uc.mem_write(DSEG * 16 + cx, struct.pack('<hHHhHHHllll', st.st_dev & 0x7fff, ino, m,
+                        min(st.st_nlink, 32767), st.st_uid & 0xffff, st.st_gid & 0xffff, rdev, min(size, 2**31 - 1),
+                        int(st.st_atime), int(st.st_mtime), ctime))
                 except FileNotFoundError: err = ENOENT
                 except KeyError: err = EBADF
             elif ax == 15:                  # chmod
@@ -159,7 +217,7 @@ class Sim:
                     self.deliver(14)
                     return
                 err = 4
-            elif ax == 13: import time; t = int(time.time()); r1, r2 = t & 0xffff, t >> 16
+            elif ax == 13: import time; t = int(os.environ.get('XSIM_NOW') or time.time()); r1, r2 = t & 0xffff, t >> 16
             elif ax == 20: r1, r2 = (os.getpid() & 0x7fff, os.getppid() & 0x7fff) if self.child else (1234, 1)  # getpid: pid, ppid
             elif ax in (24, 47): r1, r2 = 0, 0  # getuid/getgid: real, effective
             elif ax == 2:                   # fork: a real host fork of the whole simulator
@@ -206,7 +264,16 @@ class Sim:
             elif ax == 10:
                 try: os.unlink(self.cstr(bx))
                 except FileNotFoundError: err = ENOENT
-            elif ax == 54: err = 25        # ioctl: ENOTTY
+            elif ax == 43:                  # times: the process's and its children's times, in
+                t = os.times()              # ticks of 1/20 s; the result is the ticks since boot
+                v = [int(x * 20) for x in (t.user, t.system, t.children_user, t.children_system)]
+                uc.mem_write(DSEG * 16 + bx, struct.pack('<4l', *v))
+                e = int(t.elapsed * 20) & 0xffffffff; r1, r2 = e & 0xffff, e >> 16
+            elif ax == 54:                  # ioctl: ENOTTY, but for the descriptors in
+                # XSIM_TTY ("1" or "0 1"), which pass for terminals (isatty), for
+                # testing line-buffered output; nothing is filled in
+                if str(bx) in os.environ.get('XSIM_TTY', '').split(): r1 = 0
+                else: err = 25
             else: err = EINVAL
         except Exit as e:
             self.code = e.code; uc.emu_stop(); return
@@ -261,6 +328,9 @@ if __name__ == '__main__':
         env = [e for e in env if e.split('=', 1)[0] != kv.split('=', 1)[0]] + [kv]
     sim = Sim(prog, [prog] + sys.argv[2:], env)
     code = sim.run()
+    if sim.prof is not None:
+        with open(os.environ['XSIM_PROFILE'], 'w') as f:
+            for a, n in sorted(sim.prof.items()): f.write(f'{a:x} {n}\n')
     if os.environ.get('XSIM_BRK'):          # how far the data segment grew
         print(f'xsim: highest break {sim.maxbrk:#x}', file=sys.stderr)
     if isinstance(code, int):

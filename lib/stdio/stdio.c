@@ -7,7 +7,7 @@ FILE _iob[_NFILE] = {
 	{ 0, 0, 0, _IOWRT | _IONBF, 2, 0 },
 };
 
-extern char *malloc();
+extern char *malloc(), *memchr();
 extern long lseek();
 extern int (*_clean)();
 int _cleanup();
@@ -371,11 +371,29 @@ register int n;
 register FILE *p;
 {
 	register int c = 0;
-	register char *q = s;
+	char *q = s, *e;
+	int k;
 
-	while (--n > 0 && (c = getc(p)) != EOF)
+	while (--n > 0) {
+		/* what the buffer holds, up to the newline: copied whole */
+		if (p->_cnt > 0 && !(p->_flag & _IOSTRG)) {
+			k = p->_cnt < n ? p->_cnt : n;
+			if ((e = memchr(p->_ptr, '\n', k)) != NULL)
+				k = e - p->_ptr + 1;
+			memcpy(q, p->_ptr, k);
+			q += k;
+			p->_ptr += k;
+			p->_cnt -= k;
+			if (e != NULL)
+				break;
+			n -= k - 1;
+			continue;
+		}
+		if ((c = getc(p)) == EOF)
+			break;
 		if ((*q++ = c) == '\n')
 			break;
+	}
 	*q = 0;
 	return (c == EOF && q == s) ? NULL : s;
 }
@@ -398,7 +416,15 @@ register char *s;
 register FILE *p;
 {
 	register int r = 0;
+	int n = strlen(s);
 
+	/* room in the buffer: copied whole (see _doprnt's put) */
+	if (n > 0 && p->_cnt >= n && (!(p->_flag & _IOLBF) || memchr(s, '\n', n) == NULL)) {
+		memcpy(p->_ptr, s, n);
+		p->_ptr += n;
+		p->_cnt -= n;
+		return s[n - 1] & 0377;
+	}
 	while (*s)
 		r = putc(*s++, p);
 	return r;

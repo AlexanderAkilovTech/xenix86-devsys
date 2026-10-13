@@ -9,13 +9,33 @@ import os, re, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def entries(path):
-    """the termcap file's logical lines, as the library joins them"""
-    out, cur, sol = [], '', True
-    text = open(path, encoding='latin1').read().replace('\\\n', '')
-    for line in text.split('\n'):
-        if line.startswith('#') or line == '':
+    """the termcap file's logical lines, as the library joins them: a
+    backslash and a newline join two lines, a backslash and anything else
+    are kept as they are (so a doubled backslash at the end of a line ends
+    the entry); a line beginning with # and an empty line between entries
+    are skipped"""
+    text = open(path, encoding='latin1').read()
+    out, i, n = [], 0, len(text)
+    while i < n:
+        if text[i] in '#\n':                       # a comment or a blank line
+            j = text.find('\n', i)
+            i = n if j < 0 else j + 1
             continue
-        out.append(line)
+        cur = []
+        while i < n:
+            c = text[i]; i += 1
+            if c == '\\':
+                if i < n and text[i] == '\n':
+                    i += 1
+                    continue
+                cur.append(c)
+                if i >= n:
+                    break
+                c = text[i]; i += 1
+            if c == '\n':
+                break
+            cur.append(c)
+        out.append(''.join(cur))
     return out
 
 def find(lines, name):

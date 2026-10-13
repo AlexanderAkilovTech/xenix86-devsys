@@ -1,0 +1,60 @@
+! hwprobe.s - what the machine has, for xtop (and anything else that asks):
+! is there an 8087, and is a monochrome display a Hercules card or an IBM
+! one (MDA). Written for xenix86-devsys.
+	.text
+
+! fpprobe(cw, sw) unsigned *cw, *sw;  fninit, then the control and status
+! words: after fninit an 8087's are 03FF and 0000. as86 does not put the
+! WAIT (fwait) in front of 8087 instructions that an 8088 needs, and an
+! 8088 without an 8087 does nothing for them but read their memory operand:
+! so only the no-wait forms are used, with a delay after each, and the
+! words they store are first filled with 5A5A, which stays there when no
+! 8087 stored anything (tests/fpu87s.s, verified on XENIX with an 8087
+! fitted and without one).
+	export	_fpprobe
+_fpprobe:
+	push	bp
+	mov	bp,sp
+	mov	bx,4[bp]
+	mov	word [bx],#$5A5A
+	mov	bx,6[bp]
+	mov	word [bx],#$5A5A
+	fninit
+	call	delay
+	mov	bx,4[bp]
+	fnstcw	[bx]
+	call	delay
+	mov	bx,6[bp]
+	fnstsw	[bx]
+	call	delay
+	pop	bp
+	ret
+
+delay:
+	mov	cx,#200
+dlay:	loop	dlay
+	ret
+
+! hercules()  1 if the monochrome display's status port (3BA) shows the
+! vertical retrace (bit 7) coming and going, as a Hercules card's does; 0
+! for an IBM monochrome adapter, whose bit 7 does not change. 16384 reads
+! last several frames even on a 4.77 MHz 8088, at 50 a second. Read only:
+! nothing is written to the card.
+	export	_hercules
+_hercules:
+	mov	dx,#$3BA
+	in	al,dx
+	and	al,#$80
+	mov	ah,al
+	mov	cx,#$4000
+hloop:
+	in	al,dx
+	and	al,#$80
+	cmp	al,ah
+	jne	herc
+	loop	hloop
+	xor	ax,ax
+	ret
+herc:
+	mov	ax,#1
+	ret

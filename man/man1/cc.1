@@ -162,7 +162,12 @@ is the math library
 .RB ( intro (3)),
 .B \-ltermcap
 the terminal capability library
-.RB ( termcap (3)).
+.RB ( termcap (3)),
+and
+.B "\-lcurses \-ltermcap"
+the screen library
+.RB ( curses (3)),
+which uses the terminal capability library and so comes before it.
 .PP
 Other arguments beginning with \- are reported as unknown and ignored.
 .SS "The Language"
@@ -329,6 +334,9 @@ the math library
 .TP
 /usr/lib/cc/libtermcap.a
 the terminal capability library
+.TP
+/usr/lib/cc/libcurses.a
+the screen library
 .TP
 /usr/include
 the standard headers

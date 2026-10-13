@@ -8,6 +8,9 @@ Writes outdir/soft.perms and the disk images outdir/D01.img, D02.img, ... (360K)
 custom's built-in "Development System" (custom -d) installs two lists: the
 Operating System's /etc/dsmd.perms, whose SOFT package (adb and /usr/include/sys)
 comes from SCO's own disk N05, and /etc/soft.perms, which these disks supply.
+Its packages: SOFT, the compiler and the rest; MAN, the manual; and TOOLS, the
+system tools, of which ls and df take the place of XENIX's own, with the
+owners, modes and links of XENIX's (its /etc/perms/rts).
 The format follows SCO's 2.1.3 sets: a label file ./tmp/_lbl/prd=xnxsv/ver=ALL86/
 rel=2.1.3/vol=D01 first on each disk, the permissions list (with its second
 name ./etc/perms/soft as a hard link) on D01, then the files, in a version 7 tar
@@ -22,27 +25,47 @@ MTIME = 504921600          # 1 January 1986: XENIX's clock cannot pass 1999
 LABEL = './tmp/_lbl/prd=xnxsv/ver=ALL86/rel=2.1.3/vol={}'
 BIN = 3                    # uid and gid of bin
 
-# package, type, mode, path (relative to root). Directories have no volume.
+# package, type, mode, owner, path (relative to root), other names (hard
+# links). Directories have no volume.
 # The manual is a package of its own, MAN: the man command and /usr/man.
 MANDIRS = ('usr/man/cat1', 'usr/man/cat3')
+# The system tools, TOOLS: ls and df as XENIX installs its own (x1711 and
+# x4711 sysinfo, ls with its five other names), xtop set-user-id to sysinfo
+# as ps is, to read the kernel's memory and the disks, with the file it keeps
+# the kernel's symbols in (empty until xtop first runs); the csh prompt's cd,
+# and mkuser's templates for new accounts in place of XENIX's.
+TOOLS = [('x', 0o1711, 'bin/bin', './bin/ls', ['./bin/l', './bin/lc', './bin/lf', './bin/lr', './bin/lx']),
+         ('x', 0o4711, 'sysinfo/bin', './bin/df', []),
+         ('x', 0o711, 'bin/bin', './usr/bin/whereis', []),
+         ('x', 0o4711, 'sysinfo/bin', './usr/bin/xtop', ['./usr/bin/top']),
+         ('f', 0o644, 'bin/bin', './usr/lib/cdprompt.csh', []),
+         ('f', 0o600, 'sysinfo/bin', './usr/lib/xtop.syms', []),
+         ('f', 0o644, 'bin/bin', './usr/lib/mkuser/mkuser.cshrc', []),
+         ('f', 0o644, 'bin/bin', './usr/lib/mkuser/mkuser.login', []),
+         ('f', 0o644, 'bin/bin', './usr/lib/mkuser/mkuser.prof', [])]
+TOOLNAMES = {p[2:] for t, m, o, p, ln in TOOLS} | {q[2:] for t, m, o, p, ln in TOOLS for q in ln}
 
 def entries():
-    e = [('SOFT', 'd', 0o755, './usr/include'), ('SOFT', 'd', 0o755, './usr/lib/cc')]
+    e = [('SOFT', 'd', 0o755, 'bin/bin', './usr/include', []), ('SOFT', 'd', 0o755, 'bin/bin', './usr/lib/cc', [])]
     for d, typ, mode in (('usr/bin', 'x', 0o711), ('usr/lib/cc', None, None), ('usr/include', 'f', 0o644)):
         for f in sorted(os.listdir(f'{root}/{d}')):
             p = f'{root}/{d}/{f}'
-            if not os.path.isfile(p) or f'{d}/{f}' == 'usr/bin/man':
+            if not os.path.isfile(p) or f'{d}/{f}' == 'usr/bin/man' or f'{d}/{f}' in TOOLNAMES:
                 continue
             t, m = (typ, mode) if typ else (('x', 0o711) if os.access(p, os.X_OK) else ('f', 0o644))
-            e.append(('SOFT', t, m, f'./{d}/{f}'))
+            e.append(('SOFT', t, m, 'bin/bin', f'./{d}/{f}', []))
     if os.path.exists(f'{root}/usr/bin/man'):
-        e.append(('MAN', 'd', 0o755, './usr/man'))
-        e += [('MAN', 'd', 0o755, f'./{d}') for d in MANDIRS]
-        e.append(('MAN', 'x', 0o711, './usr/bin/man'))
-        e.append(('MAN', 'f', 0o644, './usr/man/whatis'))
+        e.append(('MAN', 'd', 0o755, 'bin/bin', './usr/man', []))
+        e += [('MAN', 'd', 0o755, 'bin/bin', f'./{d}', []) for d in MANDIRS]
+        e.append(('MAN', 'x', 0o711, 'bin/bin', './usr/bin/man', []))
+        e.append(('MAN', 'f', 0o644, 'bin/bin', './usr/man/whatis', []))
         for d in MANDIRS:
-            e += [('MAN', 'f', 0o644, f'./{d}/{f}') for f in sorted(os.listdir(f'{root}/{d}'))]
+            e += [('MAN', 'f', 0o644, 'bin/bin', f'./{d}/{f}', []) for f in sorted(os.listdir(f'{root}/{d}'))]
+    if os.path.exists(f'{root}/bin/ls'):
+        e += [('TOOLS',) + t for t in TOOLS]
     return e
+
+IDS = {'root': 0, 'bin': BIN, 'sysinfo': 10}
 
 def blocks(size):
     """512-byte blocks a file takes on a XENIX file system, with indirect blocks"""
@@ -80,15 +103,15 @@ def tarsize(n):
 # ---- build the set ----
 os.makedirs(out, exist_ok=True)
 files = entries()
-sizes = {p: os.path.getsize(f'{root}/{p}') for pkg, t, m, p in files if t != 'd'}
+sizes = {p: os.path.getsize(f'{root}/{p}') for pkg, t, m, o, p, ln in files if t != 'd'}
 
 # assign files to volumes; D01 also carries the label and the permissions list
 PERMS_RESERVE = 8192
 vols, cur, used = [], [], 512 * 2 + 1024 + PERMS_RESERVE
-for pkg, t, m, p in files:
+for pkg, t, m, o, p, ln in files:
     if t == 'd':
         continue
-    need = tarsize(sizes[p])
+    need = tarsize(sizes[p]) + 512 * len(ln)       # a link is a header alone
     if used + need > DISK - 1024:
         vols.append(cur)
         cur, used = [], 512 * 2 + 1024
@@ -98,14 +121,33 @@ vols.append(cur)
 volof = {p: f'D{i + 1:02d}' for i, v in enumerate(vols) for p in v}
 
 pkgblocks = {}
-for pkg, t, m, p in files:
+for pkg, t, m, o, p, ln in files:
     if t != 'd':
         pkgblocks[pkg] = pkgblocks.get(pkg, 0) + blocks(sizes[p])
 
+# The packages' descriptions, as custom's menu shows them: after the name,
+# whether installed and the size, each at a tab stop, so a description
+# starts in column 32 of the 80, and one of more than 47 characters runs
+# into the last column, where the console wraps it onto the next line. The
+# Size column is in 512-byte blocks, as in all of custom's lists, with no
+# unit shown; the description ends with the size in K, for people.
+DESC = {'ALL': 'Entire Development System set',
+        'PERM': 'Contents and permissions lists',
+        'SOFT': 'C compiler, assembler, make, libraries',
+        'MAN': 'Manual pages and the man command',
+        'TOOLS': 'System tools: ls, df, whereis, xtop'}
+
+def desc(k, nblocks):
+    d = f'{DESC[k]} ({(nblocks + 1) // 2}K)'
+    if len(d) > 47:
+        raise SystemExit(f'mkset.py: the description of {k} is {len(d)} characters, more than custom shows on a line')
+    return d
+
 def perms_text(permsize):
     pk = {'PERM': blocks(permsize), 'SOFT': pkgblocks['SOFT']}
-    if 'MAN' in pkgblocks:
-        pk['MAN'] = pkgblocks['MAN']
+    for k in ('MAN', 'TOOLS'):
+        if k in pkgblocks:
+            pk[k] = pkgblocks[k]
     L = ['# soft.perms - the Development System for XENIX 2.1.3 (8086): xenix86-devsys,',
          '# an open source recreation (GPL). Not SCO software.',
          '#', '#prd=xnxsv', '#ver=ALL86', '#rel=2.1.3', '#',
@@ -116,20 +158,28 @@ def perms_text(permsize):
     for n, i in (('root', 0), ('bin', 3), ('uucp', 4), ('asg', 6), ('sysinfo', 10), ('network', 12)):
         L.append(f'gid\t{n}\t\t{i}')
     L += ['#', '# Fields are: package [d,f,x]mode, user/group, links, path, volume', '#',
-          f'#!ALL\t{sum(pk.values())}\tEntire Development System set',
-          f'#!PERM\t{pk["PERM"]}\tDevelopment System contents and permissions lists',
+          f'#!ALL\t{sum(pk.values())}\t{desc("ALL", sum(pk.values()))}',
+          f'#!PERM\t{pk["PERM"]}\t{desc("PERM", pk["PERM"])}',
           'PERM\tf644\tbin/bin\t\t2\t./etc/soft.perms\t\tD01',
           '\t\t\t\t\t./etc/perms/soft\t\tD01',
-          f'#!SOFT\t{pk["SOFT"]}\tC compiler, assembler, linker, make, libraries, headers',
-          '#\t(with adb and /usr/include/sys from the Operating System disk N05)']
-    for pkg, t, m, p in files:
-        if pkg == 'MAN' and L[-1].startswith('SOFT'):
-            L.append(f'#!MAN\t{pk["MAN"]}\tManual pages for the Development System (man, /usr/man)')
-        tabs = '\t' * max(1, 4 - len(p) // 8)
+          f'#!SOFT\t{pk["SOFT"]}\t{desc("SOFT", pk["SOFT"])}',
+          '#\tlinker and headers (with adb and /usr/include/sys from the',
+          '#\tOperating System disk N05)']
+    last = 'SOFT'
+    for pkg, t, m, o, p, ln in files:
+        if pkg != last:
+            L.append(f'#!{pkg}\t{pk[pkg]}\t{desc(pkg, pk[pkg])}')
+            if pkg == 'TOOLS':
+                L += ["#\tls and df in place of XENIX's own, and mkuser's start-up files",
+                      '#\twith a C shell prompt that shows the directory']
+            last = pkg
+        tabs = lambda q: '\t' * max(1, 4 - len(q) // 8)
+        ot = '\t' * max(1, 2 - len(o) // 8)
         if t == 'd':
-            L.append(f'{pkg}\t{t}{m:o}\tbin/bin\t\t1\t{p}')
+            L.append(f'{pkg}\t{t}{m:o}\t{o}{ot}1\t{p}')
         else:
-            L.append(f'{pkg}\t{t}{m:o}\tbin/bin\t\t1\t{p}{tabs}{volof[p]}')
+            L.append(f'{pkg}\t{t}{m:o}\t{o}{ot}{1 + len(ln)}\t{p}{tabs(p)}{volof[p]}')
+            L += [f'\t\t\t\t\t{q}{tabs(q)}{volof[p]}' for q in ln]
     return '\n'.join(L) + '\n'
 
 text = perms_text(4096)
@@ -143,8 +193,11 @@ for i, v in enumerate(vols):
         img += member('./etc/soft.perms', text.encode(), 0o644)
         img += header('./etc/perms/soft', 0o644, BIN, BIN, 0, link='./etc/soft.perms')
     for p in v:
-        mode = next(m for pkg, t, m, q in files if q == p)
-        img += member(p, open(f'{root}/{p}', 'rb').read(), mode)
+        mode, o, ln = next((m, o, ln) for pkg, t, m, o, q, ln in files if q == p)
+        uid, gid = (IDS[n] for n in o.split('/'))
+        img += member(p, open(f'{root}/{p}', 'rb').read(), mode, uid, gid)
+        for q in ln:
+            img += header(q, mode, uid, gid, 0, link=p)
     img += bytes(1024)
     if len(img) > DISK:
         raise SystemExit(f'{vol}: {len(img)} bytes, more than a 360K disk')

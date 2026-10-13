@@ -33,7 +33,7 @@ short	ospeed;			/* the output speed, as termio's CBAUD gives it */
 static char *tbuf;		/* the entry tgetent() found */
 static char *tfile;		/* the termcap file to read */
 
-extern char *getenv();
+extern char *getenv(), *strchr();
 
 /* is name one of the names in the first field of entry e? */
 static
@@ -56,6 +56,68 @@ char *name;
 	}
 }
 
+/* Reading /etc/termcap. A termcap file is long (XENIX's has hundreds of
+ * entries) and an 8088 is slow, so entries are skipped a line at a time:
+ * fgets copies a line with the 8086's string instructions, and only the
+ * first line of an entry, which holds its names, is looked at. An entry
+ * that may be the one wanted is read a character at a time, joining its
+ * lines, from the first line on. */
+#define	LSIZE	256
+static char line[LSIZE];	/* the line read last */
+static char *lp;		/* the next character of it for nextc, or 0 */
+
+static
+nextc(f)
+FILE *f;
+{
+	if (lp != 0) {
+		if (*lp)
+			return *lp++ & 0377;
+		lp = 0;
+	}
+	return getc(f);
+}
+
+/* to the end of the physical line in line[]: the next line, or EOF */
+static
+endline(f)
+FILE *f;
+{
+	int n;
+
+	while ((n = strlen(line)) > 0 && line[n - 1] != '\n')
+		if (fgets(line, LSIZE, f) == NULL)
+			return EOF;
+	return 0;
+}
+
+/* past the rest of an entry whose first line is in line[]: through the
+ * first line that does not end in an odd number of backslashes (an odd
+ * number leaves one to join the next line) */
+static
+skipent(f)
+FILE *f;
+{
+	register int n, k;
+	int nl, run = 0;
+
+	for (;;) {
+		n = strlen(line);
+		nl = n > 0 && line[n - 1] == '\n';
+		n -= nl;
+		for (k = 0; k < n && line[n - 1 - k] == '\\'; k++)
+			;
+		run = k == n ? run + k : k;	/* a line of backslashes goes on */
+		if (nl) {
+			if ((run & 1) == 0)
+				return;
+			run = 0;
+		}
+		if (fgets(line, LSIZE, f) == NULL)
+			return;
+	}
+}
+
 /* read the entry named name from the termcap file into bp (whose end is
  * end): the joined lines of the entry; 1, 0 if there is none, -1 if the
  * file cannot be read */
@@ -66,22 +128,35 @@ char *bp, *end, *name;
 	register FILE *f;
 	register char *p;
 	register int c;
-	int sol;			/* at the start of a line */
 
 	if ((f = fopen(tfile, "r")) == NULL)
 		return -1;
 	for (;;) {
-		p = bp;
-		sol = 1;
-		while ((c = getc(f)) != EOF) {
-			if (sol && (c == '#' || c == '\n')) {	/* a comment, or blank */
-				while (c != '\n' && c != EOF)
-					c = getc(f);
-				continue;
+		/* the first line of the next entry, past comments and blank
+		 * lines */
+		lp = 0;
+		if (fgets(line, LSIZE, f) == NULL) {
+			fclose(f);
+			return 0;
+		}
+		if (line[0] == '#' || line[0] == '\n') {
+			if (endline(f) == EOF) {
+				fclose(f);
+				return 0;
 			}
-			sol = 0;
+			continue;
+		}
+		/* its names all in this line, and not ours: skip it */
+		if (strchr(line, ':') != 0 && !named(line, name)) {
+			skipent(f);
+			continue;
+		}
+		/* perhaps ours: the whole entry, its lines joined */
+		lp = line;
+		p = bp;
+		while ((c = nextc(f)) != EOF) {
 			if (c == '\\') {
-				if ((c = getc(f)) == '\n')
+				if ((c = nextc(f)) == '\n')
 					continue;	/* the entry goes on */
 				if (p < end)
 					*p++ = '\\';
@@ -94,13 +169,14 @@ char *bp, *end, *name;
 				*p++ = c;
 		}
 		*p = 0;
-		if (p == bp && c == EOF) {
-			fclose(f);
-			return 0;
-		}
+		lp = 0;
 		if (named(bp, name)) {
 			fclose(f);
 			return 1;
+		}
+		if (c == EOF) {
+			fclose(f);
+			return 0;
 		}
 	}
 }
