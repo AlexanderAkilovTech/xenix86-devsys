@@ -136,6 +136,8 @@ for p in ('symt', 'fmtest', 'm12', 'xwc'):
 tmp = tempfile.mkdtemp(prefix='nmtest')
 files = ['libc.a', 'libm.a', 'symt', 'fmtest', 'm12', 'xwc', 'nm', 'size', 'strip'] + \
         [f'o/{os.path.basename(f)}' for f in sorted(glob.glob(f'{ROOT}/build/lib/*.o'))[::3]] + ['o/malloc.o']
+if 'o/strtod.o' not in files:   # every third module, whichever they are; strtod is named below
+    files.append('o/strtod.o')
 os.makedirs(f'{tmp}/o')
 for f in files:
     src = f'{ROOT}/build/lib/{f[2:]}' if f.startswith('o/') else f'{ROOT}/build/{f}'

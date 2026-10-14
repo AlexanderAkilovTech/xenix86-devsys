@@ -31,7 +31,9 @@ extern char *tzname[2];
 A time, as
 .BR time (2)
 returns it, is a long: the number of seconds since 00:00:00 Greenwich
-Mean Time, January 1, 1970.
+Mean Time, January 1, 1970. These functions take its 32 bits as an
+unsigned number, which lasts until 06:28:15 GMT on February 7, 2106;
+nothing on XENIX is dated before 1970, to need negative times.
 .PP
 .B localtime
 and
@@ -69,7 +71,8 @@ The local time zone is given by the environment variable TZ, as three
 letters naming the standard time zone, the number of hours it is west
 of Greenwich (negative to the east), and three letters naming the
 daylight saving time zone if there is one: TZ=EST5EDT, or TZ=PST8PDT,
-or TZ=GMT0. When TZ is not set, local time is Greenwich Mean Time.
+or TZ=GMT0. When TZ is not set, or is empty, the zone is XENIX's own
+default, PST8PDT.
 .B tzset
 reads TZ and sets the external variables:
 .I timezone
@@ -80,10 +83,12 @@ to nonzero if a daylight saving zone is named, and
 to the two zones' names.
 localtime calls tzset the first time it is called.
 .PP
-Daylight saving time is applied in the United States manner: from 2
-a.m. on the last Sunday in April to 2 a.m. on the last Sunday in
-October. From 1987 on, as the law of 1986 provides, it begins on the
-first Sunday in April instead.
+Daylight saving time is applied in the United States manner, by the
+rules of the year: from 2 a.m. on the last Sunday in April to 2 a.m. on
+the last Sunday in October, but from January 6 in 1974 and from
+February 23 in 1975. From 1987 on, as the law of 1986 provides, it
+begins on the first Sunday in April instead; and from 2007 on it runs
+from the second Sunday in March to the first Sunday in November.
 .SH SEE ALSO
 time(2), getenv(3), environ(5)
 .SH HISTORY

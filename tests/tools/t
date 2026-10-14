@@ -1,0 +1,22 @@
+: t - run the xenix86-devsys test disk in the drive: unpack it into /tmp/t,
+# run its run.sh, and write its report back to the start of the disk.
+# xenix86-devsys test helper (not part of the Development System). The
+# first line is a command, not a comment, so that csh runs this with sh.
+d=/tmp/t
+cd /
+rm -rf $d
+mkdir $d
+cd $d
+if tar xf /dev/fd0 && test -f run.sh
+then
+	:
+else
+	echo "t: no test disk in the drive (no run.sh on it)"
+	exit 1
+fi
+echo "t: running the test, please wait for the word done"
+sh run.sh
+echo "=== END" >> report
+cp report /dev/fd0
+sync
+echo "t: done, `wc -l < report` lines of report written to the disk"

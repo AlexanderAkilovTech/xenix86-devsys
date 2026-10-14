@@ -11,9 +11,13 @@
 #   /usr/bin/man, /usr/man/cat1, cat3, whatis   the manual, formatted
 # and the system tools, some of them in place of XENIX's own:
 #   /bin/ls (l, lc, lf, lr, lx), /bin/df        XENIX's, with -h
+#   /bin/date                                   XENIX's, past 1999
 #   /usr/bin/whereis, xtop (top)                new
+#   /usr/bin/hostname, cursor, lastlogin        new
+#   /usr/adm/lastlog                            lastlogin's records
 #   /usr/lib/xtop.syms                          xtop's kept kernel symbols
-#   /usr/lib/cdprompt.csh, /usr/lib/mkuser/*    shell prompts with the directory
+#   /usr/lib/cdprompt.csh, setprompt.csh,
+#   /usr/lib/mkuser/*                           shell prompts with the directory
 set -e
 cd "$(dirname "$0")"
 ./build.sh > /dev/null
@@ -24,21 +28,22 @@ sh ports/bcc/build.sh > /dev/null
 for p in nm size strip; do ./build.sh cmd/$p.c cmd/objfile.c > /dev/null; done
 ./build.sh cmd/clear.c > /dev/null
 ./build.sh cmd/man.c > /dev/null
-for p in ls df whereis; do ./build.sh cmd/$p.c > /dev/null; done
-./build.sh cmd/xtop.c cmd/hwprobe.s > /dev/null
+for p in ls df date whereis hostname lastlogin; do ./build.sh cmd/$p.c > /dev/null; done
+for p in xtop cursor; do ./build.sh cmd/$p.c cmd/hwprobe.s > /dev/null; done
 R=build/xenix/root
 rm -rf $R
-mkdir -p $R/bin $R/usr/bin $R/usr/lib/cc $R/usr/lib/mkuser $R/usr/include
+mkdir -p $R/bin $R/usr/bin $R/usr/lib/cc $R/usr/lib/mkuser $R/usr/include $R/usr/adm
 # the commands are installed without symbol tables, as SCO's are
 for p in cc make nm size strip clear man; do python3 tools/aout2xout.py --strip build/$p.aout $R/usr/bin/$p > /dev/null; done
 cp build/xenix/bin/as86 build/xenix/bin/ld86 build/xenix/bin/ar86 $R/usr/bin/
 cp build/xenix/bin/bcc-cpp build/xenix/bin/bcc-cc1 $R/usr/lib/cc/
 python3 tools/aout2xout.py --strip build/aout2x.aout $R/usr/lib/cc/aout2x > /dev/null
-for p in ls df; do python3 tools/aout2xout.py --strip build/$p.aout $R/bin/$p > /dev/null; done
+for p in ls df date; do python3 tools/aout2xout.py --strip build/$p.aout $R/bin/$p > /dev/null; done
 for p in l lc lf lr lx; do ln $R/bin/ls $R/bin/$p; done
-for p in whereis xtop; do python3 tools/aout2xout.py --strip build/$p.aout $R/usr/bin/$p > /dev/null; done
+for p in whereis xtop hostname cursor lastlogin; do python3 tools/aout2xout.py --strip build/$p.aout $R/usr/bin/$p > /dev/null; done
 ln $R/usr/bin/xtop $R/usr/bin/top
-cp skel/cdprompt.csh $R/usr/lib/
+cp skel/cdprompt.csh skel/setprompt.csh $R/usr/lib/
+: > $R/usr/adm/lastlog		# lastlogin's records: empty until the first login
 : > $R/usr/lib/xtop.syms		# xtop's kept symbols: empty until it first runs
 for f in cshrc login prof; do cp skel/mkuser.$f $R/usr/lib/mkuser/; done
 cp build/xenix/bin/copt build/xenix/bin/rules.* $R/usr/lib/cc/

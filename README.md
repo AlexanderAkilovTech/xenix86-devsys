@@ -83,7 +83,14 @@ Development and testing happen in 86Box on an emulated XT.
       showing the current directory, in color on the console. To make `xtop` cheap
       enough for a 4.77 MHz 8088, `printf`, `fgets` and the termcap library got faster;
       it takes about an eighth of the processor at 3 seconds between screens, and starts
-      in about 3 seconds
+      in about 3 seconds. Since v0.10.0: `hostname` (XENIX keeps the machine's name in
+      `/etc/systemid`), `cursor` for a block cursor on the console, `lastlogin` for the
+      "Last login" that XENIX's login does not print, `~` for the home directory in
+      the C shell prompt, which can also go without its colors, and `date` in place of
+      XENIX's own, which cannot be set past 1999 and shows any date from February 29,
+      2000 on a day ahead (it takes 2000 for a common year): this one sets and shows
+      any date up to 2106, and the library's time functions follow the daylight saving
+      rules of 2007 on as well
 - [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
       registers when it switches processes (measured: two programs using it at once
       corrupt each other's results), so it can only ever be an option
@@ -121,11 +128,13 @@ Development and testing happen in 86Box on an emulated XT.
                     termcap/ and curses/, the termcap and screen libraries
     cmd/            XENIX commands of our own: cc, make, aout2x, nm, size,
                     strip (with objfile.c, which reads the file formats),
-                    clear and man; and the system tools ls, df, whereis and
-                    xtop (with hwprobe.s, which looks for an 8087 and a
-                    Hercules card)
+                    clear and man; and the system tools ls, df, date,
+                    whereis, xtop, hostname, cursor and lastlogin (with hwprobe.s,
+                    which looks for an 8087 and a Hercules card and sets
+                    the display adapter's registers)
     skel/           the shell start-up files that mkuser copies into new
-                    accounts, and cdprompt.csh, the C shell prompt's cd
+                    accounts, and cdprompt.csh and setprompt.csh, the C
+                    shell prompt's cd and the prompt itself
     man/            the manual pages, in -man form: man1 commands, man3
                     library functions
     ports/bcc/      the BCC compiler, assembler and linker, built for XENIX
@@ -151,8 +160,9 @@ out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `l
 `ar86`, `nm`, `size`, `strip`, `clear` and `man` in `/usr/bin`; the compiler passes, the
 optimizer `copt` and its rules, `crt0.o`, `libc.a`, `libm.a`, `libtermcap.a` and
 `libcurses.a` in `/usr/lib/cc`; headers in `/usr/include`; the formatted manual in
-`/usr/man`; and the system tools: `ls` and `df` in `/bin`, `whereis` and `xtop` in
-`/usr/bin`, and the shell start-up files in `/usr/lib/mkuser`. Then it makes that tree
+`/usr/man`; and the system tools: `ls`, `df` and `date` in `/bin`, `whereis`, `xtop`,
+`hostname`, `cursor` and `lastlogin` in `/usr/bin`, and the shell start-up files in
+`/usr/lib/mkuser`. Then it makes that tree
 into an installable set under `build/xenix/set`: the disk images `D01.img`, `D02.img`
 and `D03.img` and the permissions list `soft.perms` they carry. The build is
 reproducible: the same source gives the same disk images, byte for byte, whenever
@@ -180,22 +190,32 @@ finish.
 
 The set has three packages, and any of them can be installed alone: SOFT, the
 compiler, libraries and headers; MAN, the manual; and TOOLS, the system tools.
-All three take about 705K on the root file system. `custom`'s menu lists each
+All three take about 770K on the root file system. `custom`'s menu lists each
 package's size in its Size column, in 512-byte blocks as all of `custom`'s lists
 do, and at the end of its description in K; its option 6, Display current disk
 usage, shows how much is free.
-TOOLS puts its `ls` (with its other names `l`, `lc`, `lf`, `lr` and `lx`) and `df`
-in place of XENIX's own in `/bin`, with the owners and permissions XENIX gives them,
+TOOLS puts its `ls` (with its other names `l`, `lc`, `lf`, `lr` and `lx`), `df` and
+`date` in place of XENIX's own in `/bin`, with the owners and permissions XENIX gives them,
 and replaces the start-up files in `/usr/lib/mkuser` with ones whose C shell prompt
-shows the directory (accounts made before keep theirs). `xtop` is set-user-id to
+shows the directory and that say when the account last logged in (accounts made
+before keep theirs). `xtop` is set-user-id to
 sysinfo, as `ps` is, so any user can run it; it keeps where it found the
 kernel's tables in `/usr/lib/xtop.syms`, installed empty, and starts faster from
-its second run on. Removing TOOLS with `custom` removes `ls` and `df` with it.
-XENIX's own are on the Operating System's volume B01; to put them back, insert
-it and, as root (not yet tried):
+its second run on. `lastlogin` is set-user-id to bin, which owns the file it keeps
+the logins in, `/usr/adm/lastlog`; installing TOOLS again starts that file over.
+With TOOLS, root can set the clock to the real year, as `date 101312002026` (October
+13, 2026, 12:00) or with a two-digit year from 00 to 69; XENIX's own programs that
+show dates, `tar tv` among them, then show them a day ahead, so a clock kept in
+1998, whose calendar is 2026's, stays the choice that suits all of them.
+Removing TOOLS with `custom` removes `ls`, `df` and `date` with it.
+XENIX's own `ls` and `df` are on the Operating System's volume B01; to put them back,
+insert it and, as root (not yet tried):
 
     cd /
     tar xvf /dev/fd0 ./bin/ls ./bin/l ./bin/lc ./bin/lf ./bin/lr ./bin/lx ./bin/df
+
+and `date` the same way, as `./bin/date`, from whichever of its volumes has it
+(`tar tvf /dev/fd0` lists a volume).
 
 (XENIX's start-up files for mkuser are on its volume B02, as
 `./usr/lib/mkuser/mkuser.prof`, `mkuser.login` and `mkuser.cshrc`.)
@@ -257,10 +277,23 @@ tar on a 360K floppy image:
 
 ## How it was made
 
-This project is built with heavy AI assistance (Anthropic's Claude) working alongside its
-author. Every result claimed here was verified on a real XENIX 2.1.3 system, and the
-reverse-engineering findings in ABI.md come from experiments on that system, including the
-ones where the first theory turned out to be wrong.
+This project is written with heavy AI assistance (Anthropic's Claude), working alongside
+its author, who decides what gets built and what counts as done, and tests every change
+on XENIX. The work is checked three ways:
+
+- **On XENIX itself.** Every feature runs on XENIX 2.1.3 (in 86Box, on an emulated IBM
+  XT) from test disks before it counts, and nothing is claimed here or in the release
+  notes that wasn't seen working there. A milestone usually takes a dozen or more rounds
+  of test disks; `xtop` alone took fifteen.
+- **Against the original.** Where a tool stands in for one of XENIX's own, like `ls` and
+  `df`, its output is compared with XENIX's on the same files.
+- **By the test suite.** `test.sh` runs 29 groups of tests in an 8086 simulator before
+  each release, and `ports/bcc/test.py` checks that the compiler running on XENIX
+  rebuilds itself byte for byte.
+
+The release disks are reproducible from the source, and ABI.md records the experiments
+behind every finding about XENIX, including the ones where the first theory turned out
+to be wrong.
 
 ## What this repository does not contain
 

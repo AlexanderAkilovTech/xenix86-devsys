@@ -46,15 +46,30 @@ same names l, lc, lf, lr and lx, and an option \-h for sizes in K and M
 report free disk space, in place of XENIX's own, in K and M with \-v
 and \-h
 .TP
+.B date
+print the date and time, or set the clock, in place of XENIX's own,
+which cannot be set past the end of the century
+.TP
 .B whereis
 locate the program, source and manual page of a command
 .TP
 .B xtop
 show the processes using the machine, kept up to date; also called top
+.TP
+.B hostname
+print or set the name of this machine
+.TP
+.B cursor
+make the console's cursor a block or a line
+.TP
+.B lastlogin
+tell when you last logged in
 .PP
-and the C shell prompt for new accounts: mkuser gives each one a .cshrc
-whose prompt shows the user, the machine and the current directory, in
-color on the console.
+and the start-up files for new accounts: mkuser gives each one a .cshrc
+whose prompt shows the user, the machine and the current directory (~
+for the home directory), in color on the console, and a .login and
+.profile that say when the account last logged in, and that make the
+console's cursor a block if one line in them is uncommented.
 .PP
 The debugger
 .B adb

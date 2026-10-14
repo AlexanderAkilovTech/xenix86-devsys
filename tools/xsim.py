@@ -69,6 +69,15 @@ class Sim:
                     return self.vsync
                 return 0
             uc.hook_add(UC_HOOK_INSN, port_in, None, 1, 0, UC_X86_INS_IN)
+        # XSIM_PORTLOG=file: each out instruction's port and byte, a line
+        # "port value" in hex
+        if os.environ.get('XSIM_PORTLOG'):
+            from unicorn.x86_const import UC_X86_INS_OUT
+            from unicorn import UC_HOOK_INSN
+            def port_out(uc, port, size, value, data):
+                with open(os.environ['XSIM_PORTLOG'], 'a') as log:
+                    log.write('%x %x\n' % (port, value & 0xff))
+            uc.hook_add(UC_HOOK_INSN, port_out, None, 1, 0, UC_X86_INS_OUT)
         self.prof = None
         if os.environ.get('XSIM_PROFILE'):
             from unicorn import UC_HOOK_CODE
@@ -90,6 +99,8 @@ class Sim:
     # XSIM_MAP: "path=hostpath,..." to open another file for a name (/etc/passwd)
     # (a name ending in / maps everything under it: /dev/=/tmp/dev/)
     pathmap = dict(kv.split('=', 1) for kv in os.environ.get('XSIM_MAP', '').split(',') if '=' in kv)
+    uid = int(os.environ.get('XSIM_UID') or 0)     # getuid's answer; not 0: stime is refused
+    now = None                                      # the clock, once stime has set it
 
     def mapped(self, name):
         if name in self.pathmap:
@@ -217,9 +228,15 @@ class Sim:
                     self.deliver(14)
                     return
                 err = 4
-            elif ax == 13: import time; t = int(os.environ.get('XSIM_NOW') or time.time()); r1, r2 = t & 0xffff, t >> 16
+            elif ax == 13:                  # time: XSIM_NOW, or the clock stime set, or the host's
+                import time; t = self.now if self.now is not None else int(os.environ.get('XSIM_NOW') or time.time())
+                r1, r2 = t & 0xffff, t >> 16
+            elif ax == 25:                  # stime: the seconds in BX (low) and CX (high), as on
+                if self.uid: err = 1        # XENIX (M62); EPERM but for the super-user
+                else: self.now = bx | cx << 16
             elif ax == 20: r1, r2 = (os.getpid() & 0x7fff, os.getppid() & 0x7fff) if self.child else (1234, 1)  # getpid: pid, ppid
-            elif ax in (24, 47): r1, r2 = 0, 0  # getuid/getgid: real, effective
+            elif ax == 24: r1, r2 = self.uid, self.uid      # getuid: real, effective (XSIM_UID)
+            elif ax == 47: r1, r2 = 0, 0    # getgid: real, effective
             elif ax == 2:                   # fork: a real host fork of the whole simulator
                 for f in self.files.values():
                     try: f.flush()
@@ -272,7 +289,9 @@ class Sim:
             elif ax == 54:                  # ioctl: ENOTTY, but for the descriptors in
                 # XSIM_TTY ("1" or "0 1"), which pass for terminals (isatty), for
                 # testing line-buffered output; nothing is filled in
-                if str(bx) in os.environ.get('XSIM_TTY', '').split(): r1 = 0
+                if str(bx) in os.environ.get('XSIM_TTY', '').split():
+                    # XSIM_COLOR: what the console's GIO_COLOR ('c' << 8) answers
+                    r1 = int(os.environ['XSIM_COLOR']) if cx == 0x6300 and os.environ.get('XSIM_COLOR') else 0
                 else: err = 25
             else: err = EINVAL
         except Exit as e:

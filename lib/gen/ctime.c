@@ -2,16 +2,23 @@
  *
  * The time zone comes from TZ in the System V form, e.g. TZ=PST8PDT: a standard
  * zone name, hours west of Greenwich, and an optional daylight zone name.
- * Daylight time follows the United States rules of the 1980s and 1990s: from
- * 2 a.m. on the first Sunday in April (the last Sunday before 1987) to 2 a.m.
- * on the last Sunday in October. Without TZ the clock is taken as GMT. */
+ * Daylight time follows the United States' rules for the year: from 2 a.m. on
+ * the last Sunday in April to 2 a.m. on the last Sunday in October until 1986
+ * (from January 6 in 1974 and February 23 in 1975); from the first Sunday in
+ * April from 1987; and from the second Sunday in March to the first Sunday in
+ * November from 2007. Without TZ, or with TZ empty, the zone is XENIX's own
+ * default, PST8PDT, as its date showed it (M63).
+ *
+ * A time is taken as an unsigned count of seconds since 1970, which runs to
+ * February 2106; taken as signed, it would turn negative in January 2038 and
+ * read as 1901. Nothing on XENIX is older than 1970 to need the sign. */
 #include <time.h>
 
 extern char *getenv();
 
-long	timezone;		/* seconds west of Greenwich */
-int	daylight;		/* nonzero if a daylight zone was named */
-char	*tzname[2] = { "GMT", "   " };
+long	timezone = 8 * 3600L;	/* seconds west of Greenwich */
+int	daylight = 1;		/* nonzero if a daylight zone was named */
+char	*tzname[2] = { "PST", "PDT" };
 
 static char tzstd[4], tzdst[4];
 static int tzdone;
@@ -54,19 +61,27 @@ register int y;
 	return y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
 }
 
-struct tm *
-gmtime(tp)
+/* the time *tp, as unsigned seconds since 1970, moved by off seconds (east
+ * of Greenwich is positive), into the date and time */
+static struct tm *
+conv(tp, off)
 long *tp;
+long off;
 {
 	register struct tm *t = &tmbuf;
 	register int y, m, n;
-	long s = *tp, days;
+	unsigned long u = *tp;
+	long days, s;
 
-	days = s / 86400L;
-	s %= 86400L;
-	if (s < 0) {
+	days = u / 86400L;
+	s = u % 86400L + off;
+	while (s < 0) {
 		s += 86400L;
 		days--;
+	}
+	while (s >= 86400L) {
+		s -= 86400L;
+		days++;
 	}
 	t->tm_hour = s / 3600;
 	n = s % 3600;
@@ -75,7 +90,7 @@ long *tp;
 	t->tm_wday = (int)((days + 4) % 7);	/* 1 Jan 1970 was a Thursday */
 	if (t->tm_wday < 0)
 		t->tm_wday += 7;
-	for (y = 1970; days < 0; )		/* before 1970 (a time zone west of GMT) */
+	for (y = 1970; days < 0; )		/* 31 Dec 1969, west of Greenwich */
 		days += leap(--y) ? 366 : 365;
 	for (; ; y++) {
 		n = leap(y) ? 366 : 365;
@@ -98,7 +113,15 @@ long *tp;
 	return t;
 }
 
-/* day of the year (0-based) of the first (n=1) or last (n=-1) Sunday of a month */
+struct tm *
+gmtime(tp)
+long *tp;
+{
+	return conv(tp, 0L);
+}
+
+/* day of the year (0-based) of a month's first (n=1), second (n=2) or last
+ * (n=-1) Sunday, in t's year */
 static
 sunday(t, mon, n)
 register struct tm *t;
@@ -112,7 +135,7 @@ int mon, n;
 	/* weekday of the first of that month, from this date's known weekday */
 	wd = ((t->tm_wday - (t->tm_yday - d)) % 7 + 7) % 7;
 	if (n > 0)
-		return d + (7 - wd) % 7;
+		return d + (7 - wd) % 7 + 7 * (n - 1);
 	i = mdays[mon] + (mon == 1 && leap(t->tm_year + 1900)) - 1;	/* last day */
 	return d + i - ((wd + i) % 7);
 }
@@ -122,22 +145,26 @@ localtime(tp)
 long *tp;
 {
 	register struct tm *t;
-	register int start, end, h;
-	long lt;
+	register int start, end, y;
 
 	if (!tzdone)
 		tzset();
-	lt = *tp - timezone;
-	t = gmtime(&lt);
+	t = conv(tp, -timezone);
 	if (!daylight)
 		return t;
-	start = sunday(t, 3, t->tm_year >= 87 ? 1 : -1);	/* April */
-	end = sunday(t, 9, -1);					/* October */
-	h = t->tm_hour;
-	if ((t->tm_yday > start || (t->tm_yday == start && h >= 2)) &&
-	    (t->tm_yday < end || (t->tm_yday == end && h < 1))) {
-		lt += 3600;
-		t = gmtime(&lt);
+	y = t->tm_year + 1900;
+	if (y >= 2007) {
+		start = sunday(t, 2, 2);	/* the second Sunday in March */
+		end = sunday(t, 10, 1);		/* the first in November */
+	} else {
+		start = y >= 1987 ? sunday(t, 3, 1) :	/* April */
+			y == 1974 ? 5 : y == 1975 ? 53 : sunday(t, 3, -1);
+		end = sunday(t, 9, -1);			/* the last in October */
+	}
+	/* from 2 a.m. standard time to 2 a.m. daylight time, 1 a.m. standard */
+	if ((t->tm_yday > start || (t->tm_yday == start && t->tm_hour >= 2)) &&
+	    (t->tm_yday < end || (t->tm_yday == end && t->tm_hour < 1))) {
+		t = conv(tp, 3600L - timezone);
 		t->tm_isdst = 1;
 	}
 	return t;

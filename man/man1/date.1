@@ -1,0 +1,160 @@
+.TH DATE 1
+.SH NAME
+date \- print the date and time, or set the clock
+.SH SYNOPSIS
+.B date
+[\ \fB+\fIformat\fR\ ]
+.br
+.B date
+.I mmddhhmm\fR[[\fIcc\fR]\fIyy\fR]
+.SH DESCRIPTION
+Without an argument,
+.B date
+prints the date and time, in the local time zone:
+.PP
+.nf
+	Tue Oct 13 12:00:00 PDT 1998
+.fi
+.PP
+With an argument that begins with +, it prints the date and time in
+that format: each character as it is, but for a % and the letter after
+it, which give
+.TP 6
+.B %m
+the month, 01 to 12
+.TP
+.B %d
+the day of the month, 01 to 31
+.TP
+.B %y
+the year in two digits, 00 to 99
+.TP
+.B %Y
+the year in four digits
+.TP
+.B %D
+the date as mm/dd/yy
+.TP
+.B %H
+the hour, 00 to 23
+.TP
+.B %M
+the minute, 00 to 59
+.TP
+.B %S
+the second, 00 to 59
+.TP
+.B %T
+the time as HH:MM:SS
+.TP
+.B %r
+the time as hh:MM:SS AM or PM
+.TP
+.B %j
+the day of the year, 001 to 366
+.TP
+.B %w
+the day of the week, Sunday being 0
+.TP
+.B %a
+the day of the week, Sun to Sat
+.TP
+.B %h
+the month, Jan to Dec
+.TP
+.B %n
+a newline
+.TP
+.B %t
+a tab
+.TP
+.B %%
+a %
+.PP
+and a newline ends what it prints. Quote a format with spaces in it:
+.PP
+.nf
+	$ date '+%h %d, %Y, at %r'
+	Oct 13, 1998, at 12:00:00 PM
+.fi
+.PP
+Given a date and time instead, as month, day, hour and minute, two
+digits each, and the year, root's
+.B date
+sets the clock to it, at second 0, and prints it. Without a year, it
+stays this year's; a year in two digits is 1970 to 1999 from 70 to 99,
+and 2000 to 2069 from 00 to 69; and a year in four digits is that year,
+up to 2106.
+.PP
+.nf
+	# date 101312002026
+	Tue Oct 13 12:00:00 PDT 2026
+.fi
+.PP
+The time given is local time, daylight time when daylight time is in
+force on that date. Setting the clock writes the time before and after,
+as "old time" and "new time", in /etc/utmp and at the end of /etc/wtmp.
+Only the first argument is read.
+.PP
+This
+.B date
+takes the place of XENIX's own, which it prints the same as, in every
+format, up to the end of 1999. XENIX's takes a two-digit year only;
+and, taking 2000 for a common year, it prints any date from
+February 29, 2000 on a day ahead, and the year in %y as :0 for 2000 and
+<6 for 2026. XENIX's
+.B tar
+shares the mistake.
+.SH ENVIRONMENT
+.TP 8
+TZ
+the time zone, for example PST8PDT; see
+.BR ctime (3).
+Without it, or empty, PST8PDT, as for XENIX's own date.
+.SH FILES
+.TP 16
+/etc/utmp
+who is logged in, and when the clock was last set
+.TP
+/etc/wtmp
+the logins, and the times the clock was set
+.SH DIAGNOSTICS
+.TP
+date: bad conversion
+The argument to set the clock is not a date and time that exists: not 8,
+10 or 12 digits; a month, day, hour or minute out of range, including a
+day the month does not have; or a time before 1970 or after the clock's
+end in February 2106.
+.TP
+date: bad format character \- \fIc\fR
+A format has a % and a letter it does not know.
+.TP
+date: no permission
+Only root can set the clock.
+.TP
+date: no TOY clock
+For
+.BR \-u .
+XENIX's own
+.B date
+uses a time-of-year clock with \-u, and on an XT finds none; this one
+cannot read one at all.
+.PP
+The exit status is 0, or 2 after any of these.
+.SH SEE ALSO
+ctime(3), who(1)
+.SH HISTORY
+A
+.B date
+command appeared in Version 1 AT&T UNIX. Its formats with + are those of
+System V.
+.SH AUTHORS
+This date was written for the xenix86-devsys system tools.
+.SH BUGS
+XENIX's kernel has not been tried past January 19, 2038, when its count
+of seconds passes 2147483647, the largest a signed long holds.
+.PP
+XENIX's own programs that print dates with their own copy of the C
+library, such as
+.BR tar ,
+print them a day ahead from February 29, 2000 on, as its date did.

@@ -1,0 +1,36 @@
+.TH CURSOR 1
+.SH NAME
+cursor \- make the console's cursor a block or a line
+.SH SYNOPSIS
+.B cursor
+block | line
+.SH DESCRIPTION
+.B cursor block
+makes the console's cursor a block the height of a character;
+.B cursor line
+makes it the usual line under the character again.
+.PP
+The cursor's shape belongs to the display adapter, not to the screen,
+so it is the same on all of the console's screens. cursor sets it in
+the adapter's 6845, which keeps the first and last scan lines of the
+cursor in its registers 10 and 11, as the IBM PC's BIOS sets them: a
+line covers a character's last two scan lines (6 and 7 of the 8 on a
+color adapter, 11 and 12 of the 14 on a monochrome one), and a block
+runs from the top of the character down to the same last line.
+.PP
+To have a block cursor every time you log in, put
+.B cursor block
+in your .login or .profile.
+.SH DIAGNOSTICS
+"only on the console" when neither the standard input nor the standard
+output is the console. The exit status is 0 when the cursor was set, 1
+when it could not be, and 2 after a mistake in the argument.
+.SH SEE ALSO
+setcolor(1)
+.SH HISTORY
+The IBM PC's BIOS sets the cursor's shape through the same registers,
+with function 1 of its video service, interrupt 10h.
+.B cursor
+is this system's.
+.SH AUTHORS
+cursor was written for the xenix86-devsys system tools.

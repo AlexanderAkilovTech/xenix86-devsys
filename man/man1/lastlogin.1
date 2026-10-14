@@ -1,0 +1,44 @@
+.TH LASTLOGIN 1
+.SH NAME
+lastlogin \- tell when you last logged in
+.SH SYNOPSIS
+.B lastlogin
+.SH DESCRIPTION
+.B lastlogin
+prints the time and the terminal of the login before this one:
+.PP
+.nf
+	Last login: Sun Oct 11 13:50:12 on tty02
+.fi
+.PP
+and prints nothing the first time. XENIX's login does not say this
+itself, so the start-up files that mkuser gives new accounts, .login
+for the C shell and .profile for the Bourne shell, run lastlogin. An
+account made before can add
+.B /usr/bin/lastlogin
+to its own.
+.PP
+lastlogin finds the login it was started from in /etc/utmp, as the
+entry of the shell that ran it, and keeps it, with the one before, in
+/usr/adm/lastlog. Run again in the same login, it prints the same
+line. Run where there is no login shell above it, it only prints.
+.SH FILES
+.TP 20
+/usr/adm/lastlog
+each user's last two logins, at the user id times 24 bytes
+.TP
+/etc/utmp
+who is logged in now
+.SH SEE ALSO
+login(1), who(1), finger(1)
+.SH HISTORY
+4.2BSD's login printed the time and the terminal of the last login,
+kept in /usr/adm/lastlog; lastlogin does the same for XENIX's.
+.SH AUTHORS
+lastlogin was written for the xenix86-devsys system tools.
+.SH BUGS
+Logins whose start-up files do not run lastlogin are not kept, and
+installing the TOOLS package again starts /usr/adm/lastlog over, empty.
+.PP
+XENIX's own /etc/wtmp is no help here: it was found holding only the
+logins since the machine last started.

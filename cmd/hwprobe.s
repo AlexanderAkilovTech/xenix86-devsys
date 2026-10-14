@@ -1,6 +1,7 @@
 ! hwprobe.s - what the machine has, for xtop (and anything else that asks):
 ! is there an 8087, and is a monochrome display a Hercules card or an IBM
-! one (MDA). Written for xenix86-devsys.
+! one (MDA); and outb, for cursor to set the display adapter's registers.
+! Written for xenix86-devsys.
 	.text
 
 ! fpprobe(cw, sw) unsigned *cw, *sw;  fninit, then the control and status
@@ -57,4 +58,16 @@ hloop:
 	ret
 herc:
 	mov	ax,#1
+	ret
+
+! outb(port, byte)  writes byte to an I/O port (an 8086 has no I/O
+! protection, so a XENIX program may: ABI.md, the console and the CGA)
+	export	_outb
+_outb:
+	push	bp
+	mov	bp,sp
+	mov	dx,4[bp]
+	mov	al,6[bp]
+	out	dx,al
+	pop	bp
 	ret

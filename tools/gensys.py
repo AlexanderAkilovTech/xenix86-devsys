@@ -15,7 +15,7 @@ CALLS = {
     'alarm': (27, 1), 'pause': (29, 0), 'umask': (60, 1), 'nice': (34, 1),
     'getgid': (47, 0), 'setuid': (23, 1), 'setgid': (46, 1), 'utime': (30, 2),
     'chown': (16, 3), 'mknod': (14, 3), 'sync': (36, 0), 'stat': (18, 2), 'fstat': (28, 2),
-    'times': (43, 1),
+    'times': (43, 1), '_stime': (25, 2),
 }
 # name: V7 call number; argument-less calls whose result is the second word (BX)
 SECOND = {'getppid': 20, 'geteuid': 24, 'getegid': 47}

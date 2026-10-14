@@ -64,8 +64,12 @@ for path in pages:
     check(f'{name}.{sec}: NAME section', ['', 'NAME'], lines[1:3])
     src = open(path).read()
     check(f'{name}.{sec}: a HISTORY section', True, '.SH HISTORY' in src)
-    late = [y for y in re.findall(r'\b1[89]\d\d\b|\b20\d\d\b', src) if int(y) > 1986]
-    check(f'{name}.{sec}: no year after 1986', [], [y for y in late if not (name == 'ctime' and y == '1987')])
+    # The manual is written as of 1986: no later year anywhere, but in the
+    # pages about the clock itself, date(1) and ctime(3), which must name the
+    # years it reaches and the rules for them; their HISTORY stays at 1986.
+    year = lambda t: [y for y in re.findall(r'\b1[89]\d\d\b|\b20\d\d\b', t) if int(y) > 1986]
+    late = year(src.split('.SH HISTORY')[1].split('\n.SH')[0]) if name in ('date', 'ctime') else year(src)
+    check(f'{name}.{sec}: no year after 1986' + (' in its HISTORY' if name in ('date', 'ctime') else ''), [], late)
     entry = [l for l in whatis if l.startswith(f'{name}({sec})\t')]
     check(f'{name}.{sec}: in whatis with a description', True, len(entry) == 1 and ' - ' in entry[0])
 

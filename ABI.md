@@ -58,6 +58,12 @@ on the first returning system call (SIGILL, core dumped).
 - time (13): AX = low word, BX = high word of the seconds since 1970.
 - getpid (20): AX = pid, BX = parent pid. There is no separate getppid call (V7 style).
 - getuid (24) / getgid (47): AX = real id, BX = effective id.
+- stime (25) takes the new time itself, BX = low word and CX = high, as time
+  returns it, not a pointer to it; the super-user's only (M62, tests/m62/settime.c,
+  which moved the clock an hour and back, and to 2026 and back).
+- times (43) returns the clock ticks since the machine started, which go on
+  whatever the clock is set to: a program can put the clock back from them
+  (tests/m63/settime.c, save and back).
 - fork (2): AX = the other process's pid; BX = 0 in the child, nonzero in the parent.
 - wait (7): AX = pid of the child, BX = its status. pipe (42): AX = read fd, BX = write fd.
 - signal (48): the kernel is given a handler address in our text. On delivery it
@@ -99,11 +105,51 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   unlinks the old one, as Version 7 did.
 
 ## Dates
-- XENIX 2.1.3's date command will not take a year past 1999, so a clock set for
-  2026 is set to 1998, which has the same calendar. Files carried in from a
-  modern machine then look decades newer than anything built on XENIX, and make
-  rebuilds everything every time; tools/mkdisk.sh dates the files on its floppy
-  images 1 January 1986.
+- XENIX 2.1.3's date command takes a two-digit year (`date mmddhhmm[yy]`), so a
+  clock set for 2026 is set to 1998, which has the same calendar. Files carried
+  in from a modern machine then look decades newer than anything built on
+  XENIX, and make rebuilds everything every time; tools/mkdisk.sh dates the
+  files on its floppy images 1 January 1986.
+- The kernel and the files are fine past 1999: with the clock set to October
+  2026 by stime, a new file's time was 2026's, this project's `ls -l` showed it
+  right and `find -mtime -1` found it (M62).
+- XENIX's own date, and its tar, take 2000 for a common year (M62, M63). The
+  weekday stays right, but from February 29, 2000 on the month and day are a
+  day ahead, and from 2001 on the day of the year too: February 29 shows as
+  03/01, March 1 as 03/02, December 31, 2000 as 01/01 of 2001 (%j 001),
+  October 13, 2026 as October 14 (%j 287, not 286). %y is (year - 1900) / 10
+  as a character counted from '0', then the units: `:0` for 2000, `<6` for
+  2026, `=7` for 2037. This project's date (TOOLS) replaces it.
+- XENIX's date (M63, against this project's on the same arguments): the
+  formats %n %t %m %d %y %D %H %M %S %T %j %w %a %h %r and %%; any other
+  letter is "date: bad format character - c", status 2, and so is a % at the
+  end (the character printed is a NUL). %r is `03:38:01 PM`. `+` alone prints
+  an empty line. `-u` says "date: no TOY clock", status 2 (on the XT).
+  Setting: `date mmddhhmm[yy]` sets the clock at second 0 and prints the new
+  time; "date: bad conversion", status 2, for 6 digits, letters, month 00 or
+  13, hour 25, minute 60; it took February 30 (to March 2) and `1013120098x`
+  and 11 digits, ignoring the end; arguments after the first are ignored. A
+  user other than root gets "date: no permission", then the time it did not
+  set printed as if it had, status 2.
+- Setting the clock, XENIX's date writes two utmp entries, type 3 (OLD_TIME)
+  with line `old time` and the time before, and type 4 (NEW_TIME) with `new
+  time` and the time after, pid 0, id and user empty: in /etc/utmp, at its end
+  the first time and in place after that, and at the end of /etc/wtmp (M63).
+- With TZ set but empty, XENIX's date printed PDT: its default zone is
+  PST8PDT (/etc/rc sets TZ=PST8PDT as well). This project's library has the
+  same default.
+- /bin/date is bin's, mode 711, 11864 bytes, dated Sep 12 1985. There are also
+  /etc/asktime (bin, 700, 1818 bytes), which with an empty answer printed
+  `Current System Time is ...` and `Enter new time ([yymmdd]hhmm): ` and kept
+  the time, and /etc/setclock (bin, 700, 9086 bytes).
+- /etc/rc runs `eval /etc/asktime $autoflag $autoboot` at every start. asktime
+  is a shell script: the clock starts from the date in the root file system's
+  super-block (so it stands still while the machine is off), it shows `date`'s
+  output and asks for `[yymmdd]hhmm`, turns the answer into date's form with
+  /lib/cvtdate and sets it with `date`; with a real-time clock it uses
+  /etc/setclock. With this project's date in /bin, the boot prompt shows the
+  date right past 1999 (M64). Whether cvtdate passes a year past 1999 on is
+  not yet tried.
 
 ## Installation sets (custom), verified with `custom -d`
 - `custom`'s Development System entry installs two permissions lists: the
@@ -180,7 +226,19 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   with a `.` or a `/` inside them).
   Tested on XENIX: absolute and relative names, `..`, `../tmp`, a bare `cd`,
   `pushd` and `popd`, and a directory that does not exist (the prompt stays).
-- `uname -n` prints `(empty)` when no node name has been set.
+- `uname -n` prints `(empty)` when no node name has been set, and uname has no
+  `-S` to set one (its usage: `[-snrvmdupal]`). The machine's name, for Micnet
+  and UUCP, is the first line of /etc/systemid (`xenix86` here, bin's, 644).
+- csh has no `unsetenv` ("unsetenv: Command not found."). A `switch` takes
+  variables in its `case` labels (`case "$home"/*:`). `$cwd:` followed by a
+  space is "Variable syntax": a colon after a variable starts a modifier, so
+  write `${cwd}:` (M61, M62).
+- csh keeps a history: after `set history = 5`, `history` lists the commands
+  typed, numbered (M64, `csh -f -i` reading them).
+- A script whose first character is `#` is run by csh, not sh, so an sh script
+  starts with `:` instead (tests/tools/t).
+- XENIX's grep has no `\|`: `grep "a\|b"` matched nothing. On a program,
+  `grep -c` counted 0 even for a message the program prints (M63).
 - `echo "--- XENIX"` printed an empty line: an argument that begins with `-` is
   lost. Test scripts mark their sections with other characters (`+++`, `===`).
 - Starting a process costs a second or two on the emulated XT, swapping
@@ -249,6 +307,13 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   (an 8086 has no I/O protection), and the picture copied straight to B800:0 with
   ES loaded (tests/cgaio.s). Mode 4 (320 x 200, four colors) and both palettes
   worked, and the BIOS's mode 3 values put the console back as it was.
+- The cursor's shape is the 6845's registers 10 and 11 (its first and last scan
+  lines); a program can make it a block (0 to 7 on the CGA, 0 to 12 on a
+  monochrome card) or the usual line (6 and 7, 11 and 12) through 3D4/3D5 or
+  3B4/3B5 (cmd/cursor.c, M60). It is one shape for all the console's screens,
+  and back to the line after the machine is started again. The kernel has no
+  escape sequence for it.
+- The console's stty already has `echoe`, with `erase` ^H (M60).
 - `/dev/mem` ends with the memory XENIX has: reads and writes at B8000 fail, and
   the BIOS's data at 400 is overwritten by the kernel's own.
 - Display adapters in 86Box: XENIX 2.1.3 runs with a CGA, an MDA and a Hercules
@@ -339,7 +404,20 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   floppy; read back from the image by the file's length, or up to an end marker
   the script wrote last.
 
+## Logins (utmp and wtmp)
+- /etc/utmp and /etc/wtmp hold System V entries of 36 bytes: user (8) at 0, id
+  (4) at 8, line (12) at 12, pid (short) at 24, type (short) at 26, exit status
+  (two shorts) at 28, time (long) at 32. Types seen: 3 OLD_TIME and 4 NEW_TIME
+  (date), 5 INIT_PROCESS, 6 LOGIN_PROCESS (`LOGIN` on a waiting terminal), 7
+  USER_PROCESS (the user, with the pid of the login shell). The console's line
+  is `console`, id `cons`; the others are `tty02` and so on, id `02` (M60, M63).
+- /etc/wtmp held only the entries since the machine last started, and there is
+  no /usr/adm/wtmp, so the time of the login before this one is not kept
+  anywhere: cmd/lastlogin.c keeps it, in /usr/adm/lastlog (M60, M61).
+
 ## Commands present
+- Not there: `last`, `hostname`, `lastlogin`, `tput`. There: `finger`,
+  `setcolor` (M60).
 - XENIX 2.1.3 has `/usr/bin/more` (with `--More--(15%)`) but no `pg`, and no
   `nroff`, so the manual is formatted ahead of time (tools/man.py) and `man`
   pages it through `more`.

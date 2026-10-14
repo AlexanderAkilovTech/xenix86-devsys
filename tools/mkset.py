@@ -9,8 +9,8 @@ custom's built-in "Development System" (custom -d) installs two lists: the
 Operating System's /etc/dsmd.perms, whose SOFT package (adb and /usr/include/sys)
 comes from SCO's own disk N05, and /etc/soft.perms, which these disks supply.
 Its packages: SOFT, the compiler and the rest; MAN, the manual; and TOOLS, the
-system tools, of which ls and df take the place of XENIX's own, with the
-owners, modes and links of XENIX's (its /etc/perms/rts).
+system tools, of which ls, df and date take the place of XENIX's own, with
+the owners, modes and links of XENIX's (its /etc/perms/rts).
 The format follows SCO's 2.1.3 sets: a label file ./tmp/_lbl/prd=xnxsv/ver=ALL86/
 rel=2.1.3/vol=D01 first on each disk, the permissions list (with its second
 name ./etc/perms/soft as a hard link) on D01, then the files, in a version 7 tar
@@ -29,16 +29,24 @@ BIN = 3                    # uid and gid of bin
 # links). Directories have no volume.
 # The manual is a package of its own, MAN: the man command and /usr/man.
 MANDIRS = ('usr/man/cat1', 'usr/man/cat3')
-# The system tools, TOOLS: ls and df as XENIX installs its own (x1711 and
-# x4711 sysinfo, ls with its five other names), xtop set-user-id to sysinfo
+# The system tools, TOOLS: ls, df and date as XENIX installs its own (x1711,
+# x4711 sysinfo and x711, ls with its five other names), xtop set-user-id to sysinfo
 # as ps is, to read the kernel's memory and the disks, with the file it keeps
-# the kernel's symbols in (empty until xtop first runs); the csh prompt's cd,
-# and mkuser's templates for new accounts in place of XENIX's.
+# the kernel's symbols in (empty until xtop first runs); hostname, cursor,
+# and lastlogin, set-user-id to bin, which owns its records in /usr/adm; the
+# csh prompt's cd and prompt, and mkuser's templates for new accounts in
+# place of XENIX's.
 TOOLS = [('x', 0o1711, 'bin/bin', './bin/ls', ['./bin/l', './bin/lc', './bin/lf', './bin/lr', './bin/lx']),
          ('x', 0o4711, 'sysinfo/bin', './bin/df', []),
+         ('x', 0o711, 'bin/bin', './bin/date', []),
          ('x', 0o711, 'bin/bin', './usr/bin/whereis', []),
          ('x', 0o4711, 'sysinfo/bin', './usr/bin/xtop', ['./usr/bin/top']),
+         ('x', 0o711, 'bin/bin', './usr/bin/hostname', []),
+         ('x', 0o711, 'bin/bin', './usr/bin/cursor', []),
+         ('x', 0o4711, 'bin/bin', './usr/bin/lastlogin', []),
+         ('f', 0o644, 'bin/bin', './usr/adm/lastlog', []),
          ('f', 0o644, 'bin/bin', './usr/lib/cdprompt.csh', []),
+         ('f', 0o644, 'bin/bin', './usr/lib/setprompt.csh', []),
          ('f', 0o600, 'sysinfo/bin', './usr/lib/xtop.syms', []),
          ('f', 0o644, 'bin/bin', './usr/lib/mkuser/mkuser.cshrc', []),
          ('f', 0o644, 'bin/bin', './usr/lib/mkuser/mkuser.login', []),
@@ -135,7 +143,7 @@ DESC = {'ALL': 'Entire Development System set',
         'PERM': 'Contents and permissions lists',
         'SOFT': 'C compiler, assembler, make, libraries',
         'MAN': 'Manual pages and the man command',
-        'TOOLS': 'System tools: ls, df, whereis, xtop'}
+        'TOOLS': 'System tools: ls, df, date, xtop'}
 
 def desc(k, nblocks):
     d = f'{DESC[k]} ({(nblocks + 1) // 2}K)'
@@ -170,8 +178,8 @@ def perms_text(permsize):
         if pkg != last:
             L.append(f'#!{pkg}\t{pk[pkg]}\t{desc(pkg, pk[pkg])}')
             if pkg == 'TOOLS':
-                L += ["#\tls and df in place of XENIX's own, and mkuser's start-up files",
-                      '#\twith a C shell prompt that shows the directory']
+                L += ["#\tls, df and date in place of XENIX's own, and mkuser's start-up",
+                      '#\tfiles with a C shell prompt that shows the directory']
             last = pkg
         tabs = lambda q: '\t' * max(1, 4 - len(q) // 8)
         ot = '\t' * max(1, 2 - len(o) // 8)

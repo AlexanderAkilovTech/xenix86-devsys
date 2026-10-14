@@ -5,14 +5,20 @@ PATH=$HOME/bin:/bin:/usr/bin:.
 MAIL=/usr/spool/mail/`logname`
 umask 022
 eval `tset -s -Q -m ansi:ansi -m :\?ansi -r`
+if test -f /usr/bin/lastlogin	# when you last logged in
+then
+	/usr/bin/lastlogin
+fi
+#cursor block 2>/dev/null		# a block cursor on the console
+#PROMPTCOLOR=no			# the prompt without its colors
 # the prompt: you@host, in color on the console (sh cannot show the
 # directory; csh's prompt can)
-host=`uname -n`
-if test -z "$host" -o "$host" = "(empty)"
+host=`hostname`
+if test -z "$host"
 then
 	host=xenix
 fi
-if test "$TERM" = ansi
+if test "$TERM" = ansi -a "$PROMPTCOLOR" != no
 then
 	PS1="[1m[36m`logname`[0m[37m@[1m[32m$host[0m[37m$ "
 else
