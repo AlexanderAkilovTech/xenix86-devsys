@@ -51,7 +51,8 @@ in /etc/mnttab, looked at every 30 seconds.
 .PP
 .B Uptime
 is the time since the system was started, in days, hours, minutes and
-seconds.
+seconds, counted in the clock's ticks, so setting the date does not
+change it.
 .B FPU
 says whether the machine has an 8087, found by asking one to initialize
 itself:
@@ -260,12 +261,14 @@ A
 .B top
 command was written by William LeFebvre at Rice University in 1984.
 .B xtop
-is this system's, after it.
+is this system's, after it. Its screen follows the general look of
+htop, by Hisham Muhammad. The swapping counts, the file system meters
+and the FPU and video lines are its own.
 .SH AUTHORS
 xtop was written for the xenix86-devsys system tools.
 .SH BUGS
 On an XT xtop takes about a third of a second of the processor for
-each screen, a tenth of its time at 3 seconds between screens, and a
+each screen, a tenth of its time at 3 seconds between screens, and
 about three seconds to start, a second or two more the first time and
 after the kernel changes, while it looks through /xenix. A longer delay, as
 .BR "xtop \-d 5" ,
@@ -292,3 +295,6 @@ xtop is set-user-id to sysinfo, who may read the kernel's memory and the
 disks, as ps(1) and df(1) are; it gives that up once its files are open.
 .PP
 At most 30 lines of the terminal are used.
+.PP
+The uptime starts over after nearly 7 years of running without a
+restart, when the count of ticks does.

@@ -63,7 +63,8 @@ put(kmem, SYMS['_swplo'], '<l', -1)
 boot = 907000000
 put(kmem, SYMS['_bootime'], '<l', boot)
 put(kmem, SYMS['_time'], '<l', boot + 3 * 3600 + 25 * 60)  # up 3:25
-put(kmem, SYMS['_lbolt'], '<l', 12345)
+LB = (3 * 3600 + 25 * 60) * 20                            # the ticks since the start, 20 a second
+put(kmem, SYMS['_lbolt'], '<l', LB)
 # the maps: free core 384 + 5888 clicks (98K), free swap 5 + 1316 blocks
 for a, ents, at in ((SYMS['_coremap'], [(384, 16704), (5888, 19648)], 0xb00a),
                     (SYMS['_swapmap'], [(5, 1), (1316, 284)], 0x4a2e)):
@@ -337,7 +338,7 @@ def key(k):
     settle()
 settle()
 first = sum(len(b) for b in got)
-poke('/dev/kmem', SYMS['_lbolt'], '<l', 12345 + 60)              # three seconds on
+poke('/dev/kmem', SYMS['_lbolt'], '<l', LB + 60)              # three seconds on
 poke('/dev/mem', 0x3c40 * 16 + 1296, '<ll', 122 + 45, 312 + 12)  # kprobe ran 57 ticks of them
 poke('/dev/kmem', SYMS['_time'], '<l', boot + 3 * 3600 + 27 * 60)
 # and lpsched came into memory, at 0x5000
@@ -361,8 +362,8 @@ check('lpsched in memory now', any(l.split()[:1] == ['21'] and l.split()[6] == '
       '\n'.join(text(sc2)))
 poke('/dev/mem', 0x74c0 * 16 + 1388, '14s', b'vi')                 # sh became vi
 poke('/dev/kmem', SYMS['_proc'] + 5 * 48, '<B', 0)                 # the zombie is gone
-poke('/dev/kmem', SYMS['_lbolt'], '<l', 12345 + 120)
-poke('/dev/kmem', SYMS['_time'], '<l', boot + 2 * 86400 + 3 * 3600 + 27 * 60 + 5)
+poke('/dev/kmem', SYMS['_lbolt'], '<l', (2 * 86400 + 3 * 3600 + 27 * 60 + 5) * 20)
+poke('/dev/kmem', SYMS['_time'], '<l', 1791975049)               # the clock set to 2026: no matter (M66)
 key(b' ')
 key(b' ')                                                          # once more: no change, CPU 0.0
 mark = sum(len(b) for b in got)
@@ -375,7 +376,7 @@ final = subprocess.run(SIM + ['-b', '-n', '1', '-d', '1'], env=env, stdout=subpr
 fl = [l.rstrip() for l in final.split('\n')[:25]]
 check('after changes, the screen as the batch output', text(sc) == fl,
       '\n'.join(text(sc)) + '\n----\n' + '\n'.join(fl))
-check('the uptime in days', fl[1].endswith('Uptime: 2 days, 03:27:05'), repr(fl[1]))
+check('the uptime in days, from the ticks, whatever the clock says', fl[1].endswith('Uptime: 2 days, 03:27:05'), repr(fl[1]))
 check('the busy process at the top while it ran', 'kprobe' in out[first:first + second], repr(out[first:first + second]))
 check('only what changed sent: fewer bytes than a screen', 0 < second < first / 2, f'{second} of {first}')
 check('the zombie gone, the name changed', not any('defunct' in l for l in fl) and any(l.endswith(' vi') for l in fl),

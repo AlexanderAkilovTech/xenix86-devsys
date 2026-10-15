@@ -2,7 +2,7 @@
 # From xenix86-devsys: /usr/lib/mkuser/mkuser.cshrc, which mkuser copies
 # into a new account.
 set noclobber			# > does not write over a file that is there
-set history = 40		# remember the last 40 commands
+set history = 10		# remember the last 10 commands
 #set promptcolor = no		# the prompt without its colors
 if ($?prompt) then
 	# the prompt: you@host and the directory you are in, ~ for your home

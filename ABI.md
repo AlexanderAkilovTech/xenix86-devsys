@@ -272,9 +272,8 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   space is "Variable syntax": a colon after a variable starts a modifier, so
   write `${cwd}:` (M61, M62).
 - There is a /etc/cshrc, XENIX's own (bin, 644, 156 bytes), so csh most
-  likely reads it before each user's .cshrc. With `setenv HOST "`hostname`"`
-  added to it, a C shell login had `$HOST` (M66; that account's own .login
-  was not checked for the same line). sh at login reads /etc/profile: with
+  reads it at login: with `setenv HOST "`hostname`"` added to it, a C shell
+  login whose own .login has no such line had `$HOST` (M66). sh at login reads /etc/profile: with
   `HOST=`hostname`; export HOST` added, root's sh had `$HOST` (M66).
 - csh keeps a history: after `set history = 5`, `history` lists the commands
   typed, numbered (M64, `csh -f -i` reading them).

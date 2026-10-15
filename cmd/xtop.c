@@ -995,23 +995,23 @@ char *s;
 	}
 }
 
-/* the time since the system started: 3 days, 08:58:12 */
+/* the time since the system started: 3 days, 08:58:12. From the clock's
+ * ticks since then (lbolt, 20 a second, as times() gives them), not the
+ * time of day less the start's: setting the clock moves those (M66) */
 char *
 uptime()
 {
 	static char b[30];
-	long t = now - boot, d;
+	unsigned long t = (unsigned long)lbolt / 20, d;
 	unsigned h, m, sec;
 
-	if (t < 0)
-		t = 0;
 	d = t / 86400L;
 	t %= 86400L;
 	h = (unsigned)(t / 3600);
 	m = (unsigned)(t % 3600) / 60;
 	sec = (unsigned)(t % 60);
 	if (d)
-		sprintf(b, "%ld day%s, %02u:%02u:%02u", d, d == 1 ? "" : "s", h, m, sec);
+		sprintf(b, "%lu day%s, %02u:%02u:%02u", d, d == 1 ? "" : "s", h, m, sec);
 	else
 		sprintf(b, "%02u:%02u:%02u", h, m, sec);
 	return b;
