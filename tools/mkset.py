@@ -34,7 +34,8 @@ MANDIRS = ('usr/man/cat1', 'usr/man/cat3')
 # as ps is, to read the kernel's memory and the disks, with the file it keeps
 # the kernel's symbols in (empty until xtop first runs); hostname, cursor,
 # lastlogin, set-user-id to bin, which owns its records in /usr/adm, and
-# uptime; /etc/default/date, how dates are written (date, uptime); the csh
+# uptime; sudo, set-user-id to root, with who may use it and its log, and
+# shutdown; /etc/default/date, how dates are written (date, uptime); the csh
 # prompt's cd and prompt, and mkuser's templates for new accounts in place
 # of XENIX's.
 TOOLS = [('x', 0o1711, 'bin/bin', './bin/ls', ['./bin/l', './bin/lc', './bin/lf', './bin/lr', './bin/lx']),
@@ -46,6 +47,10 @@ TOOLS = [('x', 0o1711, 'bin/bin', './bin/ls', ['./bin/l', './bin/lc', './bin/lf'
          ('x', 0o711, 'bin/bin', './usr/bin/cursor', []),
          ('x', 0o4711, 'bin/bin', './usr/bin/lastlogin', []),
          ('x', 0o711, 'bin/bin', './usr/bin/uptime', []),
+         ('x', 0o4711, 'root/bin', './usr/bin/sudo', []),
+         ('x', 0o711, 'bin/bin', './usr/bin/shutdown', []),
+         ('f', 0o644, 'bin/bin', './etc/default/sudo', []),
+         ('f', 0o600, 'root/bin', './usr/adm/sudolog', []),
          ('f', 0o644, 'bin/bin', './etc/default/date', []),
          ('x', 0o700, 'bin/bin', './etc/asktime', []),
          ('f', 0o644, 'bin/bin', './usr/adm/lastlog', []),

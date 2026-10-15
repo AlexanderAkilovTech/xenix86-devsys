@@ -18,8 +18,9 @@ line covers a character's last two scan lines (6 and 7 of the 8 on a
 color adapter, 11 and 12 of the 14 on a monochrome one), and a block
 runs from the top of the character down to the same last line.
 .PP
-To have a block cursor every time you log in, put
-.B cursor block
+asktime(1) makes it a block at every start, for every account. To have
+a line instead, put
+.B cursor line
 in your .login or .profile.
 .SH DIAGNOSTICS
 "only on the console" when neither the standard input nor the standard

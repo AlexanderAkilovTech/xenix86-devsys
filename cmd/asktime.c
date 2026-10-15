@@ -14,7 +14,8 @@
  * from it first, through /etc/setclock, and sets it after from the clock.
  * It also gives the kernel the machine's name from /etc/systemid, which
  * uname -n prints and which is lost at every start (hostname): XENIX's
- * start-up has nowhere else to do it. xenix86-devsys system tools. */
+ * start-up has nowhere else to do it. And it makes the console's cursor a
+ * block, for every account (cursor). xenix86-devsys system tools. */
 #include <stdio.h>
 #include <signal.h>
 #include <time.h>
@@ -94,6 +95,11 @@ char **argv;
 		rtc = 0;
 	if (access("/usr/bin/hostname", 1) == 0)
 		system("/usr/bin/hostname `/usr/bin/hostname` > /dev/null 2>&1");
+	/* the console's cursor a block from here on, for everyone: it keeps one
+	 * shape for all its screens until it is set again, and the start of the
+	 * machine, before this, keeps the BIOS's line */
+	if (access("/usr/bin/cursor", 1) == 0)
+		system("/usr/bin/cursor block < /dev/console > /dev/null 2>&1");
 	printf("\nCurrent System Time is %s\n", now());
 	printf("Enter the time as %s or %s %s, or Return to keep it: ",
 		clock12 ? "3:36 PM" : "15:36", dmy ? "14/10" : "10/14", clock12 ? "9:05 AM" : "09:05");

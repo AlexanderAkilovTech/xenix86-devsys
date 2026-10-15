@@ -236,6 +236,11 @@ class Sim:
                 else: self.now = bx | cx << 16
             elif ax == 20: r1, r2 = (os.getpid() & 0x7fff, os.getppid() & 0x7fff) if self.child else (1234, 1)  # getpid: pid, ppid
             elif ax == 24: r1, r2 = self.uid, self.uid      # getuid: real, effective (XSIM_UID)
+            elif ax in (23, 46):            # setuid, setgid: as root, or as a program set-user-id
+                # to root (XSIM_SETUID=1, for sudo); then the user is root
+                if self.uid == 0 or os.environ.get('XSIM_SETUID') == '1' or bx == self.uid:
+                    if ax == 23: self.uid = bx
+                else: err = 1
             elif ax == 47: r1, r2 = 0, 0    # getgid: real, effective
             elif ax == 2:                   # fork: a real host fork of the whole simulator
                 for f in self.files.values():
@@ -249,7 +254,7 @@ class Sim:
                     self.pids[pid & 0x7fff] = pid
                     r1, r2 = pid & 0x7fff, 1               # parent: AX = child pid
             elif ax == 59:                  # execve(name, argv, envp)
-                name = self.cstr(bx)
+                name = self.mapped(self.cstr(bx))
                 def strv(p):
                     v = []
                     while p:

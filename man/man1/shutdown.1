@@ -1,0 +1,65 @@
+.TH SHUTDOWN 1
+.SH NAME
+shutdown \- warn the users and halt the machine
+.SH SYNOPSIS
+.B shutdown
+[\ \fB\-h\fR\ ]
+.B now
+.br
+.B shutdown
+[\ \fB\-h\fR\ ]
+.BI + minutes
+.SH DESCRIPTION
+.B shutdown
+warns everyone logged in, stops the processes and halts the machine, so
+that it can be turned off. With
+.BR now ,
+it does so at once; with
+.BI + minutes\fR,
+after that many minutes, warning the users then, every ten minutes, at
+each of the last five, and at the end.
+.B \-h
+(halt) is taken, as 4.2BSD's shutdown takes it, but an XT can do
+nothing else, so it is also what happens without it:
+.PP
+.nf
+	# shutdown \-h now
+	The system is going down NOW
+.fi
+.PP
+At the end it sends every process the signal to end (SIGTERM), waits
+five seconds for them, unmounts every file system but the root, writes
+everything waiting to the disks, and runs XENIX's /etc/haltsys, which
+halts the machine.
+.PP
+Only root may. Another account can, if it may use
+.BR sudo (1):
+.BR "sudo shutdown \-h now" .
+XENIX's own shutdown is still /etc/shutdown.
+.SH FILES
+.TP 20
+/etc/utmp
+who is logged in, and on which terminal
+.TP
+/etc/mnttab
+the mounted file systems
+.TP
+/etc/haltsys
+XENIX's, which halts the machine
+.SH DIAGNOSTICS
+"only root may halt the system" when run by another account. The exit
+status is 2 after a mistake in the arguments; otherwise
+.B shutdown
+does not come back.
+.SH SEE ALSO
+sudo(1), sync(1), umount(1)
+.SH HISTORY
+A
+.B shutdown
+command appeared in 4.2BSD.
+.SH AUTHORS
+This shutdown was written for the xenix86-devsys system tools.
+.SH BUGS
+There is no
+.BR \-r ,
+to start the machine again: XENIX on an XT cannot.

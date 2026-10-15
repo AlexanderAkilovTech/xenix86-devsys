@@ -1,0 +1,72 @@
+.TH SUDO 1
+.SH NAME
+sudo \- run a command as root
+.SH SYNOPSIS
+.B sudo
+.I command
+[\ \fIargument\fR\ ... ]
+.SH DESCRIPTION
+.B sudo
+runs one command as root, for an account allowed to, after a password:
+a step between
+.BR su (1),
+which gives a whole root shell, and no root at all.
+.PP
+.nf
+	% sudo shutdown \-h now
+	Password for root:
+.fi
+.PP
+/etc/default/sudo says who may use it and whose password it asks for:
+.TP 12
+USERS=
+the login names allowed, separated by commas or spaces, as
+.BR "USERS=alex, pat" .
+Root always may, and is not asked for a password.
+.TP
+PASSWORD=
+.B root
+(the default) asks for root's password, as
+.B su
+does;
+.B self
+asks for the account's own.
+.PP
+An account whose password is empty is not asked for it. The password is
+not shown as it is typed; after three wrong ones,
+.B sudo
+gives up. Every use, allowed or not, is written at the end of
+/usr/adm/sudolog, with the time, the account and the command.
+.PP
+The command is looked for along PATH, and runs with the same
+environment.
+.SH FILES
+.TP 20
+/etc/default/sudo
+who may use sudo, and whose password
+.TP
+/usr/adm/sudolog
+every use
+.TP
+/etc/passwd
+the passwords
+.SH DIAGNOSTICS
+"may not use sudo" for an account not in USERS; "3 wrong passwords";
+"not found" for a command that cannot be run. The exit status is 1
+after any of these, 2 after a mistake in the arguments, and the
+command's own otherwise.
+.SH SEE ALSO
+su(1), passwd(1), crypt(3), getpass(3), shutdown(1)
+.SH HISTORY
+A
+.B sudo
+was first written in 1980 at the State University of New York at
+Buffalo.
+.SH AUTHORS
+This sudo was written for the xenix86-devsys system tools.
+.SH BUGS
+It asks for the password every time; it does not remember it for a
+few minutes, as some do.
+.PP
+It must be owned by root and set-user-id, as installed; copied
+elsewhere without that, it cannot become root.

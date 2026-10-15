@@ -25,7 +25,7 @@ if ("$home" != "/") then
 	endsw
 endif
 if ($color) then
-	set prompt = "[1m[36m${me}[0m[37m@[1m[32m${host}[0m[37m [1m[33m${pdir}[0m[37m% "
+	set prompt = "[1m[36m${me}[0m[37m@[1m[32m${host}[0m[37m [1m[33m${pdir}[0m[37m % "
 else
-	set prompt = "${me}@${host} ${pdir}% "
+	set prompt = "${me}@${host} ${pdir} % "
 endif

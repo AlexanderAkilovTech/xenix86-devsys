@@ -1,0 +1,7 @@
+# /etc/default/sudo - who may use sudo, and whose password it asks for.
+# See sudo(1). Root always may.
+# USERS: the login names allowed, separated by commas or spaces, as
+#	USERS=alex, pat
+USERS=
+# PASSWORD: root, root's password (the default), or self, your own
+PASSWORD=root

@@ -14,10 +14,12 @@
 #   /bin/date                                   XENIX's, past 1999
 #   /usr/bin/whereis, xtop (top)                new
 #   /usr/bin/hostname, cursor, lastlogin,       new
-#            uptime
+#            uptime, shutdown
+#   /usr/bin/sudo                               new, set-user-id to root
 #   /etc/asktime                                XENIX's, the boot time prompt
 #   /etc/default/date                           how dates are written: 12- or
 #                                               24-hour, month/day or day/month
+#   /etc/default/sudo, /usr/adm/sudolog         who may use sudo; its log
 #   /usr/adm/lastlog                            lastlogin's records
 #   /usr/lib/xtop.syms                          xtop's kept kernel symbols
 #   /usr/lib/cdprompt.csh, setprompt.csh,
@@ -32,7 +34,7 @@ sh ports/bcc/build.sh > /dev/null
 for p in nm size strip; do ./build.sh cmd/$p.c cmd/objfile.c > /dev/null; done
 ./build.sh cmd/clear.c > /dev/null
 ./build.sh cmd/man.c > /dev/null
-for p in ls df whereis hostname lastlogin; do ./build.sh cmd/$p.c > /dev/null; done
+for p in ls df whereis hostname lastlogin sudo shutdown; do ./build.sh cmd/$p.c > /dev/null; done
 for p in date uptime asktime; do ./build.sh cmd/$p.c cmd/clock.c > /dev/null; done
 for p in xtop cursor; do ./build.sh cmd/$p.c cmd/hwprobe.s > /dev/null; done
 R=build/xenix/root
@@ -45,13 +47,15 @@ cp build/xenix/bin/bcc-cpp build/xenix/bin/bcc-cc1 $R/usr/lib/cc/
 python3 tools/aout2xout.py --strip build/aout2x.aout $R/usr/lib/cc/aout2x > /dev/null
 for p in ls df date; do python3 tools/aout2xout.py --strip build/$p.aout $R/bin/$p > /dev/null; done
 for p in l lc lf lr lx; do ln $R/bin/ls $R/bin/$p; done
-for p in whereis xtop hostname cursor lastlogin uptime; do python3 tools/aout2xout.py --strip build/$p.aout $R/usr/bin/$p > /dev/null; done
+for p in whereis xtop hostname cursor lastlogin uptime sudo shutdown; do python3 tools/aout2xout.py --strip build/$p.aout $R/usr/bin/$p > /dev/null; done
 mkdir -p $R/etc/default
 cp skel/date.default $R/etc/default/date
+cp skel/sudo.default $R/etc/default/sudo
 python3 tools/aout2xout.py --strip build/asktime.aout $R/etc/asktime > /dev/null
 ln $R/usr/bin/xtop $R/usr/bin/top
 cp skel/cdprompt.csh skel/setprompt.csh $R/usr/lib/
 : > $R/usr/adm/lastlog		# lastlogin's records: empty until the first login
+: > $R/usr/adm/sudolog		# sudo's log: empty until it is first used
 : > $R/usr/lib/xtop.syms		# xtop's kept symbols: empty until it first runs
 for f in cshrc login prof; do cp skel/mkuser.$f $R/usr/lib/mkuser/; done
 cp build/xenix/bin/copt build/xenix/bin/rules.* $R/usr/lib/cc/

@@ -1,0 +1,63 @@
+.TH CRYPT 3
+.SH NAME
+crypt, setkey, encrypt, getpass \- passwords
+.SH SYNOPSIS
+.nf
+.B char *crypt(key, salt)
+.B char *key, *salt;
+.PP
+.B setkey(key)
+.B char *key;
+.PP
+.B encrypt(block, edflag)
+.B char *block;
+.PP
+.B char *getpass(prompt)
+.B char *prompt;
+.fi
+.SH DESCRIPTION
+.B crypt
+is the UNIX password hash, as /etc/passwd keeps passwords: the Data
+Encryption Standard, its key the first eight characters of
+.IR key ,
+seven bits each, and its tables changed by a two-character
+.I salt
+from the characters . / 0\-9 A\-Z a\-z; a block of zeros is encrypted 25
+times. The result is 13 characters, the salt and then the 64 bits, six at
+a time, in the same characters. A password is checked by hashing what was
+typed with the stored hash as the salt:
+.PP
+.nf
+	if (strcmp(crypt(typed, stored), stored) == 0)
+.fi
+.PP
+The result is in a static area, written over by the next call.
+.PP
+.B setkey
+and
+.B encrypt
+are DES itself, on arrays of 64 chars, each 0 or 1:
+.B setkey
+takes the key,
+.B encrypt
+encrypts
+.I block
+in place, or decrypts it if
+.I edflag
+is not 0.
+.PP
+.B getpass
+prints
+.I prompt
+on /dev/tty and reads a line from it with the echo off, so that the
+password does not show, and returns its first eight characters (all
+that crypt uses). The interrupt key is ignored while it reads.
+.SH SEE ALSO
+passwd(1), sudo(1)
+.SH HISTORY
+These functions appeared in Version 7 AT&T UNIX.
+.SH AUTHORS
+These were written for the xenix86-devsys C library, from the published
+standard.
+.SH BUGS
+On a 4.77 MHz 8088 a password takes about a second, as XENIX's own does.

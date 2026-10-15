@@ -14,7 +14,7 @@ bad() { echo "FAIL  $1"; fail=$((fail+1)); }
 
 python3 tests/unit/test_long.py >/tmp/xds_unit.out 2>&1 && ok "long arithmetic helpers ($(tail -1 /tmp/xds_unit.out))" || bad "long arithmetic helpers"
 
-for t in m9 m11 m11b m12 xwc sigt ids jmp bigmem timet strt forkt sysprobe scant structt; do ./build.sh tests/$t.c >/dev/null; done
+for t in m9 m11 m11b m12 xwc sigt ids jmp bigmem timet cryptt strt forkt sysprobe scant structt; do ./build.sh tests/$t.c >/dev/null; done
 
 out=$(python3 tools/xsim.py build/m9 one two "three four") || true
 echo "$out" | grep -q 'argv\[3\] = "three four"' && echo "$out" | grep -q 'octal 10, padded \[   42\]' \
@@ -112,6 +112,9 @@ else
 fi
 
 python3 tests/unit/test_time.py > /tmp/xds_time.out 2>&1 && ok "time conversions vs Python ($(tail -1 /tmp/xds_time.out))" || bad "time conversions"
+python3 tests/unit/test_crypt.py > /tmp/xds_crypt.out 2>&1 && grep -q "ALL PASS" /tmp/xds_crypt.out && ok "crypt vs the host's libcrypt ($(tail -1 /tmp/xds_crypt.out))" || bad "crypt"
+for p in sudo shutdown; do ./build.sh cmd/$p.c > /dev/null; done
+python3 tests/unit/test_sudo.py > /tmp/xds_sudo.out 2>&1 && grep -q "ALL PASS" /tmp/xds_sudo.out && ok "sudo and shutdown ($(tail -1 /tmp/xds_sudo.out))" || bad "sudo and shutdown"
 
 for t in echo true false; do ./build.sh tests/bin/$t.c > /dev/null; done
 ./build.sh cmd/make.c > /dev/null

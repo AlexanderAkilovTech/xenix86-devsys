@@ -267,6 +267,8 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   the name again then, not yet seen at a real start.
 - uptime, from times() (20 ticks a second since the start, which setting the
   clock does not move), printed ` 3:51 AM  up 12:31,  1 user` (M66).
+- xtop's uptime, from `_lbolt` / 20 (the same count), matched uptime's to the
+  second, before and after the clock was set from 2026 to 2030 (M67).
 - csh has no `unsetenv` ("unsetenv: Command not found."). A `switch` takes
   variables in its `case` labels (`case "$home"/*:`). `$cwd:` followed by a
   space is "Variable syntax": a colon after a variable starts a modifier, so

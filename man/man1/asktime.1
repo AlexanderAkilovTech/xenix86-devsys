@@ -41,6 +41,11 @@ It also gives the kernel the machine's name from /etc/systemid, with
 so that
 .B uname \-n
 prints it: the kernel forgets it at every start.
+.PP
+And it makes the console's cursor a block, with
+.BR cursor (1),
+for every account from then on; while the machine starts, before it,
+the cursor is the usual line.
 .SH FILES
 .TP 20
 /etc/default/date
@@ -52,7 +57,7 @@ the machine's name
 /dev/clock, /etc/setclock
 a real-time clock, if there is one
 .SH SEE ALSO
-date(1), hostname(1)
+cursor(1), date(1), hostname(1)
 .SH HISTORY
 An
 .B asktime
