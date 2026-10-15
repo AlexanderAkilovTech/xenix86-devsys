@@ -5,6 +5,7 @@ set ignoreeof			# log out with "logout", not Ctrl-D
 set path = ($home/bin /bin /usr/bin .)
 if (-x /usr/bin/lastlogin) /usr/bin/lastlogin	# when you last logged in
 if (-x /usr/bin/hostname) setenv HOST "`/usr/bin/hostname`"	# this machine's name
+setenv USER "`logname`"; setenv LOGNAME "$USER"	# your login name (XENIX's login sets neither)
 # the terminal: the console is an ansi; tset asks about the others
 set noglob
 set term = (`tset -S -Q -m ansi:ansi -m :\?ansi -r`)

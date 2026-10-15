@@ -15,6 +15,7 @@ cursor block 2>/dev/null		# a block cursor on the console
 # directory; csh's prompt can)
 host=`hostname`
 HOST=$host			# this machine's name, for programs
+USER=`logname`; LOGNAME=$USER	# your login name (XENIX's login sets neither)
 if test -z "$host"
 then
 	host=xenix
@@ -25,4 +26,4 @@ then
 else
 	PS1="`logname`@$host$ "
 fi
-export PATH MAIL PS1 HOST
+export PATH MAIL PS1 HOST USER LOGNAME

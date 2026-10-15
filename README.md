@@ -94,6 +94,9 @@ Development and testing happen in 86Box on an emulated XT.
       saving rules of 2007 on as well. `asktime`, the time prompt at every start, takes
       the time the same way; `uptime`; and `hostname` sets the kernel's node name too,
       so `uname -n` shows it (all verified on XENIX, M66)
+      Since v0.10.1: `sudo` (who may, and whose password, in /etc/default/sudo),
+      `shutdown -h now`, `crypt` and `getpass` in the C library, `$USER` and
+      `$LOGNAME`, and a block cursor at every start (verified on XENIX, M70, M71)
 - [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
       registers when it switches processes (measured: two programs using it at once
       corrupt each other's results), so it can only ever be an option
@@ -236,15 +239,18 @@ each of them, slowly on an XT, and a `q` typed meanwhile waits behind them. The
 interrupt key does not stop `custom` (it is caught, and returns to the menu); the
 quit key, `Ctrl-\`, is not caught, and ends it.
 
-**`$HOST` for every account (optional).** The new start-up templates set `$HOST`
-to the machine's name, but only accounts made after installing get them; root and
+**`$HOST`, `$USER` and `$LOGNAME` for every account (optional).** The new start-up templates set `$HOST`
+to the machine's name and `$USER` and `$LOGNAME` to the login name (XENIX's
+`login` sets neither), but only accounts made after installing get them; root and
 older accounts keep their own files. To give every account `$HOST`, add a line to
 the system's shared start-up files, as root:
 
     echo 'HOST=`hostname`; export HOST' >> /etc/profile
     echo 'setenv HOST "`hostname`"' >> /etc/cshrc
+    echo 'USER=`logname`; LOGNAME=$USER; export USER LOGNAME' >> /etc/profile
+    echo 'setenv USER "`logname`"; setenv LOGNAME "$USER"' >> /etc/cshrc
 
-It takes effect at the next login (verified for root's `sh`).
+It takes effect at the next login (verified for `sh` and `csh`).
 
 **Upgrading.** `custom` remembers which disk each file is on from the list it
 installed the first time, `/etc/soft.perms`, and uses that list again rather than

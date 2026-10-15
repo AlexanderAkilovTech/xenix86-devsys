@@ -265,6 +265,19 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   what `uname -n` prints: empty before, `xenix86` after, and still so in the
   same boot (M66). It starts empty at each boot (M65); /etc/asktime gives it
   the name again then, not yet seen at a real start.
+- Passwords (M69): /etc/passwd keeps them, 13 characters of the classic DES
+  crypt (crypt("test1234", "j9") gave "j9jR7NRJjWyAI", as on Linux); there is
+  no /etc/shadow; locked system accounts have 7. /bin/su and /bin/passwd are
+  root's, set-user-id (rws--x--x); /etc/haltsys is a program and
+  /etc/shutdown a shell script, both bin's, 700. Root's sh PATH is
+  /bin:/usr/bin:/etc. XENIX's passwd suggests upper and lower case and a
+  digit but takes all lower case.
+- This project's crypt on XENIX gave the same hash; sudo, set-user-id root,
+  ran a command as uid 0 for root and refused an account not listed, both
+  logged; `sudo shutdown -h now` from such an account, given root's
+  password, warned and halted through /etc/haltsys (M70).
+- XENIX's login sets neither $USER nor $LOGNAME; `logname` gives the name. With
+  them set in /etc/profile, a root login had both (M71).
 - uptime, from times() (20 ticks a second since the start, which setting the
   clock does not move), printed ` 3:51 AM  up 12:31,  1 user` (M66).
 - xtop's uptime, from `_lbolt` / 20 (the same count), matched uptime's to the

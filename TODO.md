@@ -13,20 +13,22 @@ history 10, for new accounts; older ones change their own line).
 1. Done: M67 committed and pushed.
 2. Done on XENIX (M68, M68b): the prompt `alex@xenix86 ~ %`; asktime
    makes the block cursor the default at every boot. Alex: commit.
-3. The security and power round. M69b done (passwords: DES crypt in
-   /etc/passwd). Built and tested here (31 passed): crypt and getpass in
-   libc, sudo (/etc/default/sudo: USERS=, PASSWORD=root|self), shutdown
-   [-h] now|+minutes. Now M70 (tests/m70), then by hand: a root password,
-   alex in USERS, and `sudo shutdown -h now` from alex.
-4. Later: `$USER` and `$LOGNAME` set to the login name for every account,
-   as on macOS and Linux (XENIX's login sets neither; `logname` works),
-   like `$HOST`.
+3. Done on XENIX (M69b, M70): crypt matches XENIX's hash; sudo as root,
+   alex refused until listed, logged; `sudo shutdown -h now` from alex,
+   with root's password, warned and halted. Alex: commit.
+4. Done on XENIX (M71): `$USER` and `$LOGNAME` in the templates and, by
+   hand, /etc/profile and /etc/cshrc. The M71 set is v0.11.0-alpha:
+   build/release-v0.11.0. Alex: commit, push, release (pre-release).
 5. xtfetch: a neofetch-style system summary.
 6. The text processing system (to be scoped first).
 7. emacs: a small MicroEMACS-style editor, for historical accuracy.
 
 ## Deferred
 
+- Our own passwd, enforcing the upper case, lower case and digit that
+  XENIX's only suggests (it takes all lower case).
+- shutdown's warning names root under sudo; the account that ran sudo
+  would be better.
 - `/etc/hosts`: with the SLIP/TCP/IP work.
 - Root password: with the SLIP/UUCP work.
 - Adding Claude as a contributor (a Co-Authored-By line in commits).
