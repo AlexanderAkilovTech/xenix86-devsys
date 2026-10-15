@@ -1,6 +1,7 @@
 /* date - print the date and time, or set the clock.
  *	date [ +format ]
  *	date mmddhhmm[[cc]yy]
+ *	date [ month/day[/year] | year-month-day ] [ hour:minute [ AM | PM ] ]
  * As XENIX's date (System V's), with the years past 1999. XENIX's takes a
  * two-digit year, and from February 29, 2000 on prints the date a day ahead,
  * for it takes 2000 for a common year (the 29th shows as March 1, December 31
@@ -16,29 +17,18 @@
  * letter (M63), but where it takes what is not a time: XENIX's sets the
  * clock from February 30 (to March 2) and from 1013120098x or 10131200981
  * (ignoring the end); this one refuses them. Like XENIX's, it ignores any
- * argument after the first. -u, with which XENIX's date uses a time-of-year
- * clock, finds none, as XENIX's does on an XT: this one cannot read one.
+ * argument after a format or a time in digits. -u, with which XENIX's date
+ * uses a time-of-year clock, finds none, as XENIX's does on an XT: this one
+ * cannot read one.
+ * It also sets the clock from a date and time as people write them, in its
+ * arguments together: 3:36 PM, 10/14 9:05 AM, 2026-10-14 15:36 (clock.c),
+ * month/day or day/month as /etc/default/date says.
  * xenix86-devsys system tools. */
 #include <stdio.h>
 #include <time.h>
 
-#define	UTMP	"/etc/utmp"
-#define	WTMP	"/etc/wtmp"
-#define	UTSIZE	36		/* a System V utmp entry: user 8, id 4, line 12,
-				 * pid 2, type 2, exit 4, time 4 */
-#define	OLD_TIME 3		/* ut_type: the clock before it was set */
-#define	NEW_TIME 4		/* and after */
-
 extern long time(), lseek();
 extern struct tm *localtime();
-
-int	mdays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-
-leap(y)
-int y;
-{
-	return y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
-}
 
 two(n)
 int n;
@@ -118,94 +108,48 @@ char *s;
 	return (s[0] - '0') * 10 + s[1] - '0';
 }
 
-/* an "old time" or "new time" entry: in place of the last of its kind in
- * /etc/utmp, or at its end; and at the end of /etc/wtmp */
-record(type, msg, t)
-int type;
-char *msg;
-long t;
+/* set the clock from mmddhhmm, mmddhhmmyy or mmddhhmmccyy, as local time,
+ * as XENIX's date does (with the century), or from a date and time as
+ * people write them, all the arguments together (clock.c's parsewhen):
+ * 3:36 PM, 10/14 9:05 AM, 2026-10-14 15:36 */
+set(argc, argv)
+int argc;
+char **argv;
 {
-	unsigned char u[UTSIZE], e[UTSIZE];
-	long off, at = -1L;
-	int fd;
-
-	memset((char *)u, 0, UTSIZE);
-	strcpy((char *)u + 12, msg);
-	u[26] = type;
-	u[32] = t;
-	u[33] = t >> 8;
-	u[34] = t >> 16;
-	u[35] = t >> 24;
-	if ((fd = open(UTMP, 2)) >= 0) {
-		for (off = 0L; read(fd, (char *)e, UTSIZE) == UTSIZE; off += UTSIZE)
-			if (e[26] == type && e[27] == 0)
-				at = off;
-		if (at >= 0L)
-			lseek(fd, at, 0);
-		else
-			lseek(fd, off, 0);
-		write(fd, (char *)u, UTSIZE);
-		close(fd);
-	}
-	if ((fd = open(WTMP, 1)) >= 0) {
-		lseek(fd, 0L, 2);
-		write(fd, (char *)u, UTSIZE);
-		close(fd);
-	}
-}
-
-/* set the clock from mmddhhmm, mmddhhmmyy or mmddhhmmccyy, as local time */
-set(s)
-register char *s;
-{
-	int n, mon, day, hour, min, year, y;
-	long old, d, x;
+	register char *s = argv[1];
+	char buf[80];
+	int n, year, i;
+	long old;
 	unsigned long t;
 
-	for (n = 0; s[n]; n++)
-		if (s[n] < '0' || s[n] > '9')
-			bad();
-	if (n != 8 && n != 10 && n != 12)
-		bad();
-	mon = num(s);
-	day = num(s + 2);
-	hour = num(s + 4);
-	min = num(s + 6);
 	time(&old);
-	if (n == 8)
-		year = localtime(&old)->tm_year + 1900;
-	else if (n == 10)
-		year = num(s + 8) + (num(s + 8) < 70 ? 2000 : 1900);
-	else
-		year = num(s + 8) * 100 + num(s + 10);
-	if (mon < 1 || mon > 12 || day < 1 || day > mdays[mon - 1] + (mon == 2 && leap(year)) ||
-	    hour > 23 || min > 59 || year < 1970 || year > 2106)
-		bad();
-	d = 0L;
-	for (y = 1970; y < year; y++)
-		d += leap(y) ? 366 : 365;
-	for (y = 0; y < mon - 1; y++)
-		d += mdays[y] + (y == 1 && leap(year));
-	d += day - 1;
-	if (d > 49710L)			/* past 7 Feb 2106, the last day there is */
-		bad();
-	/* the seconds, as standard time; an hour less if that is daylight time */
-	t = (unsigned long)d * 86400L;
-	x = hour * 3600L + min * 60 + timezone;
-	if (x >= 0L ? t + x < t : t < (unsigned long)-x)
-		bad();
-	t += x;
-	if (localtime((long *)&t)->tm_isdst) {
-		if (t < 3600L)
+	for (n = 0; s[n] >= '0' && s[n] <= '9'; n++)
+		;
+	if (s[n] == 0 && (n == 8 || n == 10 || n == 12)) {
+		if (n == 8)
+			year = localtime(&old)->tm_year + 1900;
+		else if (n == 10)
+			year = num(s + 8) + (num(s + 8) < 70 ? 2000 : 1900);
+		else
+			year = num(s + 8) * 100 + num(s + 10);
+		if (toclock(year, num(s), num(s + 2), num(s + 4), num(s + 6), 0, &t) < 0)
 			bad();
-		t -= 3600L;
+	} else {
+		buf[0] = 0;
+		for (i = 1; i < argc; i++) {
+			if (strlen(buf) + strlen(argv[i]) + 2 > sizeof buf)
+				bad();
+			if (i > 1)
+				strcat(buf, " ");
+			strcat(buf, argv[i]);
+		}
+		if (parsewhen(buf, old, &t) < 0)
+			bad();
 	}
-	if (stime((long *)&t) < 0) {		/* XENIX's then prints the time */
-		fprintf(stderr, "date: no permission\n");	/* it did not set */
+	if (setclock(t, old) < 0) {	/* XENIX's then prints the time it did */
+		fprintf(stderr, "date: no permission\n");	/* not set */
 		exit(2);
 	}
-	record(OLD_TIME, "old time", old);
-	record(NEW_TIME, "new time", (long)t);
 }
 
 main(argc, argv)
@@ -221,8 +165,10 @@ char **argv;
 		fprintf(stderr, "date: no TOY clock\n");
 		exit(2);
 	}
-	if (argc > 1 && argv[1][0] != '+')
-		set(argv[1]);
+	if (argc > 1 && argv[1][0] != '+') {
+		clockdefs();
+		set(argc, argv);
+	}
 	time(&now);
 	t = localtime(&now);
 	if (argc > 1 && argv[1][0] == '+')

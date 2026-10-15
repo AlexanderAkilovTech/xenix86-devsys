@@ -9,7 +9,13 @@ if ($?prompt) then
 	# directory, in color on the console (TERM ansi); cd, pushd and popd
 	# keep it up to date, through /usr/lib/cdprompt.csh and setprompt.csh
 	if (! $?me) set me = `logname`
-	if (! $?host) set host = `hostname`
+	if (! $?host) then
+		if ($?HOST) then
+			set host = "$HOST"
+		else
+			set host = `hostname`
+		endif
+	endif
 	if ("$host" == "") set host = xenix
 	if (! $?cwd) set cwd = `pwd`	# this csh does not keep $cwd: cd below does
 	set color = 0

@@ -1,0 +1,46 @@
+.TH UPTIME 1
+.SH NAME
+uptime \- how long the machine has been up
+.SH SYNOPSIS
+.B uptime
+.SH DESCRIPTION
+.B uptime
+prints the time of day, how long the machine has been running since it
+was last started, and how many users are logged in:
+.PP
+.nf
+	 3:52 PM  up 2 days,  4:07,  2 users
+.fi
+.PP
+The time up is in days, then hours and minutes; under an hour, in
+minutes. The time of day is on the 12-hour clock, or on the 24-hour
+clock if /etc/default/date has the line CLOCK=24 (see
+.BR date (1)).
+.PP
+The time up comes from the clock's ticks since the machine started,
+which go on whatever the date is set to, so setting the date does not
+change it.
+.SH FILES
+.TP 20
+/etc/utmp
+who is logged in
+.TP
+/etc/default/date
+CLOCK=12 or CLOCK=24
+.SH SEE ALSO
+date(1), who(1), xtop(1)
+.SH HISTORY
+An
+.B uptime
+command appeared in 3.0BSD.
+.SH AUTHORS
+This uptime was written for the xenix86-devsys system tools.
+.SH BUGS
+4.2BSD's uptime also prints the load averages, the number of processes
+waiting to run over the last 1, 5 and 15 minutes. XENIX's kernel does not
+keep them, so there are none to print;
+.BR xtop (1)
+shows how busy the processor is.
+.PP
+The count of ticks starts over after nearly 7 years of running without a
+restart.

@@ -9,11 +9,12 @@ if test -f /usr/bin/lastlogin	# when you last logged in
 then
 	/usr/bin/lastlogin
 fi
-#cursor block 2>/dev/null		# a block cursor on the console
+cursor block 2>/dev/null		# a block cursor on the console
 #PROMPTCOLOR=no			# the prompt without its colors
 # the prompt: you@host, in color on the console (sh cannot show the
 # directory; csh's prompt can)
 host=`hostname`
+HOST=$host			# this machine's name, for programs
 if test -z "$host"
 then
 	host=xenix
@@ -24,4 +25,4 @@ then
 else
 	PS1="`logname`@$host$ "
 fi
-export PATH MAIL PS1
+export PATH MAIL PS1 HOST

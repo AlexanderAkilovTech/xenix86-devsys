@@ -1,0 +1,7 @@
+# /etc/default/date - how dates and times are written, for date, uptime
+# and the boot prompt (xenix86-devsys system tools; see date(1)).
+# CLOCK=12 shows the time of day as 3:36 PM; CLOCK=24 as 15:36.
+CLOCK=12
+# DATE=mdy reads 10/12 as October 12, month first; DATE=dmy as the
+# 10th of December, day first.
+DATE=mdy

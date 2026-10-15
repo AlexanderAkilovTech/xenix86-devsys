@@ -285,7 +285,8 @@ class Sim:
                 t = os.times()              # ticks of 1/20 s; the result is the ticks since boot
                 v = [int(x * 20) for x in (t.user, t.system, t.children_user, t.children_system)]
                 uc.mem_write(DSEG * 16 + bx, struct.pack('<4l', *v))
-                e = int(t.elapsed * 20) & 0xffffffff; r1, r2 = e & 0xffff, e >> 16
+                e = int(os.environ.get('XSIM_TICKS') or t.elapsed * 20) & 0xffffffff   # XSIM_TICKS: as given
+                r1, r2 = e & 0xffff, e >> 16
             elif ax == 54:                  # ioctl: ENOTTY, but for the descriptors in
                 # XSIM_TTY ("1" or "0 1"), which pass for terminals (isatty), for
                 # testing line-buffered output; nothing is filled in

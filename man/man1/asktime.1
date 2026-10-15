@@ -1,0 +1,64 @@
+.TH ASKTIME 1
+.SH NAME
+asktime \- ask for the time when the machine starts
+.SH SYNOPSIS
+.B /etc/asktime
+[\ \fB\-a\fR\ ]
+.SH DESCRIPTION
+.B asktime
+is run by /etc/rc each time XENIX starts. It shows the time the clock
+starts from and asks for the time:
+.PP
+.nf
+	Current System Time is Mon Oct 13 17:00:00 PDT 1986, 5:00 PM
+	Enter the time as 3:36 PM or 10/14 9:05 AM, or Return to keep it:
+.fi
+.PP
+Return keeps the time as it is. Otherwise, give a time, a date, or both,
+as
+.BR date (1)
+takes them: 5:36 PM, 10/14 9:05 AM, 1986-10-14 17:36, and so on; XENIX's
+own forms, hhmm, ddhhmm, mmddhhmm and yymmddhhmm, work as well. Anything
+else asks again. The time of day is shown, and the examples given, on
+the 12- or 24-hour clock and with month or day first, as
+/etc/default/date says.
+.PP
+An XT has no clock that runs while the machine is off. XENIX starts its
+clock from the date in the root file system's super-block, the last time
+it wrote there, so after the machine has been off, the clock is behind by
+as long as it was off. With a real-time clock (/dev/clock),
+.B asktime
+first sets the clock from it, through /etc/setclock, and afterwards
+sets it to the time given.
+.PP
+With
+.BR \-a ,
+which /etc/rc gives when the machine starts by itself, it waits 30
+seconds for an answer, then keeps the time and goes on.
+.PP
+It also gives the kernel the machine's name from /etc/systemid, with
+.BR hostname (1),
+so that
+.B uname \-n
+prints it: the kernel forgets it at every start.
+.SH FILES
+.TP 20
+/etc/default/date
+CLOCK=12 or 24, DATE=mdy or dmy
+.TP
+/etc/systemid
+the machine's name
+.TP
+/dev/clock, /etc/setclock
+a real-time clock, if there is one
+.SH SEE ALSO
+date(1), hostname(1)
+.SH HISTORY
+An
+.B asktime
+command was part of XENIX's start-up. This one takes its place.
+.SH AUTHORS
+This asktime was written for the xenix86-devsys system tools.
+.SH BUGS
+XENIX's own asktime takes only [yymmdd]hhmm, and makes a year from 00 to
+69 into 1970.

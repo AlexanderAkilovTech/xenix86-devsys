@@ -89,8 +89,11 @@ Development and testing happen in 86Box on an emulated XT.
       the C shell prompt, which can also go without its colors, and `date` in place of
       XENIX's own, which cannot be set past 1999 and shows any date from February 29,
       2000 on a day ahead (it takes 2000 for a common year): this one sets and shows
-      any date up to 2106, and the library's time functions follow the daylight saving
-      rules of 2007 on as well
+      any date up to 2106, taking the time as people write it (`date 3:36 PM`,
+      `date 10/14 9:05 AM`), and the library's time functions follow the daylight
+      saving rules of 2007 on as well. `asktime`, the time prompt at every start, takes
+      the time the same way; `uptime`; and `hostname` sets the kernel's node name too,
+      so `uname -n` shows it (all verified on XENIX, M66)
 - [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
       registers when it switches processes (measured: two programs using it at once
       corrupt each other's results), so it can only ever be an option
@@ -129,7 +132,9 @@ Development and testing happen in 86Box on an emulated XT.
     cmd/            XENIX commands of our own: cc, make, aout2x, nm, size,
                     strip (with objfile.c, which reads the file formats),
                     clear and man; and the system tools ls, df, date,
-                    whereis, xtop, hostname, cursor and lastlogin (with hwprobe.s,
+                    asktime, whereis, xtop, hostname, cursor, lastlogin and
+                    uptime (date, asktime and uptime with clock.c; xtop and
+                    cursor with hwprobe.s,
                     which looks for an 8087 and a Hercules card and sets
                     the display adapter's registers)
     skel/           the shell start-up files that mkuser copies into new
@@ -161,8 +166,8 @@ out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `l
 optimizer `copt` and its rules, `crt0.o`, `libc.a`, `libm.a`, `libtermcap.a` and
 `libcurses.a` in `/usr/lib/cc`; headers in `/usr/include`; the formatted manual in
 `/usr/man`; and the system tools: `ls`, `df` and `date` in `/bin`, `whereis`, `xtop`,
-`hostname`, `cursor` and `lastlogin` in `/usr/bin`, and the shell start-up files in
-`/usr/lib/mkuser`. Then it makes that tree
+`hostname`, `cursor`, `lastlogin` and `uptime` in `/usr/bin`, `asktime` and
+`default/date` in `/etc`, and the shell start-up files in `/usr/lib/mkuser`. Then it makes that tree
 into an installable set under `build/xenix/set`: the disk images `D01.img`, `D02.img`
 and `D03.img` and the permissions list `soft.perms` they carry. The build is
 reproducible: the same source gives the same disk images, byte for byte, whenever
@@ -190,12 +195,13 @@ finish.
 
 The set has three packages, and any of them can be installed alone: SOFT, the
 compiler, libraries and headers; MAN, the manual; and TOOLS, the system tools.
-All three take about 770K on the root file system. `custom`'s menu lists each
+All three take about 810K on the root file system. `custom`'s menu lists each
 package's size in its Size column, in 512-byte blocks as all of `custom`'s lists
 do, and at the end of its description in K; its option 6, Display current disk
 usage, shows how much is free.
 TOOLS puts its `ls` (with its other names `l`, `lc`, `lf`, `lr` and `lx`), `df` and
-`date` in place of XENIX's own in `/bin`, with the owners and permissions XENIX gives them,
+`date` in place of XENIX's own in `/bin`, and its `asktime` in place of XENIX's in
+`/etc`, with the owners and permissions XENIX gives them,
 and replaces the start-up files in `/usr/lib/mkuser` with ones whose C shell prompt
 shows the directory and that say when the account last logged in (accounts made
 before keep theirs). `xtop` is set-user-id to
@@ -203,19 +209,21 @@ sysinfo, as `ps` is, so any user can run it; it keeps where it found the
 kernel's tables in `/usr/lib/xtop.syms`, installed empty, and starts faster from
 its second run on. `lastlogin` is set-user-id to bin, which owns the file it keeps
 the logins in, `/usr/adm/lastlog`; installing TOOLS again starts that file over.
-With TOOLS, root can set the clock to the real year, as `date 101312002026` (October
-13, 2026, 12:00) or with a two-digit year from 00 to 69; XENIX's own programs that
-show dates, `tar tv` among them, then show them a day ahead, so a clock kept in
-1998, whose calendar is 2026's, stays the choice that suits all of them.
-Removing TOOLS with `custom` removes `ls`, `df` and `date` with it.
+With TOOLS, root can set the clock to the real year, as `date 10/13/2026 12:00 PM` or
+XENIX's `date 101312002026`, and the time prompt at each start takes `5:36 PM` or
+`10/14 9:05 AM`; `/etc/default/date` says 12- or 24-hour, month or day first.
+XENIX's own programs that show dates, `tar tv` among them, show them a day ahead
+past 1999, so a clock kept in 1998, whose calendar is 2026's, stays the choice that
+suits all of them.
+Removing TOOLS with `custom` removes `ls`, `df`, `date` and `asktime` with it.
 XENIX's own `ls` and `df` are on the Operating System's volume B01; to put them back,
 insert it and, as root (not yet tried):
 
     cd /
     tar xvf /dev/fd0 ./bin/ls ./bin/l ./bin/lc ./bin/lf ./bin/lr ./bin/lx ./bin/df
 
-and `date` the same way, as `./bin/date`, from whichever of its volumes has it
-(`tar tvf /dev/fd0` lists a volume).
+and `date` and `asktime` the same way, as `./bin/date` and `./etc/asktime`, from
+whichever of its volumes has them (`tar tvf /dev/fd0` lists a volume).
 
 (XENIX's start-up files for mkuser are on its volume B02, as
 `./usr/lib/mkuser/mkuser.prof`, `mkuser.login` and `mkuser.cshrc`.)
@@ -228,14 +236,25 @@ each of them, slowly on an XT, and a `q` typed meanwhile waits behind them. The
 interrupt key does not stop `custom` (it is caught, and returns to the menu); the
 quit key, `Ctrl-\`, is not caught, and ends it.
 
+**`$HOST` for every account (optional).** The new start-up templates set `$HOST`
+to the machine's name, but only accounts made after installing get them; root and
+older accounts keep their own files. To give every account `$HOST`, add a line to
+the system's shared start-up files, as root:
+
+    echo 'HOST=`hostname`; export HOST' >> /etc/profile
+    echo 'setenv HOST "`hostname`"' >> /etc/cshrc
+
+It takes effect at the next login (verified for root's `sh`).
+
 **Upgrading.** `custom` remembers which disk each file is on from the list it
 installed the first time, `/etc/soft.perms`, and uses that list again rather than
 the one on the new D1. A newer set whose files fall on different disks then fails
 ("tar: 13 file(s) not extracted") or never asks for its later disks. Before
-installing a newer set over an older one, remove the old list:
+installing a newer set over an older one, remove both names of the old list
+(with only one of them gone, `custom` still installs by the old list, and quietly
+leaves out every file it does not name):
 
-    rm /etc/perms/soft
-    mv /etc/soft.perms /tmp/soft.perms.old
+    rm -f /etc/perms/soft /etc/soft.perms
     custom -d
 
 ## Using cc

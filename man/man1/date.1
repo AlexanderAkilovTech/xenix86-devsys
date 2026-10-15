@@ -6,6 +6,9 @@ date \- print the date and time, or set the clock
 [\ \fB+\fIformat\fR\ ]
 .br
 .B date
+[\ \fIdate\fR\ ] [\ \fItime\fR\ ]
+.br
+.B date
 .I mmddhhmm\fR[[\fIcc\fR]\fIyy\fR]
 .SH DESCRIPTION
 Without an argument,
@@ -78,23 +81,55 @@ and a newline ends what it prints. Quote a format with spaces in it:
 	Oct 13, 1998, at 12:00:00 PM
 .fi
 .PP
-Given a date and time instead, as month, day, hour and minute, two
-digits each, and the year, root's
+Given a date, a time, or both, root's
 .B date
-sets the clock to it, at second 0, and prints it. Without a year, it
-stays this year's; a year in two digits is 1970 to 1999 from 70 to 99,
-and 2000 to 2069 from 00 to 69; and a year in four digits is that year,
-up to 2106.
+sets the clock and prints what it set, so a date read the wrong way
+shows at once. They are written as people write them:
+.PP
+.nf
+	# date 3:36 PM
+	Tue Oct 13 15:36:00 PDT 1998
+	# date 10/14 9:05 AM
+	Wed Oct 14 09:05:00 PDT 1998
+	# date 2026-10-14 15:36
+	Wed Oct 14 15:36:00 PDT 2026
+.fi
+.PP
+A date is month/day, month/day/year, or year-month-day; a time is
+hour:minute, or hour:minute:second, with AM or PM after it (in any
+case, with or without a space, or as a or p), or without them on the
+24-hour clock; an hour alone takes AM or PM (3 PM), and four digits
+alone are a time on the 24-hour clock (1536). What is not given stays
+as it is: a time alone keeps the date, and a date alone keeps the time
+of day. A time is set at second 0 unless it gives the seconds. A year in
+two digits is 1970 to 1999 from 70 to 99, and 2000 to 2069 from 00 to
+69.
+.PP
+XENIX's own form works as well: month, day, hour and minute, two digits
+each, and the year in two digits, or in four:
 .PP
 .nf
 	# date 101312002026
 	Tue Oct 13 12:00:00 PDT 2026
 .fi
 .PP
+Any argument after it is ignored, as by XENIX's date.
+.PP
 The time given is local time, daylight time when daylight time is in
-force on that date. Setting the clock writes the time before and after,
-as "old time" and "new time", in /etc/utmp and at the end of /etc/wtmp.
-Only the first argument is read.
+force on that date. The clock reaches February 7, 2106. Setting it
+writes the time before and after, as "old time" and "new time", in
+/etc/utmp and at the end of /etc/wtmp.
+.PP
+/etc/default/date says how dates and times are written. DATE=dmy makes
+10/12 the tenth of December, day before month; DATE=mdy, the
+default, the twelfth of October. CLOCK=24 shows the time of day on the
+24-hour clock, where the boot prompt
+.RB ( asktime (1))
+and
+.BR uptime (1)
+show it; CLOCK=12, the default, shows it as 3:36 PM. Either way,
+.B date
+prints the date as XENIX's does, which other programs read.
 .PP
 This
 .B date
@@ -112,7 +147,10 @@ the time zone, for example PST8PDT; see
 .BR ctime (3).
 Without it, or empty, PST8PDT, as for XENIX's own date.
 .SH FILES
-.TP 16
+.TP 20
+/etc/default/date
+DATE=mdy or dmy, CLOCK=12 or 24
+.TP
 /etc/utmp
 who is logged in, and when the clock was last set
 .TP
@@ -121,10 +159,11 @@ the logins, and the times the clock was set
 .SH DIAGNOSTICS
 .TP
 date: bad conversion
-The argument to set the clock is not a date and time that exists: not 8,
-10 or 12 digits; a month, day, hour or minute out of range, including a
-day the month does not have; or a time before 1970 or after the clock's
-end in February 2106.
+What was given to set the clock is not a date and time that exists: not
+written in one of the forms above; a month, day, hour or minute out of
+range, including a day the month does not have, or an hour over 12 with
+AM or PM; or a time before 1970 or after the clock's end in February
+2106.
 .TP
 date: bad format character \- \fIc\fR
 A format has a % and a letter it does not know.
@@ -142,7 +181,7 @@ cannot read one at all.
 .PP
 The exit status is 0, or 2 after any of these.
 .SH SEE ALSO
-ctime(3), who(1)
+asktime(1), uptime(1), ctime(3), who(1)
 .SH HISTORY
 A
 .B date

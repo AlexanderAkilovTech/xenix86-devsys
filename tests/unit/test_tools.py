@@ -1,11 +1,12 @@
 """Tests for the system tools: df (cmd/df.c), whereis (cmd/whereis.c),
-hostname, cursor, lastlogin and date, on the simulator.
+hostname, cursor, lastlogin, date, uptime and asktime, on the simulator.
 
 df reads a file system image made here, with the numbers of the XENIX 2.1.3
 system it was written for, and must print what XENIX's own df printed there,
 to the character (custom reads the free blocks from it), but for -v, which
 shows sizes in K and M where XENIX's counts blocks. whereis looks in a tree
-made here. hostname reads and writes a /etc/systemid made here; cursor's
+made here. hostname reads and writes a /etc/systemid made here, and the
+node name in a made-up kernel's memory (/xenix, /dev/kmem); cursor's
 writes to the display adapter's ports are logged (XSIM_PORTLOG) and the
 console's answer to GIO_COLOR given (XSIM_COLOR); lastlogin reads a
 /etc/utmp made here and keeps a /usr/adm/lastlog. date prints at a time
@@ -120,12 +121,39 @@ def runenv(prog, args, env):
     return r.stdout.decode('latin1'), r.stderr.decode('latin1'), r.returncode
 
 sid = f'{tmp}/systemid'
-hm = {'XSIM_MAP': f'/etc/systemid={sid}'}
+# a made-up kernel: /xenix with _utsname and _uts3name among other symbols,
+# at their places on XENIX 2.1.3 (M65), and its memory, for /dev/kmem
+xsyms = [('_inode', 48544), ('_utsnamex', 100), ('_utsname', 5938), ('_uts', 200), ('_uts3name', 6006),
+         ('_utsentry', 7886)] + [(f'_s{i}', i) for i in range(300)]
+recs = b''.join(struct.pack('<HHl', 0x23, 71, v) + n.encode() + b'\0' for n, v in xsyms)
+xhdr = bytearray(64); struct.pack_into('<Hxx48xll', xhdr, 0, 0x206, 64, 32)
+xseg = bytearray(32); struct.pack_into('<H6xll', xseg, 0, 3, 96, len(recs))
+open(f'{tmp}/xenix', 'wb').write(bytes(xhdr) + bytes(xseg) + recs)
+kmemf = f'{tmp}/kmem'
+def kmeminit():
+    k = bytearray(65536)
+    for a in (5938, 6006):
+        k[a:a + 45] = b'XENIX\0\0\0\0' + bytes(9) + b'2.1.3\0\0\0\0' + b'2.1\0\0\0\0\0\0' + b'i8086\0\0\0\0'
+    open(kmemf, 'wb').write(k)
+kmeminit()
+hm = {'XSIM_MAP': f'/etc/systemid={sid},/xenix={tmp}/xenix,/dev/kmem={kmemf}'}
 open(sid, 'w').write('xenix86\n')
 check('hostname: the first line of /etc/systemid', ('xenix86\n', 0), runenv('hostname', [], hm)[0::2])
 open(sid, 'w').write('xenix86\nsite micnet\n')
 out, err, rc = runenv('hostname', ['wyse'], hm)
 check('hostname wyse: the first line set, the others kept', (0, 'wyse\nsite micnet\n'), (rc, open(sid).read()))
+k = open(kmemf, 'rb').read()
+check('hostname wyse: the kernel\'s node name, in utsname and uts3name, the rest as it was',
+      [b'XENIX\0\0\0\0wyse\0\0\0\0\0' + b'2.1.3\0\0\0\0'] * 2, [k[5938:5965], k[6006:6033]])
+out, err, rc = runenv('hostname', ['abcdefgh'], hm)
+k = open(kmemf, 'rb').read()
+check('hostname abcdefgh: 8 characters and the NUL, the release after it untouched',
+      [b'abcdefgh\0' + b'2.1.3'] * 2, [k[5947:5961], k[6015:6029]])
+out, err, rc = runenv('hostname', ['wyse'], hm)
+out, err, rc = runenv('hostname', ['xenix86'], {'XSIM_MAP': f'/etc/systemid={sid},/xenix={tmp}/none,/dev/kmem={kmemf}'})
+check('hostname with no /xenix: the file set, the kernel not, status 1',
+      (1, 'hostname: cannot set the kernel\'s node name\n', 'xenix86\nsite micnet\n'), (rc, err, open(sid).read()))
+out, err, rc = runenv('hostname', ['wyse'], hm)
 check('hostname reads it back', 'wyse\n', runenv('hostname', [], hm)[0])
 for bad in ('toolongname', 'a.b', ''):
     out, err, rc = runenv('hostname', [bad], hm)
@@ -231,6 +259,80 @@ check('date 020622282106: the last minute there is', (0, 'Sat Feb  6 22:28:00 PS
 open(wtmp, 'wb').close()
 out, err, rc = date(['1013120098'], t98, XSIM_UID='200')
 check('date, not the super-user', ('', 'date: no permission\n', 2, 0), (out, err, rc, os.path.getsize(wtmp)))
+
+# date as people write it (M65 round): with a /etc/default/date made here, or
+# none; uptime from the ticks since the start (XSIM_TICKS) and utmp's users
+ddef = f'{tmp}/defdate'
+dm2 = dict(dm, XSIM_MAP=dm['XSIM_MAP'] + f',/etc/default/date={ddef}')
+def date2(args, defs=None):
+    if defs is None:
+        if os.path.exists(ddef): os.remove(ddef)
+    else:
+        open(ddef, 'w').write(defs)
+    return runenv('date', args, dict(dm2, XSIM_NOW=str(t98)))
+for args, when in ((['3:36', 'PM'], (1998, 10, 11, 15, 36)), (['3:36pm'], (1998, 10, 11, 15, 36)),
+                   (['3', 'PM'], (1998, 10, 11, 15, 0)), (['12:00', 'AM'], (1998, 10, 11, 0, 0)),
+                   (['12:30', 'p.m.'], (1998, 10, 11, 12, 30)), (['15:36'], (1998, 10, 11, 15, 36)),
+                   (['1536'], (1998, 10, 11, 15, 36)), (['10/14', '9:05', 'AM'], (1998, 10, 14, 9, 5)),
+                   (['9:05', 'AM', '10/14'], (1998, 10, 14, 9, 5)), (['10/14/26', '9:05'], (2026, 10, 14, 9, 5)),
+                   (['10/14/2026', '3:36', 'pm'], (2026, 10, 14, 15, 36)), (['2026-10-14', '15:36'], (2026, 10, 14, 15, 36)),
+                   (['2000-02-29', '1:00', 'a'], (2000, 2, 29, 1, 0))):
+    out, err, rc = date2(args)
+    want = datetime.datetime(*when, tzinfo=la)
+    check(f'date {" ".join(args)}', (want.strftime('%a %b %e %H:%M:%S %Z %Y\n'), '', 0), (out, err, rc))
+out, err, rc = date2(['10/14'])
+check('date 10/14: the date set, the time of day kept', 'Wed Oct 14 15:00:21 PDT 1998\n', out)
+out, err, rc = date2(['14/10', '9:05'], 'CLOCK=24\nDATE=dmy\n')
+check('date 14/10 9:05 with DATE=dmy: day/month', 'Wed Oct 14 09:05:00 PDT 1998\n', out)
+check('date 10/14 with DATE=dmy: no 14th month', 2, date2(['10/14'], 'DATE=dmy\n')[2])
+for bad in (['13:00', 'PM'], ['0:30', 'AM'], ['2026-14-10'], ['10/14', '25:00'], ['02/29/2001'], ['9:5'], ['3'],
+            ['10/14', '10/15'], ['9:05', '10:05'], ['3:36', 'PX'], ['10/14/202'], ['2026-1-1-1']):
+    check(f'date {" ".join(bad)}: not a time', ('', 'date: bad conversion\n', 2), date2(bad))
+
+um = {'XSIM_ENV': 'TZ=PST8PDT', 'XSIM_NOW': str(t98), 'XSIM_MAP': f'/etc/utmp={utmp},/etc/default/date={ddef}'}
+open(utmp, 'wb').write(ut('root', 'console', 52, 7, t98) + ut('LOGIN', 'tty03', 31, 6, t98) + ut('alex', 'tty02', 30, 7, t98))
+if os.path.exists(ddef): os.remove(ddef)
+for ticks, want in ((20 * (2 * 86400 + 4 * 3600 + 7 * 60 + 30), ' 3:00 PM  up 2 days,  4:07,  2 users\n'),
+                    (20 * (3 * 3600), ' 3:00 PM  up 3 hrs,  2 users\n'), (20 * 3600, ' 3:00 PM  up 1 hr,  2 users\n'),
+                    (20 * 12 * 60, ' 3:00 PM  up 12 mins,  2 users\n'), (20 * 61, ' 3:00 PM  up 1 min,  2 users\n'),
+                    (20 * 30, ' 3:00 PM  up 30 secs,  2 users\n'), (20 * 86400, ' 3:00 PM  up 1 day,  2 users\n'),
+                    (0xffffffff, ' 3:00 PM  up 2485 days, 12:19,  2 users\n')):
+    check(f'uptime after {ticks} ticks', (want, 0), runenv('uptime', [], dict(um, XSIM_TICKS=str(ticks)))[0::2])
+open(ddef, 'w').write('CLOCK=24\n')
+open(utmp, 'wb').write(ut('alex', 'tty02', 30, 7, t98))
+check('uptime with CLOCK=24 and one user', ' 15:00  up 3 hrs,  1 user\n',
+      runenv('uptime', [], dict(um, XSIM_TICKS=str(20 * 3 * 3600)))[0])
+check('uptime -x: usage', 2, runenv('uptime', ['-x'], um)[2])
+
+# asktime: the answer typed on its standard input
+def ask(inp, now=t98, defs=None, **env):
+    if defs is None:
+        if os.path.exists(ddef): os.remove(ddef)
+    else:
+        open(ddef, 'w').write(defs)
+    r = subprocess.run(SIM + [f'{ROOT}/build/asktime'], input=inp.encode(), capture_output=True, cwd=tmp,
+                       env=dict(os.environ, **dict(dm2, XSIM_NOW=str(now), **env)))
+    return r.stdout.decode('latin1'), r.returncode
+head = '\nCurrent System Time is Sun Oct 11 15:00:21 PDT 1998, 3:00 PM\nEnter the time as 3:36 PM or 10/14 9:05 AM, or Return to keep it: '
+open(wtmp, 'wb').close()
+check('asktime, Return: the time kept, nothing written', (head, 0, 0), ask('\n') + (os.path.getsize(wtmp),))
+check('asktime, no answer at all (end of input): the time kept', (head, 0), ask(''))
+for inp, when in (('5:36 PM', (1998, 10, 11, 17, 36)), ('10/14 9:05 AM', (1998, 10, 14, 9, 5)),
+                  ('2026-10-14 15:36', (2026, 10, 14, 15, 36)), ('1325', (1998, 10, 11, 13, 25)),
+                  ('141525', (1998, 10, 14, 15, 25)), ('10141525', (1998, 10, 14, 15, 25)),
+                  ('2610141525', (2026, 10, 14, 15, 25)), ('9810141525', (1998, 10, 14, 15, 25))):
+    w = datetime.datetime(*when, tzinfo=la)
+    hm12 = f'{w.hour % 12 or 12}:{w.minute:02d} {"AM" if w.hour < 12 else "PM"}'
+    check(f'asktime, {inp}', (head + 'The time is now ' + w.strftime('%a %b %e %H:%M:%S %Z %Y') + ', ' + hm12 + '\n', 0),
+          ask(inp + '\n'))
+out, rc = ask('soon\n13:00 PM\n10/14 9:05 AM\n')
+check('asktime, not a time twice, then one', head + 'That is not a time; try again, or Return to keep it: ' * 2 +
+      'The time is now Wed Oct 14 09:05:00 PDT 1998, 9:05 AM\n', out)
+check('asktime, not a time, then Return', head + 'That is not a time; try again, or Return to keep it: ', ask('soon\n\n')[0])
+check('asktime with CLOCK=24 and DATE=dmy: the examples and the time of day so',
+      '\nCurrent System Time is Sun Oct 11 15:00:21 PDT 1998, 15:00\nEnter the time as 15:36 or 14/10 09:05, or Return to keep it: ',
+      ask('\n', defs='CLOCK=24\nDATE=dmy\n')[0])
+check('asktime, not root', head + 'Only root can set the clock.\n', ask('5:36 PM\n', XSIM_UID='200')[0])
 
 shutil.rmtree(tmp)
 print(f'{count} checks, {fails} failures: ' + ('ALL PASS' if not fails else 'FAILED'))

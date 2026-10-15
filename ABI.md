@@ -148,8 +148,28 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   output and asks for `[yymmdd]hhmm`, turns the answer into date's form with
   /lib/cvtdate and sets it with `date`; with a real-time clock it uses
   /etc/setclock. With this project's date in /bin, the boot prompt shows the
-  date right past 1999 (M64). Whether cvtdate passes a year past 1999 on is
-  not yet tried.
+  date right past 1999 (M64).
+- asktime (M65): `-a`, which /etc/rc gives when it starts by itself
+  (autoflag=-a, its output also to the boot log through tee), makes it give
+  up after 30 seconds (a background sleep sends it SIGALRM). If /dev/clock
+  can be read, it sets the clock from `/etc/setclock`'s output first, and
+  afterwards gives the clock to setclock as `date +%m%d%H%M%y`. An empty
+  answer keeps the time; any other goes through /lib/cvtdate to `date`, and
+  it asks again ("Try again: ") until date takes one.
+- /lib/cvtdate turns `[yymmdd]hhmm` into date's `mmddhhmm[yy]`: hhmm, ddhhmm,
+  mmddhhmm, yymmddhhmm; it says "cvtdate: bad conversion", status 1, for
+  anything else. Past 1999 it goes wrong: a year 26 or 00 comes out as 70
+  (1970), and with the clock in 2026 it gives the year as 126 and the day a
+  day ahead (M65). This project's /etc/asktime replaces it and does not use it.
+- This project's /etc/asktime (M66, bin, 700): it shows the time with the time
+  of day as `12:00 PM`, takes `5:36 PM`, answers `soon` with "That is not a
+  time; try again", takes XENIX's `2610141525` as October 14, 2026, 3:25 PM,
+  and with `-a` and no answer keeps the time. date took all of 3:36 PM,
+  10/14 9:05 AM, 2026-10-14 15:36, 10/14/26 9:05, 1536 and 1013120098, and
+  refused 13:00 PM and 2026-14-10, status 2 (M66).
+- /etc/default holds backup, boot, cron, dumpdir, login, lpd, micnet,
+  mkuser, msdos, passwd, restor and tar (bin's, 644; cron 600); no date, so
+  this project's /etc/default/date is new.
 
 ## Installation sets (custom), verified with `custom -d`
 - `custom`'s Development System entry installs two permissions lists: the
@@ -170,6 +190,12 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   moved to D02 ("tar: 13 file(s) not extracted"), and with the old one-disk list it
   never asked for D02. Removing both names of the old list first makes it read the
   new one (verified: D01, D02 and N05 were then asked for and installed).
+- With only `/etc/perms/soft` removed and the old `/etc/soft.perms` left, custom
+  installed the new disks by the old list, without a message: the files the
+  old list named came from the new disks (the new /bin/date), and those it did
+  not name (uptime, /etc/asktime, /etc/default/date, two manual pages) were
+  left out. `rm -f /etc/perms/soft /etc/soft.perms` and installing again put
+  in all 135 names as built (M66).
 
 - `custom`'s package menu prints each `#!` line's description from column 32
   (the name, Inst and Size columns at tab stops), so a description longer than
@@ -227,12 +253,29 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
   Tested on XENIX: absolute and relative names, `..`, `../tmp`, a bare `cd`,
   `pushd` and `popd`, and a directory that does not exist (the prompt stays).
 - `uname -n` prints `(empty)` when no node name has been set, and uname has no
-  `-S` to set one (its usage: `[-snrvmdupal]`). The machine's name, for Micnet
+  `-S` to set one (its usage: `[-snrvmdupal]`). The kernel keeps what uname
+  prints in `_utsname` (5938 in this kernel's data), a System V utsname of
+  9-byte fields: sysname at 0, nodename at 9, release at 18, version at 27,
+  machine at 36; `_uts3name`, at 6006, is a second copy laid out the same, for
+  XENIX 3 programs. Root can write /dev/kmem. The serial number that
+  `uname -a` prints is elsewhere (M65, tests/m65/utsprobe.c, which reports
+  only where uname's answers are, never what they say). The machine's name, for Micnet
   and UUCP, is the first line of /etc/systemid (`xenix86` here, bin's, 644).
+- `hostname name`, writing the nine bytes at 9 in both through /dev/kmem, sets
+  what `uname -n` prints: empty before, `xenix86` after, and still so in the
+  same boot (M66). It starts empty at each boot (M65); /etc/asktime gives it
+  the name again then, not yet seen at a real start.
+- uptime, from times() (20 ticks a second since the start, which setting the
+  clock does not move), printed ` 3:51 AM  up 12:31,  1 user` (M66).
 - csh has no `unsetenv` ("unsetenv: Command not found."). A `switch` takes
   variables in its `case` labels (`case "$home"/*:`). `$cwd:` followed by a
   space is "Variable syntax": a colon after a variable starts a modifier, so
   write `${cwd}:` (M61, M62).
+- There is a /etc/cshrc, XENIX's own (bin, 644, 156 bytes), so csh most
+  likely reads it before each user's .cshrc. With `setenv HOST "`hostname`"`
+  added to it, a C shell login had `$HOST` (M66; that account's own .login
+  was not checked for the same line). sh at login reads /etc/profile: with
+  `HOST=`hostname`; export HOST` added, root's sh had `$HOST` (M66).
 - csh keeps a history: after `set history = 5`, `history` lists the commands
   typed, numbered (M64, `csh -f -i` reading them).
 - A script whose first character is `#` is run by csh, not sh, so an sh script

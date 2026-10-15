@@ -15,17 +15,33 @@ XENIX keeps the machine's name as the first line of /etc/systemid, the
 file Micnet and UUCP read it from, and that is where hostname reads and
 writes it. Any lines after the first are left as they are.
 .PP
+Setting the name also gives it to the kernel, as the node name that
+.B uname \-n
+and
+.B uname \-a
+print, by writing it into the kernel's memory through /dev/kmem. The
+kernel forgets it when the machine is started again, and
+.BR asktime (1)
+gives it back at every start.
+.PP
 The C shell prompt that mkuser gives new accounts shows this name.
 .SH FILES
 .TP 16
 /etc/systemid
 the machine's name, on its first line
+.TP
+/xenix
+where in the kernel the node name is
+.TP
+/dev/kmem
+the kernel's memory
 .SH DIAGNOSTICS
 The exit status is 0 when the name was printed or set, 1 when
-/etc/systemid could not be read or written or the name is not a name,
-and 2 after a mistake in the arguments.
+/etc/systemid could not be read or written, the name is not a name, or
+the kernel's node name could not be set, and 2 after a mistake in the
+arguments.
 .SH SEE ALSO
-uname(1)
+asktime(1), uname(1)
 .SH HISTORY
 A
 .B hostname
@@ -33,7 +49,4 @@ command appeared in 4.2BSD.
 .SH AUTHORS
 This hostname was written for the xenix86-devsys system tools.
 .SH BUGS
-XENIX 2.1.3's kernel has a node name of its own, which
-.B uname \-n
-prints, but nothing sets it, so it stays empty whatever hostname is
-given.
+A name is at most 8 characters, the most the kernel's node name holds.

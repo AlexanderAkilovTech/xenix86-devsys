@@ -96,8 +96,8 @@ python3 tests/unit/test_man.py > /tmp/xds_man.out 2>&1 && ok "man and its page f
 
 for p in df whereis ls; do ./build.sh cmd/$p.c > /dev/null; done
 ./build.sh cmd/xtop.c cmd/hwprobe.s > /dev/null
-python3 tests/unit/test_tools.py > /tmp/xds_tools.out 2>&1 && ok "df, whereis, hostname, cursor, lastlogin and date ($(tail -1 /tmp/xds_tools.out))" \
-	|| { bad "df, whereis, hostname, cursor, lastlogin and date"; head -20 /tmp/xds_tools.out; }
+python3 tests/unit/test_tools.py > /tmp/xds_tools.out 2>&1 && ok "df, whereis, hostname, cursor, lastlogin, date, uptime and asktime ($(tail -1 /tmp/xds_tools.out))" \
+	|| { bad "df, whereis, hostname, cursor, lastlogin, date, uptime and asktime"; head -20 /tmp/xds_tools.out; }
 if [ "$(id -u)" = 0 ]; then
 	python3 tests/unit/test_ls.py > /tmp/xds_ls.out 2>&1 && ok "ls against XENIX's ($(tail -1 /tmp/xds_ls.out))" \
 		|| { bad "ls"; head -20 /tmp/xds_ls.out; }
