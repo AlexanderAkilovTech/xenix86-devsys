@@ -53,6 +53,7 @@ cp skel/date.default $R/etc/default/date
 cp skel/sudo.default $R/etc/default/sudo
 python3 tools/aout2xout.py --strip build/asktime.aout $R/etc/asktime > /dev/null
 ln $R/usr/bin/xtop $R/usr/bin/top
+ln $R/usr/bin/xtop $R/usr/bin/xtfetch
 cp skel/cdprompt.csh skel/setprompt.csh $R/usr/lib/
 : > $R/usr/adm/lastlog		# lastlogin's records: empty until the first login
 : > $R/usr/adm/sudolog		# sudo's log: empty until it is first used

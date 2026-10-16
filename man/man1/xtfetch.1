@@ -1,0 +1,34 @@
+.TH XTFETCH 1
+.SH NAME
+xtfetch \- the machine at a glance
+.SH SYNOPSIS
+.B xtfetch
+[
+.B \-m
+]
+.SH DESCRIPTION
+.B xtfetch
+draws a PC/XT on the left and prints beside it what the machine is and
+has: the account and the machine's name, the operating system, the
+processor (an Intel 8088 or an NEC V20), the 8087, the memory in use,
+the root file system's space, the display, the time up, the users
+logged in, the shell, and the Development System's version.
+.PP
+On the console with a color display (TERM ansi) it is in color; with
+.B \-m
+it is not, for other terminals.
+.PP
+The processor is told by a shift: a V20 shifts by the low 5 bits of the
+count, as the 80186 does, and an 8088 by all of it.
+.PP
+.B xtfetch
+is
+.BR xtop (1)
+under another name, and reads the kernel the same way.
+.SH SEE ALSO
+xtop(1), uptime(1), df(1)
+.SH HISTORY
+Written for xenix86-devsys. The idea is neofetch's, by Dylan Araps,
+and the reading of the system in C, not in a shell, is fastfetch's. The
+PC/XT drawn on the left was designed for xenix86-devsys by Alexander
+Akilov.

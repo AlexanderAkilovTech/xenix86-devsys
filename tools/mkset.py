@@ -42,7 +42,7 @@ TOOLS = [('x', 0o1711, 'bin/bin', './bin/ls', ['./bin/l', './bin/lc', './bin/lf'
          ('x', 0o4711, 'sysinfo/bin', './bin/df', []),
          ('x', 0o711, 'bin/bin', './bin/date', []),
          ('x', 0o711, 'bin/bin', './usr/bin/whereis', []),
-         ('x', 0o4711, 'sysinfo/bin', './usr/bin/xtop', ['./usr/bin/top']),
+         ('x', 0o4711, 'sysinfo/bin', './usr/bin/xtop', ['./usr/bin/top', './usr/bin/xtfetch']),
          ('x', 0o711, 'bin/bin', './usr/bin/hostname', []),
          ('x', 0o711, 'bin/bin', './usr/bin/cursor', []),
          ('x', 0o4711, 'bin/bin', './usr/bin/lastlogin', []),

@@ -388,6 +388,14 @@ SP points at argc, followed by the argv pointers, NULL, then the envp pointers, 
 - The IBM PC's font draws `|` (7C) as a broken bar on the CGA, the MDA and the
   Hercules card alike; the CGA's 8 x 8 font is coarser than the monochrome
   cards' 9 x 14, which is most of why the same screen reads more easily on them.
+- The console's escapes take one number each: `\033[1m\033[32m` works,
+  `\033[1;32m` is ignored (M72). `\033[0m` turns bold off but leaves the
+  color: a program that colors anything sets `\033[37m` again itself (M72b).
+- xtfetch's trap (M72), hang (M72c) and second, plain copy of its screen
+  (M72b, M72d) were one bug of its own, not the console's: the color bar's
+  line, about 150 bytes, overran an 80-byte buffer on the stack. (M72d's
+  writing a line at a time, for a theory that an escape split across two
+  writes hangs the console, is kept but proves nothing about that.)
 
 ## Speed on the XT (86Box, measured with tests/tm.c, M42 to M45)
 - XENIX 2.1.3 has no `time` command (csh's builtin aside); tests/tm.c runs a

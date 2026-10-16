@@ -123,6 +123,10 @@ unsigned maxmem, freemem, nswap, freeswap;
 unsigned physk;			/* the machine's memory, in K */
 unsigned incore;		/* clicks the processes in memory have */
 
+int	fflag;		/* xtfetch */
+#define	UTMPF	"/etc/utmp"
+#define	XDSVER	"0.12.0-alpha"
+extern char *strrchr();
 int	bflag, lines = 25, cols = 80, delay = 3, count = -1;
 int	sortby = 'P';
 int	cancolor;		/* the terminal has the console's colors */
@@ -1506,6 +1510,161 @@ char *s;
 }
 #endif
 
+/* xtfetch: xtop under another name (a link), the machine at a glance,
+ * neofetch's way: a PC/XT drawn on the left, what xtop knows on the right,
+ * printed once. In color on the console (TERM ansi, a color display),
+ * unless -m. */
+char	*xtlogo[13] = {
+	"  .------------------------.  ",
+	"  | .--------------------. |  ",
+	"  | | % _                | |  ",
+	"  | |                    | |  ",
+	"  | |                    | |  ",
+	"  | '--------------------' |  ",
+	"  '----------.  .----------'  ",
+	"  .----------'  '----------.  ",
+	"  | [=======]  [=======] o |  ",
+	"  '------------------------'  ",
+	" .--------------------------. ",
+	"/ ######################## /  ",
+	"'--------------------------'  " };
+
+/* (the console takes one number in each escape: \033[1m\033[32m, not
+ * \033[1;32m, which it ignores, M72) */
+/* the logo's line r, its parts colored: the case gray, the screen's
+ * prompt green, the power light red, the keys white */
+logoline(r, c)
+int r, c;
+{
+	register char *s = xtlogo[r];
+	char *at, *was = "";
+
+	if (!c) {
+		fputs(s, stdout);
+		return;
+	}
+	for (; *s; s++) {
+		if (r == 2 && (*s == '%' || *s == '_'))
+			at = "\033[0m\033[1m\033[32m";
+		else if (r == 8 && *s == 'o')
+			at = "\033[0m\033[1m\033[31m";
+		else if (r == 11 && *s == '#')
+			at = "\033[0m\033[1m\033[37m";
+		else
+			at = "\033[0m\033[37m";
+		if (at != was)
+			fputs(was = at, stdout);
+		putchar(*s);
+	}
+	fputs("\033[0m\033[37m", stdout);
+}
+
+/* the name of the account, and its shell, from /etc/passwd */
+pwlook(uid, nm, sh)
+int uid;
+char *nm, *sh;
+{
+	FILE *f;
+	char line[200], *fld[7], *p;
+	int i;
+
+	strcpy(nm, "?");
+	*sh = 0;
+	if ((f = fopen("/etc/passwd", "r")) == NULL)
+		return;
+	while (fgets(line, sizeof line, f)) {
+		if ((p = strchr(line, '\n')) != 0)
+			*p = 0;
+		for (i = 0, p = line; i < 7; i++) {
+			fld[i] = p;
+			if ((p = strchr(p, ':')) == 0)
+				break;
+			*p++ = 0;
+		}
+		if (i < 6 || atoi(fld[2]) != uid)
+			continue;
+		strncpy(nm, fld[0], 15);
+		nm[15] = 0;
+		strncpy(sh, *fld[6] ? fld[6] : "/bin/sh", 39);
+		sh[39] = 0;
+		break;
+	}
+	fclose(f);
+}
+
+fetch(c)
+int c;
+{
+	static char info[13][200];	/* the color bar's line is about 150
+					 * bytes: 80 overran it (M72d) */
+	char host[40], nm[16], sh[40], *p, *b, *e;
+	int fd, n, i, nusers = 0;
+	unsigned char u[36];
+	long kb, fr;
+	FILE *f;
+	register struct fsys *fs;
+
+	pwlook(getuid(), nm, sh);
+	if ((p = getenv("SHELL")) != 0 && *p)
+		strncpy(sh, p, 39);
+	strcpy(host, "?");
+	if ((fd = open("/etc/systemid", 0)) >= 0) {
+		if ((n = read(fd, host, sizeof host - 1)) > 0) {
+			host[n] = 0;
+			if ((p = strchr(host, '\n')) != 0)
+				*p = 0;
+		}
+		close(fd);
+	}
+	if ((f = fopen(UTMPF, "r")) != NULL) {
+		while (fread((char *)u, 36, 1, f) == 1)
+			if (u[26] == 7 && u[0])
+				nusers++;
+		fclose(f);
+	}
+	b = c ? "\033[1m\033[36m" : "";
+	e = c ? "\033[0m\033[37m" : "";	/* (its 0m leaves the color: M72b) */
+	for (i = 0; i < 13; i++)
+		info[i][0] = 0;
+	sprintf(info[0], "%s%s%s@%s%s%s", b, nm, e, b, host, e);
+	memset(info[1], '-', n = strlen(nm) + 1 + strlen(host));
+	info[1][n] = 0;
+	sprintf(info[2], "%sOS%s: XENIX System V 2.1.3", b, e);
+	sprintf(info[3], "%sCPU%s: %s", b, e, cpuprobe() ? "NEC V20" : "Intel 8088");
+	sprintf(info[4], "%sFPU%s: %s", b, e, fpu);
+	sprintf(info[5], "%sMemory%s: %uK used of %uK", b, e,
+		(maxmem - freemem + (physk * 64 > maxmem ? physk * 64 - maxmem : 0) + 32) / 64,
+		physk ? physk : maxmem / 64);
+	for (fs = fsys; fs < fsys + nfs; fs++)
+		if (strcmp(fs->dir, "/") == 0 && fs->blocks)
+			break;
+	if (fs < fsys + nfs) {
+		kb = fs->blocks / 2;
+		fr = fs->free / 2;
+		sprintf(info[6], "%sDisk (/)%s: %ldK used of %ldK", b, e, kb - fr, kb);
+	}
+	sprintf(info[7], "%sVideo%s: %s", b, e, *video ? video : "not the console");
+	sprintf(info[8], "%sUptime%s: %s", b, e, uptime());
+	sprintf(info[9], "%sUsers%s: %d", b, e, nusers);
+	sprintf(info[10], "%sShell%s: %s", b, e, sh);
+	sprintf(info[11], "%sDev system%s: xenix86-devsys %s", b, e, XDSVER);
+	if (c) {
+		p = info[12];
+		for (i = 0; i < 8; i++, p += strlen(p))
+			sprintf(p, "%s\033[3%dm%c%c%c\033[0m\033[37m", i == 0 ? "\033[1m" : "", i, 0333, 0333, ' ');
+		/* (the console's IBM characters: 0333 is a full block) */
+	}
+	putchar('\n');
+	for (i = 0; i < 13; i++) {
+		logoline(i, c);
+		fputs("  ", stdout);
+		fputs(info[i], stdout);
+		putchar('\n');
+		fflush(stdout);	/* a line a write */
+	}
+	putchar('\n');
+}
+
 main(argc, argv)
 int argc;
 char **argv;
@@ -1516,8 +1675,21 @@ char **argv;
 	int i, n, pid, sig, want = 0, vcolor;
 	char vname[10];
 
+	if ((s = strrchr(argv[0], '/')) == 0)
+		s = argv[0];
+	else
+		s++;
+	if (strcmp(s, "xtfetch") == 0) {
+		fflag++;
+		bflag++;
+	}
 	for (i = 1; i < argc; i++) {
-		if (strcmp(argv[i], "-b") == 0)
+		if (fflag && strcmp(argv[i], "-m") == 0)
+			want = 'm';
+		else if (fflag) {
+			fprintf(stderr, "usage: xtfetch [-m]\n");
+			exit(2);
+		} else if (strcmp(argv[i], "-b") == 0)
 			bflag++;
 		else if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "-m") == 0)
 			want = argv[i][1];
@@ -1627,6 +1799,15 @@ char **argv;
 	if (!bflag)
 		clearscr();
 	PH("clear");
+	if (fflag) {
+		sample();
+		fslook();
+		term = getenv("TERM");
+		fetch(want != 'm' && vcolor > 0 && term && strcmp(term, "ansi") == 0);
+		if (kfdirty)
+			keep();
+		exit(0);
+	}
 	sample();
 	PH("sample1");
 	if (bflag)

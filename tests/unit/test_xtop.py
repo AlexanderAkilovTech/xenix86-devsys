@@ -453,6 +453,38 @@ with open(f'{tmp}/kmem', 'r+b') as f:
     f.write(struct.pack('<l', boot))
 r = subprocess.run(SIM + ['-x'], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 check('a bad option', r.returncode == 2)
+# xtfetch: the same program under that name, printed once
+shutil.copy(f'{ROOT}/build/xtop', f'{tmp}/xtfetch')
+open(f'{tmp}/systemid', 'w').write('xenix86\n')
+fenv = dict(env, XSIM_MAP=env['XSIM_MAP'] + f',/etc/systemid={tmp}/systemid', TERM='ansi', SHELL='/bin/csh')
+r = subprocess.run([sys.executable, f'{ROOT}/tools/xsim.py', f'{tmp}/xtfetch', '-m'], env=fenv,
+                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+fo = r.stdout.decode('latin1')
+check('xtfetch -m runs', r.returncode == 0, repr(fo[-300:]))
+for want in ('@xenix86', 'OS: XENIX System V 2.1.3', 'CPU: ', 'FPU: ', 'Memory: 542K used of 640K',
+             'Disk (/): ', 'Uptime: ', 'Shell: /bin/', 'xenix86-devsys 0.12.0-alpha', "'--------------------------'"):
+    check('xtfetch shows ' + want, want in fo, repr(fo))
+check('xtfetch -m has no escapes', '\033' not in fo)
+check('xtfetch has no serial', 'serial' not in fo.lower())
+# in color, as on the console: printed once (M72d printed twice, its color
+# bar's line overrunning its buffer), every escape one number, all 8 blocks,
+# and gray again at the end (the console's 0m leaves the color)
+import re
+r = subprocess.run([sys.executable, f'{ROOT}/tools/xsim.py', f'{tmp}/xtfetch'],
+                   env=dict(fenv, XSIM_TTY='0 1', XSIM_COLOR='1'), stdout=subprocess.PIPE)
+co = r.stdout.decode('latin1')
+check('xtfetch in color runs', r.returncode == 0)
+plain = re.sub(r'\033\[\d+m', '', co)
+check('xtfetch in color: printed once', plain.count('@xenix86') == 1 and plain.count('Dev system') == 1, repr(co[-400:]))
+check('xtfetch in color: one number an escape', not re.search(r'\033\[\d+;', co))
+check('xtfetch in color: 8 blocks', co.count('\333\333') == 8)
+check('xtfetch in color: gray at the end', co.rstrip('\n').endswith('\033[0m\033[37m'))
+r = subprocess.run([sys.executable, f'{ROOT}/tools/xsim.py', f'{tmp}/xtfetch', '-m'],
+                   env=dict(fenv, XSIM_TTY='0 1', XSIM_COLOR='1'), stdout=subprocess.PIPE)
+check('xtfetch -m on a color console: no escapes, once', '\033' not in r.stdout.decode('latin1')
+      and r.stdout.decode('latin1').count('@xenix86') == 1)
+r = subprocess.run([sys.executable, f'{ROOT}/tools/xsim.py', f'{tmp}/xtfetch', '-b'], env=fenv, stdout=subprocess.PIPE)
+check('xtfetch: a bad option', r.returncode == 2)
 if os.environ.get('XTOP_KEEP'):     # keep the made-up kernel, to run xtop on it by hand
     print(out)
     print('XSIM_MAP=' + env['XSIM_MAP'])

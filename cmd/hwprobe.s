@@ -71,3 +71,14 @@ _outb:
 	out	dx,al
 	pop	bp
 	ret
+
+! cpuprobe()  1 for an NEC V20 or V30 (or an 80186), 0 for an 8088 or 8086:
+! the later chips use only the low 5 bits of a shift's count in CL, so a
+! shift by 33 is a shift by 1; an 8088 shifts all 33 times, leaving 0.
+	export	_cpuprobe
+_cpuprobe:
+	mov	cl,#33
+	mov	ax,#1
+	shl	ax,cl
+	shr	ax,#1
+	ret

@@ -97,6 +97,10 @@ Development and testing happen in 86Box on an emulated XT.
       Since v0.10.1: `sudo` (who may, and whose password, in /etc/default/sudo),
       `shutdown -h now`, `crypt` and `getpass` in the C library, `$USER` and
       `$LOGNAME`, and a block cursor at every start (verified on XENIX, M70, M71)
+      Since v0.11.0: `xtfetch`, the machine at a glance after neofetch: a PC/XT
+      drawn beside the account, XENIX, the processor (8088 or NEC V20), the 8087,
+      memory, disk, display and time up, in the console's colors, or `-m` without
+      (verified on XENIX, M72 to M72d)
 - [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
       registers when it switches processes (measured: two programs using it at once
       corrupt each other's results), so it can only ever be an option
@@ -168,8 +172,8 @@ out the result under `build/xenix/root` as it installs: `cc`, `make`, `as86`, `l
 `ar86`, `nm`, `size`, `strip`, `clear` and `man` in `/usr/bin`; the compiler passes, the
 optimizer `copt` and its rules, `crt0.o`, `libc.a`, `libm.a`, `libtermcap.a` and
 `libcurses.a` in `/usr/lib/cc`; headers in `/usr/include`; the formatted manual in
-`/usr/man`; and the system tools: `ls`, `df` and `date` in `/bin`, `whereis`, `xtop`,
-`hostname`, `cursor`, `lastlogin` and `uptime` in `/usr/bin`, `asktime` and
+`/usr/man`; and the system tools: `ls`, `df` and `date` in `/bin`, `whereis`, `xtop`
+(and `xtfetch`), `hostname`, `cursor`, `lastlogin` and `uptime` in `/usr/bin`, `asktime` and
 `default/date` in `/etc`, and the shell start-up files in `/usr/lib/mkuser`. Then it makes that tree
 into an installable set under `build/xenix/set`: the disk images `D01.img`, `D02.img`
 and `D03.img` and the permissions list `soft.perms` they carry. The build is
