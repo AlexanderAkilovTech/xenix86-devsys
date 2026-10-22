@@ -24,13 +24,14 @@ older ones change their own line.
 5. Done on XENIX (M72 to M72f): xtfetch, xtop under that name: the PC/XT,
    the console's colors, the V20 told from the 8088 by AAD (M72f: NEC V20
    with an 8087, and Intel 8088 without, in 86Box; the Wyse to come).
-   M72-M72e committed; M72f's CPU test to commit. Its config file
+   Committed. Its config file
    (~/.xtfetchrc, /etc/default/xtfetch) when wanted.
 5b. Found by Alex on XENIX: `kill` (signal 15) from another console left
    xtop's last frame on the screen and the tty raw, since xtop caught
    SIGINT, SIGQUIT and SIGHUP but not SIGTERM. Fixed: SIGTERM ends it as q
    does. The simulator can now send a signal (XSIM_KILL), and the test
-   fails without the fix. M73 to run: kill it with sudo from alex.
+   fails without the fix. Done on XENIX (M73: 144/144 files as built;
+   killed from a second console, a clean prompt). Committed.
 6. The text processing system (to be scoped first). Found by Alex: XENIX's
    custom has a slot for it, `custom -t`, as `-d` is the Development
    System's. First learn what -t expects, as was done for -d: the name of
@@ -126,8 +127,16 @@ older ones change their own line.
   as the '80s did: to decide. The cursor's own, ~/.cursorrc, read by
   cursor and asktime at login: `shape = block` or `shape = line` (the
   underscore), and `blink = 1` or `blink = 0` (if the console's
-  hardware can stop it blinking: to check). Simple `name = value` lines, 0 or 1 for on and off; one shape
-  setting, not one switch per shape, so two can never both be on. Names
-  within XENIX's 14 characters. /etc/default/ for the system-wide default.
+  hardware can stop it blinking: to check). Simple `name = value` lines,
+  0 or 1 for on and off; one shape setting, not one switch per shape, so
+  two can never both be on. Names within XENIX's 14 characters.
+  /etc/default/ for the system-wide default. xtop already keeps its theme
+  in ~/.xtoprc (the c key): decide once, for xtop, xtfetch and the cursor
+  alike, and move xtop's file if ~/.config/ wins.
+  First, the installer (found M73): each custom -d puts its own copies of
+  /etc/default/sudo and /etc/default/date in place, and empty sudolog,
+  lastlog and xtop.syms, so a reinstall wipes who may use sudo, the date
+  format, and the logs. Leave a file that is already there alone, as
+  installers do with settings, before adding more config files.
 - Name ideas: xtfetch (system info), xtsh (shell), XTFS (file system;
   XtreemFS already uses xtfs), XPhreax (windowing), xtify, XTSI.
