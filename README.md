@@ -100,17 +100,34 @@ Development and testing happen in 86Box on an emulated XT.
       Since v0.11.0: `xtfetch`, the machine at a glance after neofetch: a PC/XT
       drawn beside the account, XENIX, the processor (8088 or NEC V20), the 8087,
       memory, disk, display and time up, in the console's colors, or `-m` without
-      (verified on XENIX, M72 to M72e)
-- [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
-      registers when it switches processes (measured: two programs using it at once
-      corrupt each other's results), so it can only ever be an option
+      (verified on XENIX, M72 to M72e). The V20 is now told from the 8088 by how
+      it runs AAD, and `xtop` leaves the screen and terminal clean when it is
+      killed from another terminal (verified on XENIX)
+
+Next, in the order of [TODO.md](TODO.md):
+
+- [ ] Text Processing System, installing with `custom -t` as SCO's own would have
+- [ ] A small MicroEMACS-style editor: no modes, the arrow keys and Backspace as
+      expected, the keys shown on screen
+
+Later:
+
+- [ ] Config files for the tools (xtop, xtfetch, the cursor), with the installer
+      leaving settings already in place alone
+- [ ] Languages beyond C and assembly: FORTRAN (using the 8087), COBOL, BASIC
+      (GW-BASIC), Pascal, ALGOL, BCPL, B and LISP, each scoped first
 - [ ] `lex` and `yacc`
 - [ ] Remaining standard C headers (stdio.h, stdlib.h, string.h, ctype.h, errno.h,
       signal.h, setjmp.h, time.h, fcntl.h, unistd.h, math.h, float.h and values.h are
       done; `sys/` is SCO's, from N5)
-- [ ] Languages beyond C and assembly: FORTRAN (using the 8087), COBOL and BASIC subsets,
-      possibly Pascal later
-- [ ] Text Processing System (nroff/troff, tbl, eqn)
+- [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
+      registers when it switches processes (measured: two programs using it at once
+      corrupt each other's results), so it can only ever be an option
+- [ ] A games set (Pong, a falling-blocks game, Zork on a Z-machine interpreter, chess)
+- [ ] A terminal file manager, three columns after yazi
+- [ ] Manual pages for XENIX's own commands, written from what they do
+- [ ] A Whetstone benchmark, with the 8087 and without
+- [ ] TCP/IP over SLIP on the serial port
 
 ## Layout
 
