@@ -186,7 +186,10 @@ change the theme, Color or Monochrome
 show the keys
 .TP
 .B q
-quit; the interrupt key quits too
+quit; the interrupt key quits too, and so does
+.BR kill (1)
+from another terminal, its default signal 15: either way the screen is
+cleared and the terminal left as it was found
 .PP
 Any other key redraws the screen at once. The bottom line shows the keys,
 and the right end of the heading the order of the processes.

@@ -18,8 +18,8 @@ On the console with a color display (TERM ansi) it is in color; with
 .B \-m
 it is not, for other terminals.
 .PP
-The processor is told by a shift: a V20 shifts by the low 5 bits of the
-count, as the 80186 does, and an 8088 by all of it.
+The processor is told by AAD: an 8088 multiplies by the instruction's
+second byte, a V20 always by 10.
 .PP
 .B xtfetch
 is

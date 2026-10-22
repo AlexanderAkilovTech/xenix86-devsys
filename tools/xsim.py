@@ -124,6 +124,13 @@ class Sim:
         try:
             if ax == 1: raise Exit(bx & 0xff)
             elif ax == 3:
+                k = int(os.environ.get('XSIM_KILL') or 0)  # kill(1) from another terminal:
+                if k and bx == 0:                          # the signal arrives while it waits
+                    os.environ['XSIM_KILL'] = ''           # for a key, once
+                    if self.sig[k] > 1:
+                        self.deliver(k); return            # caught: its handler runs
+                    if self.sig[k] == 0:
+                        raise Exit(128 + k)                # not caught: dies on the spot
                 f = self.files.get(bx)
                 if f is None: err = EBADF
                 else:

@@ -100,7 +100,7 @@ Development and testing happen in 86Box on an emulated XT.
       Since v0.11.0: `xtfetch`, the machine at a glance after neofetch: a PC/XT
       drawn beside the account, XENIX, the processor (8088 or NEC V20), the 8087,
       memory, disk, display and time up, in the console's colors, or `-m` without
-      (verified on XENIX, M72 to M72d)
+      (verified on XENIX, M72 to M72e)
 - [ ] An 8087 version of the floating point. XENIX 2.1.3 does not save the 8087's
       registers when it switches processes (measured: two programs using it at once
       corrupt each other's results), so it can only ever be an option

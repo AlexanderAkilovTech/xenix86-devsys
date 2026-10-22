@@ -274,6 +274,23 @@ r3 = subprocess.run(SIM + ['-n', '3', '-d', '1'], env=env, stdin=subprocess.DEVN
                     stderr=subprocess.STDOUT).stdout
 check('nothing sent for a screen with nothing changed', len(r3) == len(r.stdout), f'{len(r3)} {len(r.stdout)}')
 
+# kill from another terminal (M73): xtop catches SIGTERM, kill's default, and
+# leaves as q does, the screen cleared in plain white; a signal it does not
+# catch (16 here) ends it on the spot with the screen left as it was, which is
+# what SIGTERM did before M73 (seen on XENIX: the last frame and the shell's
+# "Terminated" over it, the tty still raw)
+def killed(sig):
+    k = subprocess.run(SIM + ['-n', '50', '-d', '1'], env=dict(env, XSIM_ENV='TERM=ansi', XSIM_KILL=str(sig)),
+                       stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    return k.returncode, k.stdout.decode('latin1')
+kc, ko = killed(15)
+check('kill (SIGTERM): xtop ends as with q', kc == 0, repr((kc, ko[-120:])))
+check('kill (SIGTERM): the screen cleared, plain, at the end',
+      ko.endswith('\033[2J\033[H') and ko.count('\033[2J') >= 2, repr(ko[-60:]))
+kc, ko = killed(16)
+check('a signal not caught still kills it, the screen left as it was',
+      kc == 128 + 16 and ko.count('\033[2J') == 1, repr((kc, ko.count('\033[2J'))))
+
 # Monochrome: chosen with -m, or kept in $HOME/.xtoprc, or the first choice
 # on a monochrome display (an MDA or a Hercules card); no colors, the
 # heading in reverse video, the meters and the keys' letters bright
@@ -461,7 +478,7 @@ r = subprocess.run([sys.executable, f'{ROOT}/tools/xsim.py', f'{tmp}/xtfetch', '
                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 fo = r.stdout.decode('latin1')
 check('xtfetch -m runs', r.returncode == 0, repr(fo[-300:]))
-for want in ('@xenix86', 'OS: XENIX System V 2.1.3', 'CPU: ', 'FPU: ', 'Memory: 542K used of 640K',
+for want in ('@xenix86', 'OS: XENIX System V 2.1.3', 'CPU: Intel 8088', 'FPU: ', 'Memory: 542K used of 640K',
              'Disk (/): ', 'Uptime: ', 'Shell: /bin/', 'xenix86-devsys 0.12.0-alpha', "'--------------------------'"):
     check('xtfetch shows ' + want, want in fo, repr(fo))
 check('xtfetch -m has no escapes', '\033' not in fo)

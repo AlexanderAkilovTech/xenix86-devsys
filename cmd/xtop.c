@@ -1784,6 +1784,7 @@ char **argv;
 		signal(SIGINT, done);
 		signal(SIGQUIT, done);
 		signal(SIGHUP, done);
+		signal(SIGTERM, done);	/* kill's default: leave the tty as found */
 		rawmode(delay);
 	}
 	PH("video+tc");

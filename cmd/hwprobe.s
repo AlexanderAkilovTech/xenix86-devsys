@@ -72,13 +72,19 @@ _outb:
 	pop	bp
 	ret
 
-! cpuprobe()  1 for an NEC V20 or V30 (or an 80186), 0 for an 8088 or 8086:
-! the later chips use only the low 5 bits of a shift's count in CL, so a
-! shift by 33 is a shift by 1; an 8088 shifts all 33 times, leaving 0.
+! cpuprobe()  1 for an NEC V20 or V30, 0 for an Intel 8088 or 8086. AAD
+! (D5 nn) multiplies AH by its second byte and adds AL: Intel's 8088 uses
+! that byte, so AAD 16 on AX 0101 gives 17; NEC's V20 always uses 10, giving
+! 11. (A shift by 33, M72's first test, does not tell them apart: the V20
+! shifts all 33 times too, as 86Box showed with a V20 fitted.)
 	export	_cpuprobe
 _cpuprobe:
-	mov	cl,#33
+	mov	ax,#$0101
+	db	$D5,$10
+	cmp	al,#11
+	je	nec
+	xor	ax,ax
+	ret
+nec:
 	mov	ax,#1
-	shl	ax,cl
-	shr	ax,#1
 	ret
